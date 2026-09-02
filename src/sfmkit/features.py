@@ -1,0 +1,78 @@
+"""Feature detection and matching with SuperPoint + LightGlue.
+
+Isolated behind its own module because it is the only part of the pipeline that
+needs torch and a GPU. Everything else in ``sfmkit`` runs on numpy alone, so the
+tests, the reconstruction and the evaluation never import this.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from pathlib import Path
+
+import numpy as np
+
+from sfmkit.io import save_matches
+from sfmkit.types import Matches
+
+__all__ = ["match_pairs"]
+
+
+def match_pairs(
+    images_dir: Path,
+    pairs: list[tuple[str, str]],
+    out_dir: Path,
+    *,
+    max_keypoints: int = 2048,
+    device: str | None = None,
+    on_pair: Callable[[str, str, int], None] | None = None,
+) -> list[Path]:
+    """Extract features once per image and match every requested pair.
+
+    Features are cached across pairs: with an exhaustive graph over N images
+    there are N(N-1)/2 pairs but only N extractions, and re-extracting per pair
+    (as the original did) wastes most of the GPU time.
+    """
+    import torch
+    from lightglue import LightGlue, SuperPoint
+    from lightglue.utils import load_image, rbd
+
+    torch.set_grad_enabled(False)
+    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    extractor = SuperPoint(max_num_keypoints=max_keypoints).eval().to(dev)
+    matcher = LightGlue(features="superpoint").eval().to(dev)
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = Path(images_dir)
+
+    cache: dict[str, dict] = {}
+
+    def features(name: str) -> dict:
+        if name not in cache:
+            candidates = [images_dir / name, *images_dir.glob(f"{name}.*")]
+            path = next((c for c in candidates if c.is_file()), None)
+            if path is None:
+                raise FileNotFoundError(f"no image named {name} in {images_dir}")
+            cache[name] = extractor.extract(load_image(path).to(dev))
+        return cache[name]
+
+    written: list[Path] = []
+    for a, b in pairs:
+        f0, f1 = features(a), features(b)
+        m01 = matcher({"image0": f0, "image1": f1})
+        r0, r1, rm = (rbd(x) for x in (f0, f1, m01))
+        matches = Matches(
+            image0=a,
+            image1=b,
+            keypoints0=r0["keypoints"].cpu().numpy(),
+            keypoints1=r1["keypoints"].cpu().numpy(),
+            pairs=rm["matches"].cpu().numpy().astype(np.intp),
+            scores=rm["scores"].cpu().numpy(),
+        )
+        path = out_dir / f"{a}__{b}.npz"
+        save_matches(matches, path)
+        written.append(path)
+        if on_pair is not None:
+            on_pair(a, b, matches.n_matches)
+    return written

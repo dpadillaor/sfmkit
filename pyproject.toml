@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sfmkit"
+version = "0.1.0"
+description = "A small, tested Structure-from-Motion library: two-view geometry, feature tracks, incremental reconstruction and bundle adjustment."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24,<2",
+    "scipy>=1.11",
+    "opencv-python>=4.8",
+    "matplotlib>=3.7",
+    "rich>=13.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+match = ["torch>=2.0", "lightglue"]
+dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4"]
+
+[project.scripts]
+sfmkit = "sfmkit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: needs the real dataset or is long-running"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
