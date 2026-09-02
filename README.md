@@ -168,6 +168,26 @@ rather than change. That is a limitation of the method, not a defect in the
 implementation, and the honest reading of the figure is "the facade is
 comparable, the rest is not".
 
+## Container
+
+⚠️ **The `Dockerfile` has not been built or tested** — it was written on a
+machine without Docker. Treat it as a starting point that needs one
+`docker build` before being trusted.
+
+```bash
+docker build -t sfmkit .
+docker compose run --rm sfmkit reconstruct --config configs/valencia_all9.yaml --out runs/all9
+```
+
+The dependency that justifies containerising this project is COLMAP: a system
+binary with an unpleasant dependency tree, without which the reference model
+cannot be regenerated. Python dependencies alone would be adequately served by a
+lockfile.
+
+The build is multi-stage so that build tooling does not reach the runtime image,
+and layers are ordered by change frequency so editing a source file does not
+reinstall PyTorch. Images and run outputs are mounted, never baked in.
+
 ## Design notes
 
 **Every stage reads an explicit input directory and writes an explicit output
