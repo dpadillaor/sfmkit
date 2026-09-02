@@ -154,6 +154,27 @@ sfmkit figures --config configs/valencia_all9.yaml --out runs/all9
 sfmkit ui                               # needs pip install 'sfmkit[tui]'
 ```
 
+### Diagnostics
+
+`sfmkit figures` also renders the per-stage diagnostics: what the matcher
+produced and what geometric verification kept, the epipolar geometry it implies,
+and where the reconstruction projects against where the keypoints actually are.
+
+![Matches, inliers and outliers](docs/figures/matches.png)
+
+*`Img02`–`Img13`: 772 matches, 627 inliers (81%), 145 outliers. The rejected
+matches are not random — they concentrate in the sky and on the repeated
+arcades, which is the signature of repeated structure rather than of a failing
+matcher.*
+
+![Epipolar lines](docs/figures/epipolar.png)
+
+The "before and after bundle adjustment" pair compares two reconstructions that
+genuinely existed: the state saved just before the final global refinement, and
+the state after it. Expect the difference to be small — by that point eight
+incremental bundle adjustments have already run, and most of the correction has
+been made.
+
 ### Change detection
 
 ![Change detection](docs/figures/changes.png)

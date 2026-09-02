@@ -176,6 +176,9 @@ def cmd_reconstruct(args) -> int:
     console.print(table)
 
     io.save_reconstruction(result.reconstruction, Path(args.out) / "reconstruction.npz")
+    if result.before_refinement is not None:
+        io.save_reconstruction(result.before_refinement,
+                               Path(args.out) / "reconstruction_before_refinement.npz")
     io.write_manifest(args.out, "reconstruct", cfg, extra={
         "tracks": stats,
         "n_observations": sum(t.length for t in tracks),
@@ -285,20 +288,85 @@ def cmd_evaluate(args) -> int:
 
 # ------------------------------------------------------------------------ figures
 def cmd_figures(args) -> int:
-    """Render the comparison figures for a finished run."""
+    """Render the figures for a finished run: comparison, matches, residuals."""
+    import cv2
+
     from sfmkit.colmap import read_model
-    from sfmkit.viz import plot_camera_layout, plot_comparison
+    from sfmkit.geometry import eight_point, project
+    from sfmkit.tracks import build_tracks, track_statistics
+    from sfmkit.viz import (
+        plot_camera_layout,
+        plot_comparison,
+        plot_epipolar,
+        plot_matches,
+        plot_residuals,
+        plot_track_lengths,
+    )
 
     cfg = load_config(args.config)
-    rec = io.load_reconstruction(Path(args.out) / "reconstruction.npz")
-    model = read_model(cfg.colmap_model)
+    run = Path(args.out)
+    rec = io.load_reconstruction(run / "reconstruction.npz")
     ref = cfg.reference or rec.registered[0]
-    out = Path(args.out) / "figures"
-    paths = [
-        plot_comparison(rec, model, ref, out / "comparison.png"),
-        plot_camera_layout(rec, model, ref, out / "cameras.png"),
-    ]
-    for p in paths:
+    out = run / "figures"
+    images = Path(cfg.images_dir)
+    written = []
+
+    def read(name):
+        path = next((p for p in [images / name, *images.glob(f"{name}.*")] if p.is_file()), None)
+        if path is None:
+            return None
+        img = cv2.imread(str(path), cv2.IMREAD_COLOR)
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB) if img is not None else None
+
+    if cfg.colmap_model:
+        model = read_model(cfg.colmap_model)
+        written += [plot_comparison(rec, model, ref, out / "comparison.png"),
+                    plot_camera_layout(rec, model, ref, out / "cameras.png")]
+
+    verified = sorted((run / "verified").glob("*.npz"))
+    all_m = [io.load_matches(f) for f in verified]
+    scene = [m for m in all_m if cfg.query not in (m.image0, m.image1)]
+    if scene:
+        star = [m for m in scene if ref in (m.image0, m.image1)]
+        written.append(plot_track_lengths(
+            track_statistics(build_tracks(star)),
+            track_statistics(build_tracks(scene)),
+            out / "tracks.png"))
+
+    # The strongest pair, as a worked example of matching and verification.
+    if all_m:
+        m = max(all_m, key=lambda x: x.n_inliers)
+        i0, i1 = read(m.image0), read(m.image1)
+        if i0 is not None and i1 is not None:
+            written.append(plot_matches(i0, i1, m, out / f"matches_{m.image0}_{m.image1}.png"))
+            x0, x1 = m.points()
+            if len(x0) >= 8:
+                written.append(plot_epipolar(i0, i1, eight_point(x0, x1), x0,
+                                             out / f"epipolar_{m.image0}_{m.image1}.png"))
+
+    # Residuals for the reference camera, before and after the final refinement.
+    kp = {}
+    for mm in scene:
+        kp.setdefault(mm.image0, mm.keypoints0)
+        kp.setdefault(mm.image1, mm.keypoints1)
+    before_path = run / "reconstruction_before_refinement.npz"
+    states = [("after", rec)]
+    if before_path.is_file():
+        states.insert(0, ("before", io.load_reconstruction(before_path)))
+    img = read(ref)
+    if img is not None and ref in kp:
+        for label, state in states:
+            if ref not in state.poses:
+                continue
+            tid, kid = state.observations_of(ref)
+            if not len(tid):
+                continue
+            written.append(plot_residuals(
+                img, kp[ref][kid], project(state.points[tid], state.K, state.poses[ref]),
+                out / f"residuals_{ref}_{label}.png",
+                title=f"{ref}, {label} final refinement"))
+
+    for p in written:
         console.print(f"[green]wrote[/green] {p}")
     return 0
 

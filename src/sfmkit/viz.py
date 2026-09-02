@@ -18,7 +18,10 @@ import numpy as np  # noqa: E402
 from sfmkit.metrics import align_to_reference, scale_between  # noqa: E402
 from sfmkit.types import Pose, Reconstruction  # noqa: E402
 
-__all__ = ["plot_comparison", "plot_camera_layout", "plot_track_lengths"]
+__all__ = [
+    "plot_comparison", "plot_camera_layout", "plot_track_lengths",
+    "plot_matches", "plot_epipolar", "plot_residuals",
+]
 
 OURS, THEIRS = "#2e7d32", "#1565c0"
 
@@ -143,5 +146,121 @@ def plot_track_lengths(stats_star: dict, stats_full: dict, out_path):
     fig.tight_layout()
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=140)
+    plt.close(fig)
+    return out_path
+
+
+def plot_matches(image0, image1, matches, out_path, max_lines: int = 400):
+    """Three panels: every match, the geometric inliers, and the outliers.
+
+    The middle and bottom panels are the useful ones: what RANSAC kept, and what
+    it threw away. Outliers that form a coherent pattern usually mean a repeated
+    structure in the scene rather than random mismatching.
+    """
+    from sfmkit.types import Matches
+
+    assert isinstance(matches, Matches)
+    kp0, kp1 = matches.keypoints0, matches.keypoints1
+    pairs = matches.pairs
+    inl = matches.inliers if matches.inliers is not None else np.ones(len(pairs), bool)
+
+    groups = [("all matches", pairs, "#43a047"),
+              ("inliers", pairs[inl], "#1e88e5"),
+              ("outliers", pairs[~inl], "#e53935")]
+
+    fig, axes = plt.subplots(len(groups), 1, figsize=(16, 4.2 * len(groups)))
+    h0, w0 = image0.shape[:2]
+    h1 = image1.shape[:2][0]
+    canvas_h = max(h0, h1)
+    for ax, (title, sel, colour) in zip(axes, groups, strict=True):
+        canvas = np.zeros((canvas_h, w0 + image1.shape[1], 3), dtype=np.uint8)
+        canvas[:h0, :w0] = image0 if image0.ndim == 3 else np.dstack([image0] * 3)
+        canvas[:h1, w0:] = image1 if image1.ndim == 3 else np.dstack([image1] * 3)
+        ax.imshow(canvas)
+        step = max(1, len(sel) // max_lines)
+        for i, j in sel[::step]:
+            a, b = kp0[i], kp1[j]
+            ax.plot([a[0], b[0] + w0], [a[1], b[1]], "-", color=colour, lw=0.35, alpha=0.55)
+        ax.scatter(kp0[sel[:, 0], 0], kp0[sel[:, 0], 1], s=2, c=colour)
+        ax.scatter(kp1[sel[:, 1], 0] + w0, kp1[sel[:, 1], 1], s=2, c=colour)
+        ax.set_title(f"{title}: {len(sel)}", fontsize=11, loc="left")
+        ax.set_xticks([])
+        ax.set_yticks([])
+    fig.suptitle(f"{matches.image0} — {matches.image1}   "
+                 f"({matches.n_inliers}/{matches.n_matches} inliers, "
+                 f"{matches.inlier_ratio:.0%})", fontsize=13)
+    fig.tight_layout()
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=110)
+    plt.close(fig)
+    return out_path
+
+
+def plot_epipolar(image0, image1, F, points, out_path, n: int = 8, seed: int = 0):
+    """Points in one image and the epipolar lines they induce in the other.
+
+    The visual check on a fundamental matrix: every correspondence must lie on
+    its line. Lines converging on a common point locate the epipole.
+    """
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(len(points), min(n, len(points)), replace=False)
+    pts = np.asarray(points)[idx]
+
+    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(16, 6))
+    ax0.imshow(image0)
+    ax1.imshow(image1)
+    colours = plt.cm.rainbow(np.linspace(0, 1, len(pts)))
+    h, w = image1.shape[:2]
+    for (x, y), c in zip(pts, colours, strict=True):
+        ax0.plot(x, y, "x", color=c, markersize=11, markeredgewidth=2)
+        a, b, cc = F @ np.array([x, y, 1.0])
+        if abs(b) > 1e-9:
+            xs = np.array([0, w])
+            ax1.plot(xs, -(a * xs + cc) / b, "-", color=c, lw=1.2)
+        elif abs(a) > 1e-9:
+            ax1.axvline(-cc / a, color=c, lw=1.2)
+    for ax, t in ((ax0, "points"), (ax1, "their epipolar lines")):
+        ax.set_title(t, fontsize=11)
+        ax.set_xlim(0, ax.images[0].get_array().shape[1])
+        ax.set_ylim(ax.images[0].get_array().shape[0], 0)
+        ax.set_xticks([])
+        ax.set_yticks([])
+    _ = h
+    fig.tight_layout()
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=110)
+    plt.close(fig)
+    return out_path
+
+
+def plot_residuals(image, observed, projected, out_path, title="", scale: float = 1.0):
+    """Observed keypoints against where the reconstruction projects them.
+
+    ``scale`` exaggerates the residual vectors; at a good solution they are a
+    pixel or two and invisible at true size.
+    """
+    observed = np.asarray(observed, dtype=float)
+    projected = np.asarray(projected, dtype=float)
+    ok = np.isfinite(projected).all(axis=1)
+    observed, projected = observed[ok], projected[ok]
+    err = np.linalg.norm(observed - projected, axis=1)
+
+    fig, ax = plt.subplots(figsize=(13, 8))
+    ax.imshow(image)
+    ax.scatter(observed[:, 0], observed[:, 1], s=26, marker="x",
+               c="#e53935", linewidths=1.2, label="observed")
+    ax.scatter(projected[:, 0], projected[:, 1], s=14, c="#1e88e5", label="projected")
+    for o, p in zip(observed, projected, strict=True):
+        d = (p - o) * scale
+        ax.plot([o[0], o[0] + d[0]], [o[1], o[1] + d[1]], "-", color="#424242", lw=0.6)
+    rmse = float(np.sqrt(np.mean(err**2))) if err.size else float("nan")
+    ax.set_title(f"{title}   n={len(err)}, RMSE {rmse:.2f} px, median {np.median(err):.2f} px"
+                 + (f", residuals x{scale:g}" if scale != 1 else ""), fontsize=11)
+    ax.legend(loc="upper right", fontsize=9)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    fig.tight_layout()
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=110)
     plt.close(fig)
     return out_path

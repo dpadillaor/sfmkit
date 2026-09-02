@@ -80,6 +80,10 @@ class ReconstructionResult:
     reconstruction: Reconstruction
     reports: list[StageReport] = field(default_factory=list)
     tracks: list[Track] = field(default_factory=list)
+    # State just before the final global refinement, so "before and after
+    # bundle adjustment" figures compare two real reconstructions rather than
+    # one reconstruction and a guess.
+    before_refinement: Reconstruction | None = None
 
     @property
     def rmse(self) -> float:
@@ -346,6 +350,11 @@ def reconstruct(
         reports.append(rep)
         step += 1
 
+    before_refinement = Reconstruction(
+        K=rec.K, poses=dict(rec.poses), points=rec.points.copy(),
+        tracks=[Track(observations=dict(t.observations)) for t in rec.tracks],
+    )
+
     # ---- final global refinement ------------------------------------------
     # Registering incrementally means the earliest cameras were optimised
     # against a fraction of the eventual observations. Alternating
@@ -365,4 +374,5 @@ def reconstruct(
             break
 
     _ = pairs  # kept for future two-view refinement; unused today
-    return ReconstructionResult(reconstruction=rec, reports=reports, tracks=list(tracks))
+    return ReconstructionResult(reconstruction=rec, reports=reports, tracks=list(tracks),
+                                before_refinement=before_refinement)
