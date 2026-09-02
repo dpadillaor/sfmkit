@@ -42,10 +42,17 @@ class ReconstructionConfig:
     seed: int = 0
     ransac_threshold: float = 4.0
     ransac_iterations: int = 1000
-    pnp_threshold: float = 8.0
+    # These three were chosen by the grid search in repro/sweep.py, scored
+    # against COLMAP, not by intuition. A tighter reprojection threshold sounds
+    # safer and is not: it discards points that a later bundle adjustment would
+    # have pulled into line, leaving new cameras too few correspondences to
+    # register. A larger triangulation angle likewise *increases* the number of
+    # cameras registered, by refusing badly conditioned points that would
+    # otherwise corrupt the PnP that depends on them.
+    pnp_threshold: float = 6.0
     min_track_length: int = 2
-    min_triangulation_angle_deg: float = 1.0
-    max_reprojection_error: float = 8.0
+    min_triangulation_angle_deg: float = 2.0
+    max_reprojection_error: float = 12.0
     observation_filter_factor: float = 4.0
     min_pnp_correspondences: int = 30
     min_pnp_inliers: int = 20

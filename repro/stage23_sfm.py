@@ -30,14 +30,14 @@ _OUT = _Path(_os.environ.get("REPRO_OUT", "runs/scratch/sfm")).resolve()
 _OUT.mkdir(parents=True, exist_ok=True)
 
 
-import numpy as np
-import sfm
-import matplotlib.pyplot as plt
-import cv2
-from scipy.linalg import expm, logm
-from scipy.optimize import least_squares
 import os
 import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import sfm
+from scipy.linalg import expm, logm
+from scipy.optimize import least_squares
 
 # ============================
 # INITIAL SETUP AND PARAMETERS
@@ -437,7 +437,7 @@ plt.close(fig)
 # # ===================================
 
 camOld_img = sfm.get_image('Img00_Try1_12M')
-dlt_data = np.load(os.path.join(os.path.dirname(__file__),f'../RANSAC/results/inliers/Img00_Try1_12M_vs_Img02_Try1_12M_inliers.npz'))
+dlt_data = np.load(os.path.join(os.path.dirname(__file__),'../RANSAC/results/inliers/Img00_Try1_12M_vs_Img02_Try1_12M_inliers.npz'))
 dlt_keypoints_ref = dlt_data['keypoints1']
 dlt_keypoints_old = dlt_data['keypoints0']
 dlt_mask = dlt_data['inliers_matches']

@@ -4,8 +4,11 @@ The original pipeline only ever consumed pairs involving the reference image.
 This runs the same reconstruction code over both match sets so that the only
 difference is the topology of the graph, and reports what that costs.
 """
-import json, sys, time
+import json
+import sys
+import time
 from pathlib import Path
+
 import numpy as np
 
 sys.path.insert(0, "src")

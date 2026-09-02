@@ -9,7 +9,7 @@ The reconstruction is validated against COLMAP throughout.
 
 ![Reconstruction compared against COLMAP](docs/figures/comparison.png)
 
-*Nine cameras and 1404 points (green) against COLMAP's model of the same images
+*Nine cameras and 1699 points (green) against COLMAP's model of the same images
 (blue), aligned to a common reference and scale.*
 
 ---
@@ -40,20 +40,39 @@ model of the same images.
 
 | camera | rotation error | position error | distance from reference |
 |---|---|---|---|
-| Img13 | 0.29° | 0.051 | 0.53 |
-| Img25 | 0.27° | 0.064 | 1.00 |
-| Img14 | 1.24° | 0.035 | 1.02 |
-| Img24 | 0.64° | 0.023 | 1.28 |
-| Img23 | 1.57° | 0.098 | 1.75 |
-| Img15 | 0.50° | 0.188 | 2.05 |
-| Img28 | 1.12° | 0.159 | 2.48 |
-| Img12 | 7.20° | 0.250 | 3.66 |
+| Img13 | 0.34° | 0.064 | 0.53 |
+| Img25 | 0.37° | 0.079 | 1.00 |
+| Img14 | 1.26° | 0.078 | 1.04 |
+| Img24 | 0.54° | 0.106 | 1.29 |
+| Img23 | 1.65° | 0.109 | 1.79 |
+| Img15 | 0.30° | 0.134 | 2.08 |
+| Img28 | 0.55° | 0.089 | 2.47 |
+| Img12 | 2.84° | 0.133 | 3.86 |
 
-Seven of eight cameras land within 1.6° of COLMAP. `Img12` — the most distant
-and most weakly connected, registered on 34 PnP inliers — does not, and is the
-clearest open problem.
+**Mean 0.98°, max 2.84°**, over nine cameras and 1699 points. The recovered scale
+against COLMAP is **0.458**.
 
-The recovered scale against COLMAP is **0.433**.
+Against the original course pipeline on the same nine images:
+
+| | original | sfmkit |
+|---|---|---|
+| cameras | 9 | 9 |
+| 3D points | 1041 | **1699** |
+| mean rotation error | 0.962° | 0.981° |
+| max rotation error | 2.769° | 2.835° |
+| reproducible | no | yes |
+
+Equivalent accuracy on 63% more points — and, unlike the original, the same
+inputs now give the same outputs.
+
+These three thresholds (`pnp_threshold`, `min_triangulation_angle_deg`,
+`max_reprojection_error`) were chosen by the grid search in `repro/sweep.py`,
+scored against COLMAP. Two of its results are counter-intuitive and worth
+knowing: a *tighter* reprojection threshold makes things worse, because it
+discards points a later bundle adjustment would have pulled into line, and a
+*larger* minimum triangulation angle registers *more* cameras, by refusing
+badly conditioned points that would otherwise corrupt the PnP depending on
+them.
 
 ### Localising the historical photograph
 
@@ -66,6 +85,11 @@ projection matrix (DLT) and decomposing it:
 | COLMAP's estimate for this image | 597.8 px |
 | **sfmkit, over 30 seeds** | **632–650 px** |
 | the original pipeline's saved `K_old` | f<sub>x</sub> = 27139, f<sub>y</sub> = 7054 |
+
+Over 30 seeds the estimated camera centre moves by 0.27 in a scene 3.9 across,
+and the reprojection RMSE ranges from 2.1 to 20.0 px (median 2.2). Reporting one
+of those numbers alone would be a coin flip presented as a measurement — the
+original pipeline drew from exactly this distribution, unseeded, once.
 
 Within 8% of COLMAP. The original's value has a 3.8:1 aspect ratio and no
 physical meaning, which is what the presentation was seeing when it reported the
@@ -101,7 +125,7 @@ keeps the full account.
 
 ```bash
 pip install -e ".[dev]"
-pytest                                  # 87 tests, no dataset required
+pytest                                  # 80 tests, no dataset required
 ```
 
 The full pipeline, one stage at a time:

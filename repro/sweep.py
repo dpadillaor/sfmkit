@@ -5,8 +5,12 @@ original star-graph one despite having more points, which points at thresholds
 rather than at the algorithm. Guessing which one is cheaper to test than to argue
 about, so all of them are tested.
 """
-import itertools, json, sys, time
+import itertools
+import json
+import sys
+import time
 from pathlib import Path
+
 import numpy as np
 
 sys.path.insert(0, "src")

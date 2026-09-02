@@ -16,6 +16,6 @@ ransac_iterations: 1000
 min_inliers: 20
 
 min_track_length: 2
-min_triangulation_angle_deg: 1.0
-max_reprojection_error: 8.0
-pnp_threshold: 8.0
+min_triangulation_angle_deg: 2.0
+max_reprojection_error: 12.0
+pnp_threshold: 6.0
