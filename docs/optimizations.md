@@ -313,11 +313,22 @@ reconstructable points on synthetic data (`tests/test_tracks.py`).
 
 Adding cross-pairs is still worth doing: more scene coverage for the same
 images, and the extra camera is a genuine registration rather than a failure.
-But it needs a companion fix, which is now the open problem: a camera whose PnP
-rests on few inliers (`Img12`: 34) should not be admitted on the same terms as
-one resting on hundreds. Options are a stricter inlier requirement, weighting
-cameras by their support in the bundle adjustment, or registering weak cameras
-last and re-optimising.
+The open problem it exposed is `Img12`, the most distant camera, registered on
+few PnP inliers.
+
+Threshold calibration turned out to help far more than any structural change
+(section 1.6): tuning the three reconstruction thresholds by grid search took the
+mean from 1.603 to 0.981 degrees and `Img12` from 7.20 to 2.84.
+
+**A null result worth recording.** Re-running PnP for every camera after the
+global refinement, against the improved 3D points, seemed obviously right:
+cameras registered early were fixed against a fraction of the points that
+eventually exist. Implemented, guarded so a pose is only replaced when it lowers
+that camera's median reprojection error, it made things slightly *worse* --
+0.981 to 1.001 degrees mean, `Img12` 2.835 to 3.004. Reprojection error on a
+camera's own observations is a local criterion, and improving it does not imply
+a better pose against an external reference. The code was reverted rather than
+kept behind a flag.
 
 Kept in full because the reasoning was sound, the evidence for it (error growing
 with distance from the reference) was real, and the conclusion was still wrong.
@@ -437,7 +448,7 @@ plausible ones did not survive, and are kept as such.
 | 2 | Pin scipy/BLAS (1.0) | **38x**, no code change | environment | pending |
 | 3 | `jac_sparsity` + `lsmr` (1.1) | **7.4x at 9 cameras** | one argument | **done** |
 | 4 | Complete match graph (4) | +53% points, +1 camera; **no accuracy gain** | moderate | **done** |
-| 5 | Guard weak registrations (4) | `Img12` at 7.2 deg is the open problem | small | pending |
+| 5 | Guard weak registrations (4) | `Img12` at 2.8 deg; re-PnP tried, no gain | small | open |
 | 6 | Batched RANSAC on GPU (2) | **24x**, across all pairs | moderate | pending |
 | 7 | Analytic Jacobian (1.3) | cuts ~1800 lsmr iterations | large | pending |
 | 8 | Sparse Schur (1.4) | only if #7 falls short | large | pending |

@@ -65,6 +65,11 @@ Against the original course pipeline on the same nine images:
 Equivalent accuracy on 63% more points — and, unlike the original, the same
 inputs now give the same outputs.
 
+`Img12`, the most distant camera, remains the weakest at 2.84°. Re-running PnP
+for every camera after the global refinement was tried and made things slightly
+worse (0.981° to 1.001°); the result is recorded in
+[docs/optimizations.md](docs/optimizations.md) rather than kept behind a flag.
+
 These three thresholds (`pnp_threshold`, `min_triangulation_angle_deg`,
 `max_reprojection_error`) were chosen by the grid search in `repro/sweep.py`,
 scored against COLMAP. Two of its results are counter-intuitive and worth
