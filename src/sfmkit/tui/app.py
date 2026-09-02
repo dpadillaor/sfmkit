@@ -96,10 +96,20 @@ class CompareView(DataTable):
         self.add_column("A", width=26)
         self.add_column("B", width=26)
 
-    def show(self, a: RunSummary | None, b: RunSummary | None) -> None:
+    def show(self, a: RunSummary | None, b: RunSummary | None, n_runs: int = 0) -> None:
         self.clear()
         if a is None or b is None:
-            self.add_row("mark two runs with 'a' and 'b'", "", "")
+            # An empty table with no explanation is the worst possible empty
+            # state; say what to do, and why it might not be possible yet.
+            self.add_row("[dim]nothing marked yet[/]", "", "")
+            self.add_row("", "", "")
+            self.add_row("[bold]go to the 'runs' tab[/]", "", "")
+            self.add_row("select a run, press [bold yellow]a[/]", "-> column A", "")
+            self.add_row("select another, press [bold yellow]b[/]", "", "-> column B")
+            if n_runs < 2:
+                self.add_row("", "", "")
+                self.add_row(f"[yellow]only {n_runs} run available[/]",
+                             "make all CONFIG=configs/valencia_star.yaml", "")
             return
         self.add_row("[bold]run[/]", f"[bold]{a.name}[/]", f"[bold]{b.name}[/]")
         for field, va, vb in compare(a, b):
@@ -157,6 +167,7 @@ class SfmkitApp(App):
         self.query_one(RunList).load(self.runs)
         self.sub_title = f"{len(self.runs)} runs in {self.root}"
         self.query_one(StageDetail).show(self.runs[0] if self.runs else None)
+        self._refresh_compare()  # so the compare tab explains itself before use
 
     def _selected(self) -> RunSummary | None:
         table = self.query_one(RunList)
@@ -172,11 +183,14 @@ class SfmkitApp(App):
         self._refresh_compare()
 
     def action_mark_b(self) -> None:
-        self.mark_b = self._selected()
+        chosen = self._selected()
+        if chosen is not None and self.mark_a is chosen:
+            self.notify("A and B are the same run", severity="warning")
+        self.mark_b = chosen
         self._refresh_compare()
 
     def _refresh_compare(self) -> None:
-        self.query_one(CompareView).show(self.mark_a, self.mark_b)
+        self.query_one(CompareView).show(self.mark_a, self.mark_b, len(self.runs))
         marks = [r.name for r in (self.mark_a, self.mark_b) if r]
         suffix = f"  |  marked: {', '.join(marks)}" if marks else ""
         self.sub_title = f"{len(self.runs)} runs{suffix}"
