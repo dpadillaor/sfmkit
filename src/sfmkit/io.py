@@ -39,8 +39,14 @@ def _git_commit() -> str | None:
         return None
 
 
-def write_manifest(run_dir, stage: str, config, extra: dict | None = None) -> Path:
-    """Record what produced this run: config, commit, versions, timestamp."""
+def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
+                   config_path: str | None = None) -> Path:
+    """Record what produced this run: config, commit, versions, timestamp.
+
+    ``config_path`` is recorded as well as the config's contents, so that a tool
+    reading a run back can re-invoke the same stage without guessing where the
+    file lives.
+    """
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     import scipy
@@ -49,6 +55,7 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None) -> Pa
 
     payload = {
         "stage": stage,
+        "config_path": config_path,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
         "config": asdict(config) if is_dataclass(config) else dict(config or {}),

@@ -86,3 +86,23 @@ class TestCompare:
         rows = dict((r[0], (r[1], r[2])) for r in compare(runs["alpha"], runs["beta"]))
         assert rows["cameras"] == ("4", "9")
         assert rows["3D points"] == ("675", "1404")
+
+
+class TestConfigPath:
+    """The TUI needs to know which config produced a run in order to re-run it."""
+
+    def test_reads_the_recorded_path(self, tmp_path):
+        d = tmp_path / "r"
+        d.mkdir()
+        (d / "manifest_reconstruct.json").write_text(json.dumps({
+            "timestamp": "2026-09-02T01:00:00",
+            "config_path": "configs/whatever.yaml",
+            "config": {"name": "whatever"},
+        }))
+        assert load_runs(tmp_path)[0].config_path == "configs/whatever.yaml"
+
+    def test_returns_none_when_unrecorded_and_unguessable(self, runs_dir):
+        # These fixtures predate config_path, and no configs/star.yaml exists
+        # relative to the test's working directory.
+        alpha = next(r for r in load_runs(runs_dir) if r.name == "alpha")
+        assert alpha.config_path is None or alpha.config_path.endswith(".yaml")

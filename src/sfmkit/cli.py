@@ -74,7 +74,8 @@ def cmd_match(args) -> int:
             max_keypoints=cfg.max_keypoints,
             on_pair=lambda a, b, n: p.advance(task),
         )
-    io.write_manifest(args.out, "match", cfg, extra={"n_pairs": len(written)})
+    io.write_manifest(args.out, "match", cfg, extra={"n_pairs": len(written)},
+                      config_path=args.config)
     console.print(f"[green]wrote[/green] {len(written)} match files to {out}")
     return 0
 
@@ -124,7 +125,8 @@ def cmd_verify(args) -> int:
                       str(r["iterations"]), "yes" if r["kept"] else "no", style=style)
     console.print(table)
 
-    io.write_manifest(args.out, "verify", cfg, extra={"pairs": rows, "n_kept": kept})
+    io.write_manifest(args.out, "verify", cfg, config_path=args.config,
+                      extra={"pairs": rows, "n_kept": kept})
     console.print(f"[green]kept[/green] {kept}/{len(files)} pairs -> {dst}")
     return 0
 
@@ -179,7 +181,7 @@ def cmd_reconstruct(args) -> int:
     if result.before_refinement is not None:
         io.save_reconstruction(result.before_refinement,
                                Path(args.out) / "reconstruction_before_refinement.npz")
-    io.write_manifest(args.out, "reconstruct", cfg, extra={
+    io.write_manifest(args.out, "reconstruct", cfg, config_path=args.config, extra={
         "tracks": stats,
         "n_observations": sum(t.length for t in tracks),
         "steps": [vars(r) for r in result.reports],
@@ -241,7 +243,7 @@ def cmd_localize(args) -> int:
              R=best.pose.R, t=best.pose.t,
              centres=centres, rmse=np.array([r.rmse for r in results]),
              inliers=np.array([r.n_inliers for r in results]))
-    io.write_manifest(args.out, "localize", cfg, extra={
+    io.write_manifest(args.out, "localize", cfg, config_path=args.config, extra={
         "query": cfg.query, "trials": len(results),
         "rmse_median": float(np.median([r.rmse for r in results])),
         "centre_spread": float(np.linalg.norm(centres.max(0) - centres.min(0))),
@@ -278,7 +280,7 @@ def cmd_evaluate(args) -> int:
                   f"{cmp['n_cameras']} shared cameras")
 
     (Path(args.out) / "evaluation.json").write_text(json.dumps(cmp, indent=2, default=float))
-    io.write_manifest(args.out, "evaluate", cfg, extra={
+    io.write_manifest(args.out, "evaluate", cfg, config_path=args.config, extra={
         "mean_rotation_error_deg": cmp["mean_rotation_error_deg"],
         "max_rotation_error_deg": cmp["max_rotation_error_deg"],
         "scale": cmp["scale"], "n_cameras": cmp["n_cameras"],
@@ -415,7 +417,7 @@ def cmd_changes(args) -> int:
     cv2.imwrite(str(out / f"{cfg.query}_warped.png"), result.warped)
     cv2.imwrite(str(out / f"changes_{cfg.query}_vs_{target}.png"), overlay)
     cv2.imwrite(str(out / "score.png"), (255 * result.score).astype(np.uint8))
-    io.write_manifest(args.out, "changes", cfg, extra={
+    io.write_manifest(args.out, "changes", cfg, config_path=args.config, extra={
         "query": cfg.query, "against": target,
         "homography_inliers": result.n_inliers,
         "changed_fraction": result.changed_fraction,

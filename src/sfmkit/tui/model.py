@@ -30,6 +30,17 @@ class RunSummary:
         return "-"
 
     @property
+    def config_path(self) -> str | None:
+        """Where the config that produced this run lives, if it was recorded."""
+        for stage in reversed(STAGES):
+            node = self.stages.get(stage)
+            if node and node.get("config_path"):
+                return node["config_path"]
+        name = self.config_name
+        guess = Path("configs") / f"{name}.yaml"
+        return str(guess) if name != "-" and guess.is_file() else None
+
+    @property
     def timestamp(self) -> str:
         times = [s.get("timestamp", "") for s in self.stages.values()]
         return max(times)[:19].replace("T", " ") if times else "-"

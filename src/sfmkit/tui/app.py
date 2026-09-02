@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from pathlib import Path
 
+from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.widgets import DataTable, Footer, Header, Static, TabbedContent, TabPane, Tree
+from textual.widgets import (
+    DataTable,
+    Footer,
+    Header,
+    RichLog,
+    Select,
+    Static,
+    TabbedContent,
+    TabPane,
+    Tree,
+)
 
 from sfmkit.tui.model import STAGES, RunSummary, compare, load_runs
 
@@ -119,6 +132,24 @@ class CompareView(DataTable):
                          f"[yellow]{vb}[/]" if differs else vb)
 
 
+class StageRunner(Vertical):
+    """Launch a pipeline stage and stream its output.
+
+    The stage runs as a subprocess of the same CLI the user would type. That is
+    deliberate on two counts: nothing here duplicates pipeline logic, and a
+    stage that crashes takes its own process down rather than the interface.
+    The output is displayed, never parsed -- parsing it would quietly turn
+    human-readable text into an API.
+    """
+
+    def compose(self) -> ComposeResult:
+        with Horizontal(id="runner-controls"):
+            yield Select([(s, s) for s in STAGES if s != "figures"] + [("figures", "figures")],
+                         prompt="stage", id="stage-select", allow_blank=False)
+            yield Static("", id="runner-status")
+        yield RichLog(id="runner-log", highlight=True, markup=True, wrap=False)
+
+
 class SfmkitApp(App):
     """Browse reconstruction runs and compare them."""
 
@@ -130,6 +161,10 @@ class SfmkitApp(App):
     #stage-tree { height: 30%; }
     #stage-body { padding: 0 1; overflow-y: auto; }
     CompareView { border: round $accent; }
+    #runner-controls { height: 3; }
+    #stage-select { width: 24; }
+    #runner-status { padding: 1 2; }
+    #runner-log { border: round $warning; }
     """
 
     BINDINGS = [
@@ -137,6 +172,8 @@ class SfmkitApp(App):
         Binding("r", "refresh", "refresh"),
         Binding("a", "mark_a", "mark A"),
         Binding("b", "mark_b", "mark B"),
+        Binding("x", "run_stage", "run stage"),
+        Binding("ctrl+c", "cancel_stage", "cancel"),
     ]
 
     def __init__(self, root: str | Path = "runs") -> None:
@@ -145,6 +182,7 @@ class SfmkitApp(App):
         self.runs: list[RunSummary] = []
         self.mark_a: RunSummary | None = None
         self.mark_b: RunSummary | None = None
+        self._process: subprocess.Popen | None = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -154,6 +192,8 @@ class SfmkitApp(App):
                 yield StageDetail()
             with TabPane("compare", id="tab-compare"):
                 yield CompareView(id="compare")
+            with TabPane("run", id="tab-run"):
+                yield StageRunner()
         yield Footer()
 
     def on_mount(self) -> None:
@@ -198,6 +238,69 @@ class SfmkitApp(App):
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
         if event.data_table.id == "runs":
             self.query_one(StageDetail).show(self._selected())
+
+
+    # ---- running a stage ---------------------------------------------------
+
+    def action_run_stage(self) -> None:
+        """Run the selected stage on the highlighted run, in a subprocess."""
+        if self._process is not None and self._process.poll() is None:
+            self.notify("a stage is already running", severity="warning")
+            return
+        run = self._selected()
+        if run is None:
+            self.notify("select a run first, on the 'runs' tab", severity="warning")
+            return
+        config = run.config_path
+        if config is None:
+            self.notify(f"no config recorded for {run.name}; run it from the CLI once",
+                        severity="error")
+            return
+        stage = self.query_one("#stage-select", Select).value
+        if stage is None:
+            self.notify("pick a stage", severity="warning")
+            return
+
+        cmd = ["sfmkit", str(stage), "--config", config, "--out", str(run.path)]
+        log: RichLog = self.query_one("#runner-log", RichLog)
+        log.clear()
+        log.write(f"[bold]$ {' '.join(cmd)}[/]\n")
+        self.query_one(TabbedContent).active = "tab-run"
+        self.query_one("#runner-status", Static).update(f"[yellow]running {stage}…[/]")
+        self._stream(cmd, str(stage))
+
+    @work(thread=True, exclusive=True)
+    def _stream(self, cmd: list[str], stage: str) -> None:
+        log: RichLog = self.query_one("#runner-log", RichLog)
+        status: Static = self.query_one("#runner-status", Static)
+        env = {**os.environ, "PYTHONUNBUFFERED": "1", "MPLBACKEND": "Agg",
+               "COLUMNS": "120", "TERM": "dumb"}
+        try:
+            self._process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, bufsize=1, env=env,
+            )
+        except FileNotFoundError:
+            self.call_from_thread(status.update, "[red]sfmkit not on PATH[/]")
+            return
+        for line in self._process.stdout:
+            self.call_from_thread(log.write, line.rstrip())
+        code = self._process.wait()
+        ok = code == 0
+        self.call_from_thread(
+            status.update,
+            f"[green]{stage} finished[/]" if ok else f"[red]{stage} failed (exit {code})[/]")
+        self.call_from_thread(self.action_refresh)
+        self.call_from_thread(
+            self.notify, f"{stage} {'finished' if ok else f'failed ({code})'}",
+            severity="information" if ok else "error")
+
+    def action_cancel_stage(self) -> None:
+        if self._process is not None and self._process.poll() is None:
+            self._process.terminate()
+            self.query_one("#runner-status", Static).update("[yellow]cancelled[/]")
+        else:
+            self.exit()
 
 
 def run(root: str | Path = "runs") -> None:
