@@ -357,6 +357,18 @@ def cmd_changes(args) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------- ui
+def cmd_ui(args) -> int:
+    """Browse and compare runs in a terminal interface."""
+    try:
+        from sfmkit.tui import run as run_tui
+    except ImportError:
+        console.print("[red]the TUI needs textual:[/red] pip install 'sfmkit[tui]'")
+        return 1
+    run_tui(args.runs)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="sfmkit", description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="command", required=True)
@@ -380,6 +392,10 @@ def build_parser() -> argparse.ArgumentParser:
     ch.add_argument("--against", help="modern image to compare against (default: the reference)")
     ch.add_argument("--threshold", type=float, default=0.38,
                     help="dissimilarity threshold in [0, 1]")
+
+    ui = sub.add_parser("ui", help="browse and compare runs in a terminal interface")
+    ui.add_argument("--runs", default="runs", help="directory holding run outputs")
+    ui.set_defaults(func=cmd_ui)
     return p
 
 

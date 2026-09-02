@@ -18,7 +18,8 @@ dependencies = [
 
 [project.optional-dependencies]
 match = ["torch>=2.0", "lightglue"]
-dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4"]
+tui = ["textual>=0.60"]
+dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4", "textual>=0.60"]
 
 [project.scripts]
 sfmkit = "sfmkit.cli:main"
