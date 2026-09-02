@@ -185,6 +185,60 @@ the pose graph (section 4). A wider baseline does not help when every camera is
 tied to the reference and to nothing else.
 
 
+### 1.6 Threshold calibration by grid search
+
+The reconstruction thresholds were chosen by exhaustive search over 27
+combinations, each scored against COLMAP (`repro/sweep.py`), rather than by
+intuition. This moved the mean rotation error further than any structural
+change in this document: **1.603 -> 0.981 degrees**, and `Img12` from 7.20 to
+2.84.
+
+Only 8 of 27 combinations register all nine cameras. The best:
+
+| pnp | angle | reproj | cameras | points | mean rot | max rot |
+|---|---|---|---|---|---|---|
+| 6.0 | 2.0 | 12.0 | 9 | 1701 | **1.057** | 3.046 |
+| 12.0 | 4.0 | 12.0 | 9 | 1428 | **1.293** | 2.405 |
+| 12.0 | 2.0 | 6.0 | 9 | 1089 | **1.517** | 3.766 |
+| 12.0 | 2.0 | 3.0 | 9 | 596 | **1.562** | 3.755 |
+| 6.0 | 4.0 | 12.0 | 9 | 1350 | **1.652** | 4.773 |
+| 12.0 | 4.0 | 6.0 | 9 | 863 | **1.707** | 3.676 |
+| 12.0 | 2.0 | 12.0 | 9 | 1542 | **2.107** | 7.666 |
+| 6.0 | 2.0 | 6.0 | 9 | 983 | **3.308** | 15.223 |
+
+Two results run against intuition and are the reason this was searched rather
+than guessed:
+
+Mean cameras registered, averaged across the grid:
+
+| threshold | | | |
+|---|---|---|---|
+| `max_reprojection_error` | 3.0 -> **6.0** | 6.0 -> **7.3** | 12.0 -> **7.7** |
+| `min_triangulation_angle_deg` | 0.5 -> **6.0** | 2.0 -> **7.9** | 4.0 -> **7.1** |
+| `pnp_threshold` | 3.0 -> **4.9** | 6.0 -> **7.7** | 12.0 -> **8.4** |
+
+**A tighter reprojection threshold is worse, not safer.** Discarding a point
+because it does not yet fit also discards the correspondence a later bundle
+adjustment would have used to pull it into line, and the next camera is left
+without enough to register against. At 3.0 px only 6 cameras register on
+average; at 12.0 px, 7.7.
+
+**The triangulation angle is not monotonic**, which is the more interesting
+result. Raising it from 0.5 to 2.0 degrees *increases* cameras registered from
+6.0 to 7.9 -- points triangulated from near-parallel rays have badly conditioned
+depth, and admitting them corrupts the PnP of every camera that later relies on
+them. Raising it further to 4.0 drops back to 7.1: now genuinely useful points
+are being refused. There is an optimum, and it is not at either end.
+
+**A looser PnP threshold registers more cameras but not better ones.** 12.0
+averages 8.4 cameras against 6.0's 7.7, yet the best configuration uses 6.0 --
+the extra registrations it admits are poor ones.
+
+The first two are instances of the same thing: in an incremental pipeline, the
+cost of a decision is paid by the stages downstream of it, not where it is made.
+That is what makes these thresholds impossible to set by local reasoning, and
+worth the hour of compute to search.
+
 ---
 
 ## 2. RANSAC
