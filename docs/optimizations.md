@@ -257,58 +257,70 @@ Recorded because the reasoning was sound and the conclusion was still wrong — 
 quality gate may become necessary with a denser pose graph (section 4), but on
 the current evidence it is not a priority.
 
-## 4. The star-shaped pose graph — the main quality limitation
+## 4. The star-shaped pose graph — hypothesis tested, largely refuted
 
-Stage 1 computes 23 verified pairs. Stage 2 consumes only those involving the
-reference: `perform_pnp_and_triangulate` (`prueba.py:203`) is always called as
-`(REFERENCE_IMAGE, new_image)`. These nine cross-pairs are computed and then
-discarded:
+This was the headline hypothesis of the whole teardown, and the measurement does
+not support it.
 
-```
-Img13-Img14  Img13-Img15  Img13-Img23  Img13-Img24  Img13-Img25
-Img14-Img15  Img14-Img23  Img14-Img24  Img14-Img25
-```
+### The claim
 
-A 3D point can only acquire a new observation by matching the reference
-(`sfm.py:895`: `if cameras.get(ref_cam_id) == ref_idx`). If a point is seen in
-Img13 and Img14 but matches Img02 in neither, the two observations never meet.
-No residual ever ties two non-reference cameras together, so nothing constrains
-their relative pose and nothing corrects drift.
+The original pipeline only consumed pairs involving the reference image
+(`prueba.py:203` always calls `perform_pnp_and_triangulate(REFERENCE_IMAGE, new)`),
+so nine verified cross-pairs were computed and discarded. Error grew with
+distance from the reference (0.11 deg at distance 1.2, 2.77 deg at 3.8) and
+adding cameras made the mean worse, which looked like unconstrained drift.
 
-**Evidence:** error grows with distance from the reference — 0.11 deg at
-distance 1.2, 2.77 deg at 3.8 — and adding cameras raised mean error (1.5).
+### What was actually measured
 
-**The infrastructure already supports the fix.** `point3D_map` is already
-`{pid: {cam_id: kp_idx}}`, and the BA residual already iterates generically
-(`if cam_idx in cam_info`). It is simply never populated with cross-links. The
-BA needs no changes.
+The same reconstruction code, the same thresholds, the same seed; the only
+difference is which pairs it may use.
 
-### What the fix is
+| | star (8 pairs) | complete (36 pairs) |
+|---|---|---|
+| tracks | 1185 | **2104** |
+| observations | 4367 | **6928** |
+| mean track length | **3.69** | 3.30 |
+| cameras registered | 8 | **9** |
+| 3D points | 915 | **1404** |
+| mean rotation error | **0.754 deg** | 1.603 deg |
+| max rotation error | **1.51 deg** | 7.20 deg |
 
-1. **Feature tracks via union-find.** Nodes are `(image, keypoint_index)`, edges
-   are inlier matches from *every* pair. Connected components are tracks. The
-   transitivity is the point: `a~b` in Img02-Img13 and `b~c` in Img13-Img14 puts
-   `a`, `b`, `c` in one track with **no direct Img02-Img14 match**.
-2. **Reject conflicting tracks** — any track containing two keypoints from the
-   same image is inconsistent. Standard, and catches real matching errors.
-3. **Populate `point3D_map` from tracks**, same format, so the BA is untouched.
-4. **Multi-view triangulation.** Currently two views (`sfm.py:928`); the DLT
-   takes N. Wider angular spread conditions depth far better — the "needs some
-   depthness" of slide 38.
-5. **Choose the next camera by tracks visible**, not from a hardcoded list, as
-   COLMAP does.
+Per camera, over the seven both reconstruct:
 
-Also needed: **the missing pairs.** A complete graph over 9 images is 36 pairs;
-only 17 exist, and cross-links cover just Img13 and Img14. Re-running stage 1 on
-the remainder is minutes of GPU time.
+| | Img25 | Img13 | Img15 | Img24 | Img28 | Img14 | Img23 | **mean** |
+|---|---|---|---|---|---|---|---|---|
+| star | 0.249 | 0.206 | 0.395 | 0.569 | 1.143 | 1.206 | 1.510 | **0.754** |
+| complete | 0.271 | 0.291 | 0.496 | 0.640 | 1.118 | 1.242 | 1.570 | **0.804** |
 
-Incidental win: the linear scan over `point3D_map` per match (`sfm.py:895`) is
-O(matches x points). Union-find removes it — the right data structure deletes the
-performance problem rather than optimising it.
+**The two agree to within 6% on every shared camera.** The complete graph's worse
+headline number is entirely one camera: it additionally registers `Img12`, the
+most distant and most weakly connected, at 7.20 deg.
 
----
+### Why the hypothesis was wrong
 
----
+Union-find chains transitively even on a star. Two non-reference cameras are
+linked through a shared *reference keypoint* acting as a hub, so a star graph
+still yields tracks spanning up to all nine views (mean length 3.69 here, in fact
+*longer* than the complete graph's 3.30, since it keeps only well-connected
+points). The pose graph was never as impoverished as "star" suggests.
+
+What the complete graph genuinely buys is **reach, not accuracy**: 78% more
+tracks, 59% more observations, 53% more 3D points, and one more camera. Points
+the reference cannot see are unreachable without it — measured at 20% of
+reconstructable points on synthetic data (`tests/test_tracks.py`).
+
+### What this leaves
+
+Adding cross-pairs is still worth doing: more scene coverage for the same
+images, and the extra camera is a genuine registration rather than a failure.
+But it needs a companion fix, which is now the open problem: a camera whose PnP
+rests on few inliers (`Img12`: 34) should not be admitted on the same terms as
+one resting on hundreds. Options are a stricter inlier requirement, weighting
+cameras by their support in the bundle adjustment, or registering weak cameras
+last and re-optimising.
+
+Kept in full because the reasoning was sound, the evidence for it (error growing
+with distance from the reference) was real, and the conclusion was still wrong.
 
 ## 5. Things that would *not* help — measured
 
@@ -424,8 +436,8 @@ plausible ones did not survive, and are kept as such.
 | 1 | Seeds + `UnboundLocalError` (2) | stage 3 is currently a dice roll | trivial | pending |
 | 2 | Pin scipy/BLAS (1.0) | **38x**, no code change | environment | pending |
 | 3 | `jac_sparsity` + `lsmr` (1.1) | **7.4x at 9 cameras** | one argument | **done** |
-| 4 | **Track-based pose graph (4)** | **the quality gap** | moderate | pending |
-| 5 | Missing pairs, 17 -> 36 (4) | feeds #4 | minutes of GPU | pending |
+| 4 | Complete match graph (4) | +53% points, +1 camera; **no accuracy gain** | moderate | **done** |
+| 5 | Guard weak registrations (4) | `Img12` at 7.2 deg is the open problem | small | pending |
 | 6 | Batched RANSAC on GPU (2) | **24x**, across all pairs | moderate | pending |
 | 7 | Analytic Jacobian (1.3) | cuts ~1800 lsmr iterations | large | pending |
 | 8 | Sparse Schur (1.4) | only if #7 falls short | large | pending |
