@@ -100,6 +100,17 @@ class Matches:
     scores: np.ndarray | None = None
     inliers: np.ndarray | None = None  # (M,) bool
 
+    def __post_init__(self) -> None:
+        pairs = np.asarray(self.pairs)
+        if pairs.ndim != 2 or pairs.shape[1] != 2:
+            raise ValueError(f"pairs must be (M, 2), got {pairs.shape}")
+        for name in ("scores", "inliers"):
+            v = getattr(self, name)
+            if v is not None and len(v) != len(pairs):
+                raise ValueError(
+                    f"{name} has {len(v)} entries but there are {len(pairs)} pairs"
+                )
+
     @property
     def n_matches(self) -> int:
         return len(self.pairs)

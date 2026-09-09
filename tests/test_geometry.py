@@ -218,3 +218,41 @@ class TestPoseNormalisation:
         assert a in [b]
         assert a != Pose(np.eye(3), [0, 0, 6])
         assert a.__eq__("not a pose") is NotImplemented
+
+
+class TestMatchesConsistency:
+    """Invariants that relate one field to another: nothing else would catch these."""
+
+    def _kp(self, n):
+        return np.zeros((n, 2))
+
+    def test_rejects_wrongly_shaped_pairs(self):
+        from sfmkit.core.types import Matches
+        with pytest.raises(ValueError, match=r"pairs must be \(M, 2\)"):
+            Matches("A", "B", self._kp(4), self._kp(4), np.zeros(6))
+        with pytest.raises(ValueError, match=r"pairs must be \(M, 2\)"):
+            Matches("A", "B", self._kp(4), self._kp(4), np.zeros((3, 3)))
+
+    def test_rejects_a_misaligned_inlier_mask(self):
+        """A mask of the wrong length silently selects the wrong matches."""
+        from sfmkit.core.types import Matches
+        with pytest.raises(ValueError, match="inliers has 2 entries but there are 3"):
+            Matches("A", "B", self._kp(4), self._kp(4), np.zeros((3, 2), dtype=int),
+                    inliers=np.array([True, False]))
+
+    def test_rejects_misaligned_scores(self):
+        from sfmkit.core.types import Matches
+        with pytest.raises(ValueError, match="scores has 5 entries but there are 3"):
+            Matches("A", "B", self._kp(4), self._kp(4), np.zeros((3, 2), dtype=int),
+                    scores=np.zeros(5))
+
+    def test_accepts_consistent_input(self):
+        from sfmkit.core.types import Matches
+        m = Matches("A", "B", self._kp(4), self._kp(4), np.zeros((3, 2), dtype=int),
+                    scores=np.zeros(3), inliers=np.ones(3, dtype=bool))
+        assert m.n_matches == 3 and m.n_inliers == 3
+
+    def test_empty_matches_are_allowed(self):
+        from sfmkit.core.types import Matches
+        m = Matches("A", "B", self._kp(4), self._kp(4), np.zeros((0, 2), dtype=int))
+        assert m.n_matches == 0 and m.inlier_ratio == 0.0
