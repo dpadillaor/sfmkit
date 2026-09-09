@@ -28,11 +28,7 @@ class UnionFind:
         self._size: dict[Node, int] = {}
 
     def find(self, x: Node) -> Node:
-        """The root of ``x``'s group, creating the group if ``x`` is new.
-
-        ``find(a) == find(b)`` means same group. Rewires the path it walks, so
-        later lookups are direct.
-        """
+        """The root of ``x``'s group, creating the group if ``x`` is new."""
         parent = self._parent
         if x not in parent:
             parent[x] = x
