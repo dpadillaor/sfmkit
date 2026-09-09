@@ -17,18 +17,33 @@ Node = tuple[ImageName, KeypointIndex]
 
 
 class UnionFind:
-    """Disjoint-set forest with path compression and union by size."""
+    """Keeps track of which keypoints belong together.
+
+    Start with every keypoint alone, call :meth:`union` once per verified match,
+    and :meth:`groups` then returns the sets that formed. Each set is one 3D
+    point observed across several images.
+
+    Implemented as a disjoint-set forest with path compression and union by
+    size, so both operations cost effectively constant time.
+    """
 
     def __init__(self) -> None:
         self._parent: dict[Node, Node] = {}
         self._size: dict[Node, int] = {}
 
     def find(self, x: Node) -> Node:
-        """The representative of keypoint ``x``'s group, adding it if new.
+        """The label of the group ``x`` belongs to, adding ``x`` if it is new.
 
-        Two elements belong to the same group exactly when this returns the same
-        value for both. Compresses the path it walks, so repeated lookups are
-        effectively constant time.
+        Use it to ask whether two keypoints are the same 3D point::
+
+            uf.find(("Img02", 41)) == uf.find(("Img14", 3))
+
+        The label is one arbitrary member of the group; it carries no meaning
+        beyond identifying the group.
+
+        Walking to the label also rewires everything on the way to point at it
+        directly, so the first lookup is the slow one and the rest are a single
+        step.
         """
         parent = self._parent
         if x not in parent:
@@ -43,11 +58,14 @@ class UnionFind:
         return root
 
     def union(self, a: Node, b: Node) -> None:
-        """Merge the groups containing keypoints ``a`` and ``b``.
+        """Put keypoints ``a`` and ``b`` in the same group.
 
-        Each argument identifies one keypoint of one image, so a verified match
-        becomes ``union(("Img02", 41), ("Img13", 8))``. The smaller group is
-        attached to the larger, which keeps the structure shallow.
+        One verified match is one call::
+
+            uf.union(("Img02", 41), ("Img13", 8))
+
+        Groups merge transitively, so a later ``union`` on ``("Img13", 8)`` also
+        joins everything already grouped with it.
         """
         ra, rb = self.find(a), self.find(b)
         if ra == rb:
@@ -58,7 +76,10 @@ class UnionFind:
         self._size[ra] += self._size[rb]
 
     def groups(self) -> dict[Node, list[Node]]:
-        """Every group formed so far, as ``{representative: [keypoints]}``."""
+        """Every group formed so far, as ``{label: [keypoints in it]}``.
+
+        Each group is one 3D point, seen once in each of its images.
+        """
         out = defaultdict(list)
         for node in self._parent:
             out[self.find(node)].append(node)
