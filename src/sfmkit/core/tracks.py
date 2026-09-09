@@ -5,17 +5,13 @@ A track is one 3D point together with every image observation of it."""
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import NamedTuple
 
 from sfmkit.core.types import Matches, Track
 
 __all__ = ["Node", "UnionFind", "build_tracks", "track_statistics"]
 
-class Node(NamedTuple):
-    """One keypoint of one image, the unit the match graph is built from."""
-
-    image: str
-    keypoint: int
+#: One keypoint of one image: ``("Img02", 41)`` is keypoint 41 of image Img02.
+Node = tuple[str, int]
 
 
 class UnionFind:
@@ -86,7 +82,7 @@ def build_tracks(
     uf = UnionFind()
     for m in matches:
         for i, j in m.verified_pairs():
-            uf.union(Node(m.image0, int(i)), Node(m.image1, int(j)))
+            uf.union((m.image0, int(i)), (m.image1, int(j)))
 
     cap = max_length if max_length is not None else len({m.image0 for m in matches} |
                                                         {m.image1 for m in matches})
@@ -97,11 +93,11 @@ def build_tracks(
             continue
         obs: dict[str, int] = {}
         conflict = False
-        for node in nodes:
-            if node.image in obs:
+        for image, kp in nodes:
+            if image in obs:
                 conflict = True
                 break
-            obs[node.image] = node.keypoint
+            obs[image] = kp
         if not conflict and len(obs) >= min_length:
             tracks.append(Track(observations=obs))
     return tracks
