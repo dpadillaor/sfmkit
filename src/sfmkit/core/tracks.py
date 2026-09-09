@@ -6,13 +6,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from sfmkit.core.types import Matches, Track
+from sfmkit.core.types import ImageName, KeypointIndex, Matches, Track
 
-__all__ = ["ImageName", "KeypointIndex", "Node", "UnionFind", "build_tracks",
-           "track_statistics"]
+__all__ = ["Node", "UnionFind", "build_tracks", "track_statistics"]
 
-ImageName = str
-KeypointIndex = int
+#: One keypoint of one image: ``("Img02", 41)`` is keypoint 41 of image Img02.
 Node = tuple[ImageName, KeypointIndex]
 
 
