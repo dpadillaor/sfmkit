@@ -1,13 +1,4 @@
-"""Synthetic scenes with known ground truth.
-
-The point of this module is that the whole library can be tested without a
-single photograph: cameras and 3D points are generated, projected, and the
-resulting matches fed back through the pipeline, so any test can assert against
-the exact answer rather than against a previous run.
-
-It also makes track construction testable, which is otherwise awkward: here we
-know by construction which keypoints across which images are the same 3D point.
-"""
+"""Synthetic scenes with exact ground truth, for testing."""
 
 from __future__ import annotations
 

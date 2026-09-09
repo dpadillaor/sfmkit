@@ -1,15 +1,4 @@
-"""The only module that touches the filesystem.
-
-Everything else in ``sfmkit`` takes arrays and returns arrays. Keeping I/O here
-is what makes the library testable without data, and it is the discipline whose
-absence broke the original pipeline: there, the geometry functions loaded their
-own inputs from hardcoded relative paths, so stages could not be re-run,
-re-pointed, or tested.
-
-Every run directory carries a ``manifest.json`` recording the config, the git
-commit and the package versions that produced it, so a result can always be
-traced back to what made it.
-"""
+"""Read and write run artefacts: matches, reconstructions and manifests."""
 
 from __future__ import annotations
 

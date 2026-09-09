@@ -1,10 +1,4 @@
-"""Comparison metrics between reconstructions.
-
-A reconstruction from images alone is only determined up to a similarity
-transform, so any comparison has to fix the gauge first: align to a common
-reference camera, then resolve scale from a chosen baseline. Comparing raw
-translations without doing so is meaningless.
-"""
+"""Compare one reconstruction against another."""
 
 from __future__ import annotations
 

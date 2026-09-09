@@ -1,15 +1,4 @@
-"""Shared pieces for the CLI commands.
-
-One entry point, one subcommand per pipeline stage. Stage order lives in the
-Makefile and in the config, not in module names, so inserting a stage does not
-rename anything.
-
-Each stage reads an explicit input directory and writes an explicit output
-directory, and every output carries a manifest. That contract is the fix for the
-original pipeline's real defect: there, stages found their inputs through
-hardcoded relative paths, results were never saved at all, and a missing file
-was patched by pasting numbers into the next script's source.
-"""
+"""Shared pieces for the CLI commands: the console, progress bars and helpers."""
 
 from __future__ import annotations
 

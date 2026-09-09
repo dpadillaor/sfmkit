@@ -42,8 +42,8 @@ def cmd_localize(args) -> int:
         console.print("[red]localisation failed[/red]")
         return 1
 
-    # Report a distribution, not a single number: the original's unseeded RANSAC
-    # gave rotation errors from 5 to 31 degrees on the same input.
+    # Reported as a distribution rather than a single value: estimating eleven
+    # parameters from six correspondences varies noticeably between seeds.
     centres = np.array([r.pose.center for r in results])
     table = Table(title=f"localisation of {cfg.query} over {len(results)} seeds")
     for c in ("quantity", "median", "min", "max", "spread"):

@@ -1,25 +1,4 @@
-"""Change detection between a historical photograph and a modern one.
-
-Rewritten from the description in the original presentation (slides 31-32); no
-implementation survived in the repository. The procedure there was: convert to
-greyscale, align by homography, difference, threshold, clean up with morphology,
-overlay.
-
-Two departures from that description, both because the input is a century-old
-plate rather than two frames from the same camera:
-
-* Alignment is estimated on SuperPoint/LightGlue correspondences that have
-  already passed geometric verification, not on raw intensity.
-* The comparison is made on local structure (gradient orientation and local
-  normalisation) rather than raw brightness. Two photographs separated by a
-  century differ in exposure, film response, tone and haze everywhere at once,
-  so a raw intensity difference reports the whole image as changed.
-
-A homography is only exact for a plane or for a pure rotation. The cathedral
-facade is close enough to planar for the facade itself; anything at a very
-different depth will register poorly, and that is a limitation of the method,
-not a bug.
-"""
+"""Detect what has changed between two photographs of the same place."""
 
 from __future__ import annotations
 
@@ -89,18 +68,32 @@ def detect_changes(
     min_area: int = 120,
     seed: int | None = None,
 ) -> ChangeMap:
-    """Align the historical image onto the modern one and flag what differs.
+    """Align one image onto the other and flag the regions that differ.
 
-    ``src_points``/``dst_points`` are verified correspondences, in that order.
-    ``threshold`` is applied to a dissimilarity in [0, 1]; ``min_area`` drops
-    connected components smaller than that many pixels, which removes the
-    speckle that survives thresholding.
+    Comparison uses local structure -- gradient orientation and contrast-
+    normalised intensity -- rather than raw brightness, so that differences in
+    exposure and tone are not reported as change.
 
-    The default threshold sits near the 90th percentile of the score on this
-    dataset (measured: median 0.24, p90 0.38), so roughly a tenth of the overlap
-    is reported. There is no ground truth for "changed", so this is a calibration
-    choice, not an optimum: raise it for only the strongest structural
-    differences, lower it to catch subtler ones along with more false positives.
+    Parameters
+    ----------
+    historical, modern
+        The two images. ``historical`` is warped onto ``modern``.
+    src_points, dst_points
+        Verified correspondences between them, in that order.
+    threshold
+        Applied to a dissimilarity in [0, 1]. There is no ground truth for
+        "changed", so this is a calibration choice: raise it for only the
+        strongest structural differences, lower it to catch subtler ones along
+        with more false positives.
+    min_area
+        Connected components smaller than this many pixels are discarded,
+        removing the speckle that survives thresholding.
+
+    Notes
+    -----
+    A homography is exact only for a plane or a pure rotation, so a facade
+    aligns well while objects at very different depths do not; misalignment
+    there appears as change.
     """
     H, inliers = align_by_homography(src_points, dst_points, seed=seed)
     h, w = modern.shape[:2]

@@ -1,9 +1,4 @@
-"""Figures. The only module that imports matplotlib.
-
-Kept apart from the library proper so that nothing in the reconstruction path
-can accidentally open a plot window -- the original scripts were unrunnable
-headless because ``plt.show()`` was scattered through the geometry code.
-"""
+"""Figures: reconstruction comparisons, camera layouts, matches and residuals."""
 
 from __future__ import annotations
 

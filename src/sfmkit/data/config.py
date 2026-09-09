@@ -1,10 +1,4 @@
-"""Configuration as data, loaded from YAML.
-
-An experiment is a file, not an edit to a source constant. That way it can be
-versioned, diffed, and recorded alongside the result it produced -- unlike the
-original, where changing the camera set meant editing ``AVAILABLE_IMAGES`` in
-the middle of a 526-line script.
-"""
+"""Experiment configuration, loaded from YAML."""
 
 from __future__ import annotations
 

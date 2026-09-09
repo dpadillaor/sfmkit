@@ -1,15 +1,4 @@
-"""Visual localisation: place a query image against an existing reconstruction.
-
-This is what the original called "the old camera pose". The name matters: the
-operation is standard visual localisation -- match the query against registered
-images, lift the matches to the map's 3D points through the tracks, and solve
-PnP -- and framing it that way is what makes the two-stage structure (build a
-map, then localise into it) explicit.
-
-The query is deliberately excluded from the reconstruction itself. A historical
-photograph with different intrinsics, different lighting and a century of scene
-change should not be allowed to distort the map it is being located against.
-"""
+"""Visual localisation: find where a query image was taken, given a reconstruction."""
 
 from __future__ import annotations
 
@@ -89,17 +78,26 @@ def localize_image(
     threshold: float = 8.0,
     seed: int = 0,
 ) -> LocalizationResult | None:
-    """Estimate the query camera's pose. Returns ``None`` if it cannot be solved.
+    """Estimate the query camera's pose against a reconstruction.
 
-    When ``K`` is given, this is a PnP problem. When it is not -- the usual case
-    for a historical photograph, whose camera is nothing like the one that built
-    the map -- a full projection matrix is estimated by DLT and decomposed, so
-    the focal length is recovered rather than assumed.
+    Matches linking the query to registered images are lifted to the map's 3D
+    points through the tracks, giving 3D-2D correspondences to solve from.
 
-    Assuming the map's intrinsics instead is not a small approximation: here the
-    modern images are 4032x2268 with f = 3544 px while the historical plate is
-    557x418, and forcing the former onto the latter puts the camera several times
-    further away than the entire set of viewpoints.
+    Parameters
+    ----------
+    K
+        The query camera's intrinsics if known, in which case this is a PnP
+        problem. Pass ``None`` when the query was taken by a different camera
+        from the one that built the map: a full projection matrix is then
+        estimated and decomposed, recovering the focal length instead of
+        assuming it. Assuming the map's intrinsics for a differently sized
+        image misplaces the camera badly.
+
+    Returns
+    -------
+    LocalizationResult or None
+        ``None`` if fewer than six correspondences are found, or if the solve
+        fails.
     """
     X, uv = _query_to_map_correspondences(rec, matches, query)
     if len(X) < 6:

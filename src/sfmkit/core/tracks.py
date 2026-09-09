@@ -1,26 +1,6 @@
-"""Feature tracks: turning pairwise matches into multi-view correspondences.
+"""Feature tracks: group pairwise matches into multi-view correspondences.
 
-A track is a connected component of the match graph, whose nodes are
-``(image, keypoint index)`` and whose edges are verified matches. The value is
-transitivity: if keypoint *a* in image A matches *b* in B, and *b* matches *c*
-in C, then *a*, *b* and *c* are one 3D point seen from three cameras -- even
-though A and C were never matched directly.
-
-The original pipeline only ever consumed pairs involving the reference image, so
-its match graph was a star. Transitivity still applies to a star -- two
-non-reference cameras do get linked, through a shared reference keypoint acting
-as the hub -- so the defect is narrower than "no cross-camera constraints", and
-worth stating precisely:
-
-* a point the reference never sees has no hub, so its observations never meet
-  and it cannot be reconstructed at all;
-* every match not involving the reference is discarded, removing constraints
-  between the cameras that do share it.
-
-Measured on a 5-camera synthetic scene: a star graph yields 236 tracks and 1007
-observations against 296 and 1202 for the complete graph, and 20% of the points
-visible in two or more cameras are unreachable. See ``tests/test_tracks.py``.
-"""
+A track is one 3D point together with every image observation of it."""
 
 from __future__ import annotations
 
@@ -75,14 +55,13 @@ def build_tracks(
 ) -> list[Track]:
     """Group verified matches into tracks.
 
-    Tracks that observe the same image twice are dropped: one 3D point cannot
-    project to two places in one photo, so such a component is the result of a
-    mismatch somewhere along the chain. This is the standard filter and it
-    catches real matching errors -- discarding the whole component is
-    deliberately conservative, since we cannot tell which link is the bad one.
+    Tracks observing the same image twice are discarded: a single 3D point
+    cannot project to two places in one photograph, so such a component contains
+    a mismatch somewhere along its chain. Dropping the whole component is
+    conservative, since which link is wrong cannot be determined locally.
 
-    ``max_length`` guards against a degenerate component swallowing most of the
-    graph; ``None`` means "at most one observation per image", the natural cap.
+    ``max_length`` bounds a degenerate component; ``None`` caps it at one
+    observation per image.
     """
     uf = UnionFind()
     for m in matches:

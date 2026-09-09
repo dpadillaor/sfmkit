@@ -1,7 +1,7 @@
-"""Two-view geometry and triangulation. Pure functions, row-major arrays.
+"""Two-view geometry, triangulation and projection.
 
-Nothing here reads files, prints, plots, or draws on a global RNG.
-"""
+Pure functions over row-major arrays: 3D points ``(N, 3)``, image points
+``(N, 2)``."""
 
 from __future__ import annotations
 
@@ -25,11 +25,10 @@ def skew(v: np.ndarray) -> np.ndarray:
 
 
 def rodrigues(w: np.ndarray) -> np.ndarray:
-    """Axis-angle to rotation matrix, in closed form.
+    """Axis-angle vector to rotation matrix, by Rodrigues' formula.
 
-    Equivalent to ``scipy.linalg.expm(skew(w))`` to machine precision, but
-    without the general Pade algorithm (and without the object-dtype array the
-    original ``crossMatrix`` built).
+    Equivalent to ``scipy.linalg.expm(skew(w))`` to machine precision, without
+    the general Pade algorithm.
     """
     w = np.asarray(w, dtype=float).ravel()
     theta = float(np.linalg.norm(w))
@@ -61,9 +60,10 @@ def log_rotation(R: np.ndarray) -> np.ndarray:
 def normalize_points(x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Hartley normalisation: centre at the origin, mean distance sqrt(2).
 
+    Conditions the eight-point system, which is otherwise poorly scaled for
+    pixel coordinates in the thousands.
+
     Returns the transformed ``(N, 2)`` points and the ``3x3`` transform applied.
-    Skipping this is the classic way to get a badly conditioned eight-point
-    solution on pixel coordinates in the thousands.
     """
     x = np.asarray(x, dtype=float)
     mu = x.mean(axis=0)
@@ -160,11 +160,11 @@ def triangulate_two_view(
 def triangulate_multi_view(
     observations: list[tuple[np.ndarray, np.ndarray]],
 ) -> np.ndarray:
-    """Triangulate one point from N views.
+    """Triangulate one point from N views by linear least squares.
 
     ``observations`` is a list of ``(xy, P)``: a 2-vector image point and its
-    3x4 projection matrix. Two views are the minimum; more views tighten depth,
-    which is exactly what a star-shaped graph never gets to exploit.
+    3x4 projection matrix. Two views are the minimum; additional views with wide
+    angular separation improve the conditioning of depth.
     """
     if len(observations) < 2:
         raise ValueError("triangulate_multi_view needs at least 2 observations")

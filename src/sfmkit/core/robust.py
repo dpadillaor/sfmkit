@@ -1,11 +1,6 @@
-"""RANSAC estimators. Every one takes an explicit ``seed``.
+"""Robust estimation by RANSAC.
 
-The original code had two unseeded RANSACs (``np.random.default_rng()`` for the
-fundamental matrix, ``random.sample`` for the DLT). The second one estimated the
-old camera pose, and four runs of the same problem produced rotation errors of
-12.1, 26.5, 31.1 and 5.5 degrees against COLMAP -- not four reconstructions, four
-dice rolls. Seeds are parameters here, never implicit.
-"""
+Every estimator takes an explicit ``seed`` and uses no global random state."""
 
 from __future__ import annotations
 
@@ -54,9 +49,8 @@ def ransac_fundamental(
 ) -> RansacResult:
     """Robustly fit a fundamental matrix to ``(N, 2)`` correspondences.
 
-    Scores hypotheses by Sampson distance, which is the first-order geometric
-    error, rather than the one-sided epipolar distance the original used.
-    Stops early once ``confidence`` is reached, so a clean pair costs far fewer
+    Hypotheses are scored by Sampson distance, the first-order geometric error.
+    Terminates once ``confidence`` is reached, so a clean pair costs far fewer
     than ``max_iterations`` trials.
     """
     x0 = np.asarray(x0, dtype=float)
@@ -86,8 +80,8 @@ def ransac_fundamental(
         i += 1
 
     if best_count < 8:
-        # Never assign `best_inliers` only inside the improvement branch: the
-        # original raised UnboundLocalError when no sample ever improved.
+        # best_inliers is initialised before the loop, so a run in which no
+        # sample ever improves still returns a well-formed failure.
         return RansacResult(None, best_inliers, i, False)
 
     F = eight_point(x0[best_inliers], x1[best_inliers])
@@ -108,11 +102,10 @@ def ransac_pnp(
     confidence: float = 0.999,
     seed: int | None = None,
 ) -> RansacResult:
-    """Camera pose from 3D-2D correspondences, via OpenCV's RANSAC PnP.
+    """Camera pose from 3D-2D correspondences with known intrinsics.
 
-    Delegating to OpenCV here is deliberate: ``cv2.solvePnPRansac`` is far better
-    tested than a hand-rolled six-point DLT, and ``cv2.setRNGSeed`` makes it
-    reproducible -- which the original never was.
+    Wraps ``cv2.solvePnPRansac``, seeded for reproducibility, and refines the
+    result on the inliers alone.
     """
     import cv2
 
@@ -204,16 +197,15 @@ def ransac_dlt(
     confidence: float = 0.999,
     seed: int | None = None,
 ) -> RansacResult:
-    """Robustly fit a full projection matrix, with the intrinsics unknown.
+    """Robustly fit a full 3x4 projection matrix, intrinsics unknown.
 
-    This is the estimator to use for a query image whose camera is not the one
-    that built the map -- a historical photograph, for instance. PnP would need
-    a calibration matrix; the DLT recovers all eleven degrees of freedom, and
-    ``sfmkit.geometry.decompose_projection`` splits the result into K, R and t.
+    Use this when the query camera is not the one that built the map. PnP
+    requires a calibration matrix; the DLT recovers all eleven degrees of
+    freedom, and :func:`sfmkit.core.geometry.decompose_projection` splits the
+    result into K, R and t.
 
-    The price is that six correspondences constrain far more than PnP's, so this
-    is noticeably less stable: report the pose over several seeds rather than
-    trusting one.
+    Estimating eleven parameters from six correspondences is less stable than
+    PnP, so run several seeds and report the distribution.
     """
     X = np.asarray(points_3d, dtype=float)
     x = np.asarray(points_2d, dtype=float)

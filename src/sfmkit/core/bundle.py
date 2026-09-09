@@ -1,20 +1,4 @@
-"""Bundle adjustment over an arbitrary set of cameras and tracks.
-
-Two things matter for speed, and they were established by measurement rather
-than by reading the code (see docs/optimizations.md):
-
-* Supply ``jac_sparsity``. The Jacobian is ~99.7% structural zeros, so colouring
-  the columns turns one finite-difference evaluation per parameter into about
-  ten, and -- more importantly -- switches SciPy to ``tr_solver='lsmr'``, which
-  never forms the dense SVD that dominated the original runtime.
-* Precompute the observation index arrays. The original rebuilt them by
-  iterating a dict inside the residual on every call, although they do not
-  depend on the parameters.
-
-The gauge is fixed by holding the reference camera at the identity and the first
-camera's baseline at unit length (parameterised by two polar angles), which is
-what the original did and what makes scale comparisons against COLMAP meaningful.
-"""
+"""Bundle adjustment: jointly refine camera poses and 3D point positions."""
 
 from __future__ import annotations
 
@@ -54,8 +38,11 @@ def _unit_to_polar(t: np.ndarray) -> tuple[float, float]:
 class BundleProblem:
     """Residuals, parameter packing and sparsity for one bundle adjustment.
 
-    ``images[0]`` is the fixed reference; ``images[1]`` keeps a unit-norm
-    baseline. Every other camera is free.
+    A reconstruction from images alone is determined only up to a similarity
+    transform, so the gauge must be fixed: ``images[0]`` is held at the identity
+    and ``images[1]``'s translation is parameterised by two polar angles, which
+    constrains its baseline to unit length exactly rather than by penalty. Every
+    other camera is free.
     """
 
     def __init__(self, K, images, poses, points, observations):
@@ -122,6 +109,14 @@ class BundleProblem:
         return np.nan_to_num(out, nan=0.0, posinf=0.0, neginf=0.0)
 
     def sparsity(self) -> coo_matrix:
+        """Boolean pattern of which residual depends on which parameter.
+
+        A bundle Jacobian is around 99.7% structural zeros, since an observation
+        depends only on its own camera and its own point. Declaring the pattern
+        lets SciPy difference grouped columns rather than one per parameter, and
+        solve the trust-region subproblem sparsely instead of forming a dense
+        SVD of the whole Jacobian.
+        """
         n_params = self.point_offset + 3 * self.n_points
         rows, cols = [], []
         row = 0
@@ -156,13 +151,30 @@ def solve_bundle(
     K, images, poses, points, observations, *, max_iterations: int = 200,
     loss: str = "huber", f_scale: float = 4.0, verbose: int = 0,
 ) -> BundleResult:
-    """Run the bundle adjustment and report RMSE before and after.
+    """Refine poses and points by minimising reprojection error.
 
-    A robust ``loss`` down-weights gross outliers instead of letting a handful of
-    bad correspondences dominate a least-squares fit. This is preferable to
-    deleting the offending observations: deletion is permanent, so a match
-    discarded while the pose was still poor never returns once it improves.
-    ``f_scale`` is the residual (in pixels) beyond which down-weighting begins.
+    Parameters
+    ----------
+    K
+        Shared ``(3, 3)`` intrinsics.
+    images
+        Camera names in parameter order. ``images[0]`` is held at the identity
+        and ``images[1]`` keeps a unit-length baseline; see :class:`BundleProblem`.
+    poses, points
+        Initial estimates: a pose per name, and an ``(N, 3)`` point array.
+    observations
+        ``(M, 4)`` rows of ``(point index, camera index, u, v)``.
+    loss, f_scale
+        Robust loss and the residual in pixels beyond which it begins to
+        down-weight. A robust loss keeps a handful of bad correspondences from
+        dominating the fit without discarding them, which matters because
+        discarding is permanent: a match rejected while a pose was still poor
+        would never return once it improved.
+
+    Returns
+    -------
+    BundleResult
+        Optimised poses and points, RMSE before and after, and timings.
     """
     import time
 

@@ -1,9 +1,4 @@
-"""Feature detection and matching with SuperPoint + LightGlue.
-
-Isolated behind its own module because it is the only part of the pipeline that
-needs torch and a GPU. Everything else in ``sfmkit`` runs on numpy alone, so the
-tests, the reconstruction and the evaluation never import this.
-"""
+"""Feature detection and matching with SuperPoint and LightGlue."""
 
 from __future__ import annotations
 
@@ -29,9 +24,8 @@ def match_pairs(
 ) -> list[Path]:
     """Extract features once per image and match every requested pair.
 
-    Features are cached across pairs: with an exhaustive graph over N images
-    there are N(N-1)/2 pairs but only N extractions, and re-extracting per pair
-    (as the original did) wastes most of the GPU time.
+    Features are cached across pairs: an exhaustive graph over N images has
+    N(N-1)/2 pairs but needs only N extractions.
     """
     import torch
     from lightglue import LightGlue, SuperPoint

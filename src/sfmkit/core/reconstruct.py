@@ -1,20 +1,4 @@
-"""Incremental Structure-from-Motion over a track graph.
-
-The difference from the original pipeline is entirely in how correspondences are
-organised. There, every new camera was registered against the *reference* image
-alone, so the match graph was a star: any point the reference did not see was
-unreachable, and every match between two non-reference images was discarded
-(measured on synthetic data: 20% of reconstructable points lost, 19% fewer
-observations). Error grew with distance from the reference, and adding cameras
-made the mean worse. Here the input is a set of tracks built from *all* verified
-pairs, so a point seen by five cameras contributes five reprojection residuals.
-
-Consequences that follow from that one change:
-  * points are triangulated from every view that sees them, not from two;
-  * the next camera to register is the one that already sees the most
-    triangulated tracks, rather than the next entry in a hardcoded list;
-  * bundle adjustment optimises the whole graph at each step.
-"""
+"""Incremental Structure-from-Motion: build a reconstruction one camera at a time."""
 
 from __future__ import annotations
 

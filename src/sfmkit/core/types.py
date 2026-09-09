@@ -1,10 +1,4 @@
-"""Core data structures.
-
-These are containers, not behaviour-rich objects: struct-of-arrays rather than
-array-of-structs, so that everything downstream stays vectorised. A list of
-1000 ``Point3D`` objects would be both slower and harder to feed to the bundle
-adjuster than one ``(1000, 3)`` array.
-"""
+"""Data structures for cameras, correspondences and reconstructions."""
 
 from __future__ import annotations
 
@@ -17,8 +11,8 @@ import numpy as np
 class Pose:
     """A world-to-camera rigid transform: ``x_cam = R @ x_world + t``.
 
-    This is COLMAP's convention. The original code mixed this with its inverse
-    depending on the function, so it is fixed here and never varies.
+    COLMAP's convention, used unchanged throughout the package. ``R`` is
+    ``(3, 3)`` and orthonormal with determinant +1; ``t`` is ``(3,)``.
     """
 
     R: np.ndarray  # (3, 3), orthonormal, det +1
