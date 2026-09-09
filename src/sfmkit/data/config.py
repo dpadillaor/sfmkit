@@ -12,6 +12,13 @@ __all__ = ["Config", "load_config"]
 
 @dataclass
 class Config:
+    """One experiment, as data rather than as constants in the source.
+
+    ``reference`` is the camera the reconstruction is anchored to and that all
+    comparisons align against; ``query`` is the image to be localised, which is
+    deliberately excluded from the reconstruction itself.
+    """
+
     name: str = "default"
     images_dir: str = ""
     image_names: list[str] = field(default_factory=list)

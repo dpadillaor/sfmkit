@@ -15,6 +15,12 @@ __all__ = ["LocalizationResult", "localize_image"]
 
 @dataclass(eq=False)
 class LocalizationResult:
+    """Where a query image was taken, and how well that is supported.
+
+    ``K`` is the estimated calibration when the intrinsics were unknown, and the
+    one that was supplied otherwise. ``rmse`` is over the inliers only.
+    """
+
     pose: Pose
     n_correspondences: int
     n_inliers: int

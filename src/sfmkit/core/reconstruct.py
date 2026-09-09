@@ -22,6 +22,14 @@ __all__ = ["ReconstructionConfig", "StageReport", "reconstruct"]
 
 @dataclass
 class ReconstructionConfig:
+    """Thresholds and limits for :func:`reconstruct`.
+
+    The three that matter most were chosen by grid search against COLMAP rather
+    than by intuition, and two behave counter-intuitively: a tighter
+    ``max_reprojection_error`` registers fewer cameras, and raising
+    ``min_triangulation_angle_deg`` from 0.5 to 2 degrees registers more.
+    """
+
     reference: str | None = None
     seed: int = 0
     ransac_threshold: float = 4.0
@@ -47,6 +55,12 @@ class ReconstructionConfig:
 
 @dataclass
 class StageReport:
+    """One row of the reconstruction log: what happened when a camera was added.
+
+    ``n_pnp_correspondences`` is the inlier count from the PnP that registered
+    it, and is the clearest signal of how well supported that camera is.
+    """
+
     step: int
     image: str
     n_registered: int
@@ -61,6 +75,12 @@ class StageReport:
 
 @dataclass
 class ReconstructionResult:
+    """A finished reconstruction, plus how it got there.
+
+    ``before_refinement`` is the state saved immediately before the final global
+    refinement, so the two can be compared directly.
+    """
+
     reconstruction: Reconstruction
     reports: list[StageReport] = field(default_factory=list)
     tracks: list[Track] = field(default_factory=list)

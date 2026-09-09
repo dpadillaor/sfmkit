@@ -29,6 +29,11 @@ def _lines(path: Path):
 
 
 def read_cameras(path) -> dict[int, dict]:
+    """Read ``cameras.txt``: camera id to model, size and parameters.
+
+    The meaning of ``params`` depends on ``model``; for SIMPLE_RADIAL it is
+    focal length, principal point and one distortion coefficient.
+    """
     out = {}
     for line in _lines(Path(path)):
         p = line.split()
@@ -54,6 +59,7 @@ def read_images(path) -> dict[str, Pose]:
 
 
 def read_points3d(path) -> tuple[np.ndarray, np.ndarray]:
+    """Read ``points3D.txt``, returning ``(N, 3)`` positions and RGB colours."""
     xyz, rgb = [], []
     for line in _lines(Path(path)):
         p = line.split()
@@ -63,6 +69,7 @@ def read_points3d(path) -> tuple[np.ndarray, np.ndarray]:
 
 
 def read_model(directory) -> dict:
+    """Read a whole COLMAP text model: cameras, poses, points and colours."""
     d = Path(directory)
     xyz, rgb = read_points3d(d / "points3D.txt")
     return {

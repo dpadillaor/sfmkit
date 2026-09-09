@@ -14,6 +14,13 @@ __all__ = ["SyntheticScene", "make_scene"]
 
 @dataclass(eq=False)
 class SyntheticScene:
+    """A scene whose true cameras and 3D points are known.
+
+    ``keypoints[image]`` holds the pixels observed in that image, and
+    ``visible[image]`` says which entry of ``points`` each of them came from,
+    which is what makes results checkable against the truth.
+    """
+
     K: np.ndarray
     images: list[str]
     poses: dict[str, Pose]  # ground truth, world-to-camera
@@ -47,6 +54,7 @@ class SyntheticScene:
         return Matches(image0=a, image1=b, keypoints0=kp_a, keypoints1=kp_b, pairs=pairs)
 
     def true_relative(self, name: str, reference: str) -> Pose:
+        """The true pose of ``name`` in ``reference``'s frame."""
         return self.poses[name].relative_to(self.poses[reference])
 
 

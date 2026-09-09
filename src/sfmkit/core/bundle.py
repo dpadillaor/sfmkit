@@ -16,6 +16,12 @@ __all__ = ["BundleProblem", "BundleResult", "solve_bundle"]
 
 @dataclass(eq=False)
 class BundleResult:
+    """What one bundle adjustment produced, and what it cost.
+
+    ``rmse_before`` and ``rmse_after`` are reprojection RMSE in pixels over the
+    raw residuals, not the robust-weighted cost the solver minimised.
+    """
+
     poses: dict[str, Pose]
     points: np.ndarray
     rmse_before: float
@@ -73,6 +79,12 @@ class BundleProblem:
     # ---- parameter packing -------------------------------------------------
 
     def pack(self, poses: dict[str, Pose], points: np.ndarray) -> np.ndarray:
+        """Flatten poses and points into the solver's parameter vector.
+
+        The reference camera contributes nothing, the second contributes five
+        numbers (a rotation vector and two polar angles), every other camera
+        six, and the points follow as all X, then all Y, then all Z.
+        """
         first = poses[self.images[1]]
         p = [log_rotation(first.R), np.array(_unit_to_polar(first.t))]
         for name in self.images[2:]:
@@ -81,6 +93,10 @@ class BundleProblem:
         return np.concatenate([np.asarray(a, dtype=float).ravel() for a in p])
 
     def unpack(self, params: np.ndarray) -> tuple[dict[str, Pose], np.ndarray]:
+        """Rebuild poses and an ``(N, 3)`` point array from a parameter vector.
+
+        The inverse of :meth:`pack`.
+        """
         poses = {self.images[0]: Pose.identity()}
         poses[self.images[1]] = Pose(rodrigues(params[0:3]), _polar_to_unit(params[3], params[4]))
         o = 5
@@ -93,6 +109,11 @@ class BundleProblem:
     # ---- residuals and sparsity -------------------------------------------
 
     def residual(self, params: np.ndarray) -> np.ndarray:
+        """Reprojection error for every observation, as one flat vector.
+
+        Points behind a camera would project to infinity; those residuals are
+        zeroed rather than allowed to become NaN, which would poison the solve.
+        """
         poses, points = self.unpack(params)
         out = np.empty(self.n_residuals)
         row = 0

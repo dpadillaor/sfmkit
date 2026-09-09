@@ -12,6 +12,14 @@ __all__ = ["ChangeMap", "align_by_homography", "detect_changes"]
 
 @dataclass(eq=False)
 class ChangeMap:
+    """The result of comparing two aligned images.
+
+    ``score`` is the raw dissimilarity in [0, 1] before thresholding; ``mask``
+    is what survived the threshold and the morphological clean-up.
+    ``changed_fraction`` is measured over the overlapping region, not the whole
+    image.
+    """
+
     warped: np.ndarray  # the historical image, aligned to the modern one
     mask: np.ndarray  # bool, True where the scene appears to have changed
     score: np.ndarray  # float32 dissimilarity in [0, 1], before thresholding

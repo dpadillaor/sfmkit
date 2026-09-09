@@ -8,17 +8,26 @@ from collections import defaultdict
 
 from sfmkit.core.types import Matches, Track
 
-__all__ = ["UnionFind", "build_tracks", "track_statistics"]
+__all__ = ["Node", "UnionFind", "build_tracks", "track_statistics"]
+
+#: One keypoint of one image: ``("Img02", 41)`` is keypoint 41 of image Img02.
+Node = tuple[str, int]
 
 
 class UnionFind:
     """Disjoint-set forest with path compression and union by size."""
 
     def __init__(self) -> None:
-        self._parent: dict[tuple[str, int], tuple[str, int]] = {}
-        self._size: dict[tuple[str, int], int] = {}
+        self._parent: dict[Node, Node] = {}
+        self._size: dict[Node, int] = {}
 
-    def find(self, x):
+    def find(self, x: Node) -> Node:
+        """The representative of keypoint ``x``'s group, adding it if new.
+
+        Two elements belong to the same group exactly when this returns the same
+        value for both. Compresses the path it walks, so repeated lookups are
+        effectively constant time.
+        """
         parent = self._parent
         if x not in parent:
             parent[x] = x
@@ -31,7 +40,13 @@ class UnionFind:
             parent[x], x = root, parent[x]
         return root
 
-    def union(self, a, b) -> None:
+    def union(self, a: Node, b: Node) -> None:
+        """Merge the groups containing keypoints ``a`` and ``b``.
+
+        Each argument identifies one keypoint of one image, so a verified match
+        becomes ``union(("Img02", 41), ("Img13", 8))``. The smaller group is
+        attached to the larger, which keeps the structure shallow.
+        """
         ra, rb = self.find(a), self.find(b)
         if ra == rb:
             return
@@ -40,7 +55,8 @@ class UnionFind:
         self._parent[rb] = ra
         self._size[ra] += self._size[rb]
 
-    def groups(self) -> dict:
+    def groups(self) -> dict[Node, list[Node]]:
+        """Every group formed so far, as ``{representative: [keypoints]}``."""
         out = defaultdict(list)
         for node in self._parent:
             out[self.find(node)].append(node)

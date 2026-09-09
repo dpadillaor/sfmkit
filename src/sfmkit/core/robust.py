@@ -16,6 +16,12 @@ __all__ = ["RansacResult", "ransac_fundamental", "ransac_pnp", "ransac_dlt"]
 
 @dataclass(eq=False)
 class RansacResult:
+    """The outcome of a RANSAC fit.
+
+    ``model`` is ``None`` when no consensus was found, in which case
+    ``converged`` is False and ``inliers`` is all-False rather than absent.
+    """
+
     model: np.ndarray | Pose | None
     inliers: np.ndarray  # bool mask over the input correspondences
     n_iterations: int

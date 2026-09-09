@@ -62,6 +62,7 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
 
 
 def read_manifest(run_dir, stage: str) -> dict:
+    """Read back the manifest a stage wrote."""
     return json.loads((Path(run_dir) / f"manifest_{stage}.json").read_text())
 
 
@@ -86,6 +87,7 @@ def load_matches_npz(path, image0: str, image1: str) -> Matches:
 
 
 def save_matches(matches: Matches, path) -> None:
+    """Write matches to a compressed ``.npz``. Optional fields are omitted."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -103,6 +105,7 @@ def save_matches(matches: Matches, path) -> None:
 
 
 def load_matches(path) -> Matches:
+    """Read matches written by :func:`save_matches`."""
     with np.load(Path(path), allow_pickle=False) as d:
         return Matches(
             image0=str(d["image0"]),
@@ -140,6 +143,7 @@ def save_reconstruction(rec: Reconstruction, path) -> None:
 
 
 def load_reconstruction(path) -> Reconstruction:
+    """Read a reconstruction written by :func:`save_reconstruction`."""
     with np.load(Path(path), allow_pickle=False) as d:
         names = [str(n) for n in d["image_names"]]
         poses = {n: Pose(d["rotations"][i], d["translations"][i]) for i, n in enumerate(names)}
