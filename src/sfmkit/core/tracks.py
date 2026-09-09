@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from sfmkit.types import Matches, Track
+from sfmkit.core.types import Matches, Track
 
 __all__ = ["UnionFind", "build_tracks", "track_statistics"]
 

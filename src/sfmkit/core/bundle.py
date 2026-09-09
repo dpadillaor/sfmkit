@@ -24,8 +24,8 @@ import numpy as np
 from scipy.optimize import least_squares
 from scipy.sparse import coo_matrix
 
-from sfmkit.geometry import log_rotation, rodrigues
-from sfmkit.types import Pose
+from sfmkit.core.geometry import log_rotation, rodrigues
+from sfmkit.core.types import Pose
 
 __all__ = ["BundleProblem", "BundleResult", "solve_bundle"]
 

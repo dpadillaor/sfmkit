@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from sfmkit.geometry import (
+from sfmkit.core.geometry import (
     decompose_projection,
     eight_point,
     fundamental_to_essential,
@@ -17,7 +17,7 @@ from sfmkit.geometry import (
     triangulate_multi_view,
     triangulate_two_view,
 )
-from sfmkit.types import Pose
+from sfmkit.core.types import Pose
 
 
 class TestRotations:
@@ -94,7 +94,7 @@ class TestPoseRecovery:
         pose = recover_pose(E, scene.K, x0, x1)
         truth = scene.true_relative("cam02", "cam00")
 
-        from sfmkit.metrics import rotation_error_deg
+        from sfmkit.core.metrics import rotation_error_deg
         assert rotation_error_deg(pose.R, truth.R) < 0.5
         # Translation is only known up to scale, so compare directions.
         a = pose.t / np.linalg.norm(pose.t)

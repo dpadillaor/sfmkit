@@ -12,8 +12,8 @@ from pathlib import Path
 
 import numpy as np
 
-from sfmkit.io import save_matches
-from sfmkit.types import Matches
+from sfmkit.core.types import Matches
+from sfmkit.data.io import save_matches
 
 __all__ = ["match_pairs"]
 

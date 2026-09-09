@@ -3,31 +3,48 @@
 ## Layers
 
 ```
-src/sfmkit/           the library: arrays in, arrays out
-  types.py            Pose, Matches, Track, Reconstruction
-  geometry.py         two-view geometry, triangulation, projection
-  robust.py           RANSAC estimators, every one taking a seed
-  tracks.py           union-find over the match graph
-  bundle.py           residuals, sparsity, the bundle adjustment
-  reconstruct.py      incremental SfM
-  localize.py         visual localisation of a query image
-  metrics.py          comparison against another reconstruction
-  synthetic.py        scenes with exact ground truth, for tests
-  colmap.py           readers for COLMAP's text model
-  changes.py          homography alignment + change detection
-  io.py               the ONLY module that touches the filesystem
-  viz.py              the ONLY module that imports matplotlib
-  config.py           YAML experiment configs
-  features.py         SuperPoint + LightGlue (the only torch dependency)
-  cli.py              one subcommand per stage
+src/sfmkit/
+  core/           algorithms: arrays in, arrays out
+    types.py        Pose, Matches, Track, Reconstruction
+    geometry.py     two-view geometry, triangulation, projection
+    robust.py       RANSAC estimators, every one taking a seed
+    tracks.py       union-find over the match graph
+    bundle.py       residuals, sparsity, the bundle adjustment
+    reconstruct.py  incremental SfM
+    localize.py     visual localisation of a query image
+    changes.py      homography alignment + change detection
+    metrics.py      comparison against another reconstruction
+    synthetic.py    scenes with exact ground truth, for tests
+  data/           everything that touches the filesystem
+    io.py           run artefacts and manifests
+    colmap.py       readers for COLMAP's text model
+    config.py       YAML experiment configs
+    features.py     SuperPoint + LightGlue (the only torch dependency)
+  render/
+    viz.py          figures; the only matplotlib import
+  apps/           the composition root
+    cli/            one module per subcommand
+    tui/            terminal UI
 ```
 
-The dependency rule is one-directional: `cli` → `io`/`config`/library, library →
-nothing but numpy and scipy. Nothing in the library imports `io`, `viz`,
-`features` or `cli`.
+Imports may only point downwards: `apps` → `render` → `data` → `core`, and
+`core` imports nothing but numpy and scipy.
 
-That is what makes the test suite possible: `pytest` never reads a photograph,
-never writes a file, and never opens a plot.
+**This is checked, not documented.** `pyproject.toml` carries four
+import-linter contracts, run by `lint-imports` in pre-commit and in CI:
+
+| Contract | What it forbids |
+|---|---|
+| Layered architecture | any import pointing upwards |
+| The core does no I/O and draws nothing | `core` importing matplotlib, torch, yaml, rich, textual |
+| Only the render layer imports matplotlib | `core` or `data` importing matplotlib |
+| Only the data layer imports torch | `core` or `render` importing torch |
+
+Without enforcement the rule holds only for as long as everyone remembers it,
+and one `import matplotlib` in `core/geometry.py` silently ends the library's
+ability to be tested without a display. That is what makes the test suite
+possible: `pytest` never reads a photograph, never writes a file, and never
+opens a plot.
 
 ## Stage contract
 

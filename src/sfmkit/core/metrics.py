@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from sfmkit.types import Pose
+from sfmkit.core.types import Pose
 
 __all__ = [
     "rotation_error_deg", "align_to_reference", "scale_between",

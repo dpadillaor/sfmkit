@@ -7,10 +7,10 @@ whole pipeline can be checked without a single photograph, in seconds, in CI.
 import numpy as np
 import pytest
 
-from sfmkit.metrics import compare_poses
-from sfmkit.reconstruct import ReconstructionConfig, reconstruct
-from sfmkit.robust import ransac_fundamental
-from sfmkit.tracks import build_tracks
+from sfmkit.core.metrics import compare_poses
+from sfmkit.core.reconstruct import ReconstructionConfig, reconstruct
+from sfmkit.core.robust import ransac_fundamental
+from sfmkit.core.tracks import build_tracks
 
 
 def _verify(matches, seed=0, threshold=3.0):

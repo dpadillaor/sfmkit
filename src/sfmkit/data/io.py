@@ -22,7 +22,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sfmkit.types import Matches, Pose, Reconstruction, Track
+from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = [
     "load_matches_npz", "save_matches", "load_matches", "save_reconstruction",

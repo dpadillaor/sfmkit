@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from sfmkit.geometry import sampson_distance
-from sfmkit.robust import ransac_fundamental, ransac_pnp
+from sfmkit.core.geometry import sampson_distance
+from sfmkit.core.robust import ransac_fundamental, ransac_pnp
 
 
 class TestRansacFundamental:
@@ -63,7 +63,7 @@ class TestRansacPnp:
         idx = scene.visible[name]
         res = ransac_pnp(scene.points[idx], scene.keypoints[name], scene.K, seed=0)
         assert res.converged
-        from sfmkit.metrics import rotation_error_deg
+        from sfmkit.core.metrics import rotation_error_deg
         truth = scene.poses[name]
         assert rotation_error_deg(res.model.R, truth.R) < 0.5
         assert np.linalg.norm(res.model.t - truth.t) < 0.05

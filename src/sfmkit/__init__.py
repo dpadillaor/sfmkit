@@ -13,7 +13,7 @@ Conventions used throughout, chosen once and enforced at module boundaries:
   global RNG anywhere.
 """
 
-from sfmkit.types import Matches, Pose, Reconstruction, Track
+from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = ["Matches", "Pose", "Reconstruction", "Track"]
 __version__ = "0.1.0"

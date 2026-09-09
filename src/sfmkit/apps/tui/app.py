@@ -23,7 +23,7 @@ from textual.widgets import (
     Tree,
 )
 
-from sfmkit.tui.model import STAGES, RunSummary, compare, load_runs
+from sfmkit.apps.tui.model import STAGES, RunSummary, compare, load_runs
 
 
 class RunList(DataTable):

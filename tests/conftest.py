@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from sfmkit.synthetic import make_scene
+from sfmkit.core.synthetic import make_scene
 
 
 @pytest.fixture(scope="session")

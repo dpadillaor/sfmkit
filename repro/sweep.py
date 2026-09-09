@@ -14,12 +14,12 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, "src")
-from sfmkit import io
-from sfmkit.colmap import read_model
-from sfmkit.config import load_config
-from sfmkit.metrics import compare_poses
-from sfmkit.reconstruct import ReconstructionConfig, reconstruct
-from sfmkit.tracks import build_tracks
+from sfmkit.data import io
+from sfmkit.data.colmap import read_model
+from sfmkit.data.config import load_config
+from sfmkit.core.metrics import compare_poses
+from sfmkit.core.reconstruct import ReconstructionConfig, reconstruct
+from sfmkit.core.tracks import build_tracks
 
 cfg = load_config("configs/valencia_all9.yaml")
 files = sorted(Path("runs/kit-all9/verified").glob("*.npz"))

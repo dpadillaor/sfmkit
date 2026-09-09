@@ -19,10 +19,10 @@ dependencies = [
 [project.optional-dependencies]
 match = ["torch>=2.0", "lightglue"]
 tui = ["textual>=0.60"]
-dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4", "textual>=0.60"]
+dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4", "textual>=0.60", "import-linter>=2.0"]
 
 [project.scripts]
-sfmkit = "sfmkit.cli:main"
+sfmkit = "sfmkit.apps.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -41,3 +41,47 @@ exclude = ["CV", "repro"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+
+# The package is organised in layers, and the layering is checked rather than
+# merely documented. Without this, the rule holds only for as long as everyone
+# remembers it: one `import matplotlib` in core/geometry.py and the library
+# silently stops being testable without a display.
+#
+#   apps    the composition root -- CLI and TUI, may see everything
+#   render  figures; the only layer that imports matplotlib
+#   data    everything that touches the filesystem, plus config
+#   core    algorithms; arrays in, arrays out, nothing else
+#
+# Run with `lint-imports`, and in CI.
+[tool.importlinter]
+root_package = "sfmkit"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Layered architecture"
+type = "layers"
+layers = [
+    "sfmkit.apps",
+    "sfmkit.render",
+    "sfmkit.data",
+    "sfmkit.core",
+]
+
+[[tool.importlinter.contracts]]
+name = "The core does no I/O and draws nothing"
+type = "forbidden"
+source_modules = ["sfmkit.core"]
+forbidden_modules = ["matplotlib", "torch", "yaml", "rich", "textual"]
+
+[[tool.importlinter.contracts]]
+name = "Only the render layer imports matplotlib"
+type = "forbidden"
+source_modules = ["sfmkit.core", "sfmkit.data"]
+forbidden_modules = ["matplotlib"]
+
+[[tool.importlinter.contracts]]
+name = "Only the data layer imports torch"
+type = "forbidden"
+source_modules = ["sfmkit.core", "sfmkit.render"]
+forbidden_modules = ["torch"]

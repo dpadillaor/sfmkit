@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from sfmkit.types import Pose
+from sfmkit.core.types import Pose
 
 __all__ = [
     "rodrigues", "log_rotation", "skew",

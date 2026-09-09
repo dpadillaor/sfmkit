@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from sfmkit.bundle import BundleProblem, solve_bundle
-from sfmkit.types import Pose
+from sfmkit.core.bundle import BundleProblem, solve_bundle
+from sfmkit.core.types import Pose
 
 
 def _problem_from_scene(scene, n_cameras=3):
@@ -107,7 +107,7 @@ class TestSolve:
         res = solve_bundle(scene.K, images, poses, noisy_points, obs, loss="linear")
         assert res.rmse_after < res.rmse_before
         assert res.rmse_after < 0.5
-        from sfmkit.metrics import rotation_error_deg
+        from sfmkit.core.metrics import rotation_error_deg
         for n in images:
             assert rotation_error_deg(res.poses[n].R, poses[n].R) < 1.0
 
@@ -120,7 +120,7 @@ class TestSolve:
         corrupted[bad, 2:4] += rng.normal(0, 200, (len(bad), 2))
 
         noisy_points = points + rng.normal(0, 0.02, points.shape)
-        from sfmkit.metrics import rotation_error_deg
+        from sfmkit.core.metrics import rotation_error_deg
 
         robust = solve_bundle(scene.K, images, poses, noisy_points, corrupted,
                               loss="huber", f_scale=4.0)

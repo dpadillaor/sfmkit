@@ -13,8 +13,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from sfmkit.geometry import eight_point, sampson_distance
-from sfmkit.types import Pose
+from sfmkit.core.geometry import eight_point, sampson_distance
+from sfmkit.core.types import Pose
 
 __all__ = ["RansacResult", "ransac_fundamental", "ransac_pnp", "ransac_dlt"]
 

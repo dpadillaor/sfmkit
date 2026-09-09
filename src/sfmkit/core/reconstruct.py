@@ -22,16 +22,16 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from sfmkit.bundle import solve_bundle
-from sfmkit.geometry import (
+from sfmkit.core.bundle import solve_bundle
+from sfmkit.core.geometry import (
     fundamental_to_essential,
     project,
     recover_pose,
     triangulate_multi_view,
     triangulate_two_view,
 )
-from sfmkit.robust import ransac_fundamental, ransac_pnp
-from sfmkit.types import Matches, Pose, Reconstruction, Track
+from sfmkit.core.robust import ransac_fundamental, ransac_pnp
+from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = ["ReconstructionConfig", "StageReport", "reconstruct"]
 

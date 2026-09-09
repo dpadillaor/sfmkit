@@ -9,6 +9,6 @@ It reads the manifests each stage writes; it does not shell out to the CLI and
 parse its output, and it does not reimplement any of the library.
 """
 
-from sfmkit.tui.app import SfmkitApp, run
+from sfmkit.apps.tui.app import SfmkitApp, run
 
 __all__ = ["SfmkitApp", "run"]

@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, "src")
-from sfmkit.tui.model import load_runs
+from sfmkit.apps.tui.model import load_runs
 
 
 def fmt(v, nd=3):

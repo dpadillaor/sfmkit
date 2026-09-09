@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from sfmkit.types import Pose
+from sfmkit.core.types import Pose
 
 __all__ = ["read_cameras", "read_images", "read_points3d", "read_model"]
 

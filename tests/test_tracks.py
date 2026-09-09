@@ -6,8 +6,8 @@ keypoints across which images belong to the same 3D point.
 
 import numpy as np
 
-from sfmkit.tracks import UnionFind, build_tracks, track_statistics
-from sfmkit.types import Matches
+from sfmkit.core.tracks import UnionFind, build_tracks, track_statistics
+from sfmkit.core.types import Matches
 
 
 class TestUnionFind:

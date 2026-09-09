@@ -17,9 +17,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from sfmkit.geometry import decompose_projection, reprojection_errors
-from sfmkit.robust import ransac_dlt, ransac_pnp
-from sfmkit.types import Matches, Pose, Reconstruction
+from sfmkit.core.geometry import decompose_projection, reprojection_errors
+from sfmkit.core.robust import ransac_dlt, ransac_pnp
+from sfmkit.core.types import Matches, Pose, Reconstruction
 
 __all__ = ["LocalizationResult", "localize_image"]
 

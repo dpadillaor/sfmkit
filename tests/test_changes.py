@@ -5,7 +5,7 @@ import pytest
 
 cv2 = pytest.importorskip("cv2")
 
-from sfmkit.changes import align_by_homography, detect_changes  # noqa: E402
+from sfmkit.core.changes import align_by_homography, detect_changes  # noqa: E402
 
 
 def _textured_image(seed=0, size=(400, 600)):

@@ -3,12 +3,12 @@
 import numpy as np
 import pytest
 
-from sfmkit.geometry import project
-from sfmkit.localize import _query_to_map_correspondences, localize_image
-from sfmkit.metrics import rotation_error_deg
-from sfmkit.robust import ransac_dlt
-from sfmkit.synthetic import make_scene
-from sfmkit.types import Matches, Reconstruction, Track
+from sfmkit.core.geometry import project
+from sfmkit.core.localize import _query_to_map_correspondences, localize_image
+from sfmkit.core.metrics import rotation_error_deg
+from sfmkit.core.robust import ransac_dlt
+from sfmkit.core.synthetic import make_scene
+from sfmkit.core.types import Matches, Reconstruction, Track
 
 
 @pytest.fixture(scope="module")

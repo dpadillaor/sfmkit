@@ -30,5 +30,10 @@ jobs:
       - name: Lint
         run: ruff check src tests
 
+      - name: Check the layering
+        # The architecture is a contract, not a comment: this fails the build if
+        # a layer imports upwards, or if the core acquires an I/O dependency.
+        run: lint-imports
+
       - name: Test
         run: pytest -q --cov=sfmkit --cov-report=term-missing

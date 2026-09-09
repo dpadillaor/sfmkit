@@ -15,8 +15,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from sfmkit.geometry import project
-from sfmkit.types import Matches, Pose
+from sfmkit.core.geometry import project
+from sfmkit.core.types import Matches, Pose
 
 __all__ = ["SyntheticScene", "make_scene"]
 
