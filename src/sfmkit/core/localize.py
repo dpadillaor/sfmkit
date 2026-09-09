@@ -13,7 +13,7 @@ from sfmkit.core.types import Matches, Pose, Reconstruction
 __all__ = ["LocalizationResult", "localize_image"]
 
 
-@dataclass
+@dataclass(eq=False)
 class LocalizationResult:
     pose: Pose
     n_correspondences: int

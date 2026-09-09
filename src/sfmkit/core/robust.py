@@ -14,7 +14,7 @@ from sfmkit.core.types import Pose
 __all__ = ["RansacResult", "ransac_fundamental", "ransac_pnp", "ransac_dlt"]
 
 
-@dataclass
+@dataclass(eq=False)
 class RansacResult:
     model: np.ndarray | Pose | None
     inliers: np.ndarray  # bool mask over the input correspondences

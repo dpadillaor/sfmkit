@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class Pose:
     """A world-to-camera rigid transform: ``x_cam = R @ x_world + t``.
 
@@ -32,6 +32,11 @@ class Pose:
             raise ValueError(f"t must have 3 elements, got {t.shape}")
         object.__setattr__(self, "R", R)
         object.__setattr__(self, "t", t.reshape(3))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Pose):
+            return NotImplemented
+        return np.array_equal(self.R, other.R) and np.array_equal(self.t, other.t)
 
     def validate(self, tol: float = 1e-6) -> Pose:
         """Raise unless ``R`` is a proper rotation. Returns self, so it chains."""
@@ -79,7 +84,7 @@ class Pose:
         return np.asarray(K, dtype=float) @ np.hstack([self.R, self.t[:, None]])
 
 
-@dataclass
+@dataclass(eq=False)
 class Matches:
     """Putative or verified correspondences between two images.
 
@@ -136,7 +141,7 @@ class Track:
         return set(self.observations)
 
 
-@dataclass
+@dataclass(eq=False)
 class Reconstruction:
     """Cameras, 3D points and their observations.
 

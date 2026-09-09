@@ -14,7 +14,7 @@ from sfmkit.core.types import Pose
 __all__ = ["BundleProblem", "BundleResult", "solve_bundle"]
 
 
-@dataclass
+@dataclass(eq=False)
 class BundleResult:
     poses: dict[str, Pose]
     points: np.ndarray

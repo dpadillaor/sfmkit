@@ -210,3 +210,11 @@ class TestPoseNormalisation:
         p = Pose(np.eye(3), [0, 0, 5])
         assert np.allclose(p.t, [0, 0, 5])
         assert np.allclose(p.center, [0, 0, -5])
+
+    def test_equality_compares_values(self):
+        """The generated __eq__ raises on numpy fields; this one must not."""
+        a, b = Pose(np.eye(3), [0, 0, 5]), Pose(np.eye(3), [0, 0, 5])
+        assert a == b
+        assert a in [b]
+        assert a != Pose(np.eye(3), [0, 0, 6])
+        assert a.__eq__("not a pose") is NotImplemented

@@ -12,7 +12,7 @@ from sfmkit.core.types import Matches, Pose
 __all__ = ["SyntheticScene", "make_scene"]
 
 
-@dataclass
+@dataclass(eq=False)
 class SyntheticScene:
     K: np.ndarray
     images: list[str]

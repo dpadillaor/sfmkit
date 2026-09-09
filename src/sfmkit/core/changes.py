@@ -10,7 +10,7 @@ import numpy as np
 __all__ = ["ChangeMap", "align_by_homography", "detect_changes"]
 
 
-@dataclass
+@dataclass(eq=False)
 class ChangeMap:
     warped: np.ndarray  # the historical image, aligned to the modern one
     mask: np.ndarray  # bool, True where the scene appears to have changed
