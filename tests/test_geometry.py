@@ -169,6 +169,31 @@ class TestPoseNormalisation:
         assert p.t.shape == (3,) and p.t.dtype == np.float64
         assert np.allclose(Pose(np.eye(3, dtype=np.float32), [0, 0, 1]).R, np.eye(3))
 
+    def test_rejects_a_wrongly_shaped_rotation(self):
+        """Nine loose numbers are far more likely a bug than an intent."""
+        with pytest.raises(ValueError, match=r"R must be \(3, 3\)"):
+            Pose(np.arange(9.0), [0, 0, 1])
+        with pytest.raises(ValueError, match=r"R must be \(3, 3\)"):
+            Pose(np.eye(4), [0, 0, 1])
+
+    def test_rejects_a_wrongly_sized_translation(self):
+        with pytest.raises(ValueError, match="t must have 3 elements"):
+            Pose(np.eye(3), [0, 0])
+
+    def test_validate_catches_non_rotations(self):
+        Pose(np.eye(3), [0, 0, 1]).validate()
+        rodrigues(np.array([0.3, -0.2, 1.1])).view()  # sanity: rotations validate
+        Pose(rodrigues(np.array([0.3, -0.2, 1.1])), [0, 0, 1]).validate()
+
+        with pytest.raises(ValueError, match="not orthonormal"):
+            Pose(np.array([[1.0, 2, 3], [4, 5, 6], [7, 8, 9]]), [0, 0, 1]).validate()
+        with pytest.raises(ValueError, match="reflection"):
+            Pose(np.diag([1.0, 1.0, -1.0]), [0, 0, 1]).validate()
+
+    def test_validate_returns_self_so_it_chains(self):
+        p = Pose(np.eye(3), [0, 0, 1])
+        assert p.validate() is p
+
     def test_flattens_column_and_row_translations(self):
         """cv2.solvePnP returns t as (3, 1); downstream code should not have to know."""
         for t in ([0, 0, 5], np.array([[0], [0], [5]]), np.array([[0, 0, 5]])):

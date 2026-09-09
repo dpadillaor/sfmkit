@@ -11,16 +11,36 @@ import numpy as np
 class Pose:
     """A world-to-camera rigid transform: ``x_cam = R @ x_world + t``.
 
-    COLMAP's convention, used unchanged throughout the package. ``R`` is
-    ``(3, 3)`` and orthonormal with determinant +1; ``t`` is ``(3,)``.
+    COLMAP's convention, used unchanged throughout the package. ``R`` must be
+    ``(3, 3)``; ``t`` must have three elements and is flattened to ``(3,)``.
+
+    Construction checks shapes but not orthonormality, which costs roughly
+    twenty times as much as building the object and would be paid tens of
+    thousands of times per reconstruction. Call :meth:`validate` where the
+    rotation comes from outside the library.
     """
 
-    R: np.ndarray  # (3, 3), orthonormal, det +1
-    t: np.ndarray  # (3,)
+    R: np.ndarray
+    t: np.ndarray
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "R", np.asarray(self.R, dtype=float).reshape(3, 3))
-        object.__setattr__(self, "t", np.asarray(self.t, dtype=float).reshape(3))
+        R = np.asarray(self.R, dtype=float)
+        if R.shape != (3, 3):
+            raise ValueError(f"R must be (3, 3), got {R.shape}")
+        t = np.asarray(self.t, dtype=float)
+        if t.size != 3:
+            raise ValueError(f"t must have 3 elements, got {t.shape}")
+        object.__setattr__(self, "R", R)
+        object.__setattr__(self, "t", t.reshape(3))
+
+    def validate(self, tol: float = 1e-6) -> Pose:
+        """Raise unless ``R`` is a proper rotation. Returns self, so it chains."""
+        M = self.R @ self.R.T
+        if np.abs(M - np.eye(3)).max() > tol:
+            raise ValueError("R is not orthonormal")
+        if self.R[0] @ np.cross(self.R[1], self.R[2]) < 0:
+            raise ValueError("det(R) is -1: a reflection, not a rotation")
+        return self
 
     @classmethod
     def identity(cls) -> Pose:
