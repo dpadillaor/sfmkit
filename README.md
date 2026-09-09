@@ -225,6 +225,17 @@ coin flip presented as a measurement.
 **Conventions are fixed once**: points are row-major `(N, 3)` and `(N, 2)`,
 poses are world-to-camera as in COLMAP, and nothing in the library performs I/O.
 
+## Learning the library
+
+[docs/tour.md](docs/tour.md) is a guided tour: paste the blocks into a Python
+session in order and each builds on the last, from a single `Pose` to a full
+reconstruction checked against known ground truth. It needs no photographs, no
+GPU and no dataset, because it runs on synthetic scenes whose answer is known by
+construction.
+
+Every block in it is executed by `tests/test_tour.py`, so it cannot drift away
+from the API without the suite failing.
+
 ## Testing
 
 ```

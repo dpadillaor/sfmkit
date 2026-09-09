@@ -1,5 +1,7 @@
 # Architecture
 
+For a runnable introduction to the library itself, see [tour.md](tour.md).
+
 ## Layers
 
 ```
