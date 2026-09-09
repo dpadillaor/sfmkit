@@ -8,10 +8,12 @@ from collections import defaultdict
 
 from sfmkit.core.types import Matches, Track
 
-__all__ = ["Node", "UnionFind", "build_tracks", "track_statistics"]
+__all__ = ["ImageName", "KeypointIndex", "Node", "UnionFind", "build_tracks",
+           "track_statistics"]
 
-#: One keypoint of one image: ``("Img02", 41)`` is keypoint 41 of image Img02.
-Node = tuple[str, int]
+ImageName = str
+KeypointIndex = int
+Node = tuple[ImageName, KeypointIndex]
 
 
 class UnionFind:
