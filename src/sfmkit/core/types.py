@@ -19,6 +19,14 @@ class Pose:
     t: np.ndarray  # (3,)
 
     def __post_init__(self) -> None:
+        # Coerce whatever was passed into one canonical form, so that every
+        # consumer can assume `R` is (3, 3) float and `t` is (3,) without
+        # checking. Callers may hand us lists, float32, or a `t` shaped (3, 1)
+        # -- OpenCV returns that last one -- and normalising here is what keeps
+        # defensive .ravel() calls out of the rest of the package.
+        #
+        # object.__setattr__ rather than plain assignment because the dataclass
+        # is frozen: `self.R = ...` would raise FrozenInstanceError.
         object.__setattr__(self, "R", np.asarray(self.R, dtype=float).reshape(3, 3))
         object.__setattr__(self, "t", np.asarray(self.t, dtype=float).reshape(3))
 

@@ -158,3 +158,30 @@ class TestDecomposeProjection:
         assert np.allclose(K, scene.K, atol=1e-6)
         assert np.allclose(recovered.R, pose.R, atol=1e-6)
         assert np.allclose(recovered.t, pose.t, atol=1e-6)
+
+
+class TestPoseNormalisation:
+    """Whatever a caller passes, `Pose` stores one canonical form."""
+
+    def test_accepts_lists_and_other_dtypes(self):
+        p = Pose([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [0, 0, 5])
+        assert p.R.shape == (3, 3) and p.R.dtype == np.float64
+        assert p.t.shape == (3,) and p.t.dtype == np.float64
+        assert np.allclose(Pose(np.eye(3, dtype=np.float32), [0, 0, 1]).R, np.eye(3))
+
+    def test_flattens_column_and_row_translations(self):
+        """cv2.solvePnP returns t as (3, 1); downstream code should not have to know."""
+        for t in ([0, 0, 5], np.array([[0], [0], [5]]), np.array([[0, 0, 5]])):
+            assert Pose(np.eye(3), t).t.shape == (3,)
+
+    def test_is_immutable(self):
+        import dataclasses
+        p = Pose(np.eye(3), [0, 0, 5])
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            p.R = np.zeros((3, 3))
+
+    def test_centre_is_not_the_translation(self):
+        """The classic sign error: t is not where the camera is."""
+        p = Pose(np.eye(3), [0, 0, 5])
+        assert np.allclose(p.t, [0, 0, 5])
+        assert np.allclose(p.center, [0, 0, -5])
