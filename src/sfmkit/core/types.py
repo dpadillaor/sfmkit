@@ -6,6 +6,12 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+#: The name of an image, as used to key matches, poses and observations.
+ImageName = str
+
+#: A position in an image's keypoint array.
+KeypointIndex = int
+
 
 @dataclass(frozen=True, eq=False)
 class Pose:
@@ -92,8 +98,8 @@ class Matches:
     a boolean mask over ``pairs``, set once geometric verification has run.
     """
 
-    image0: str
-    image1: str
+    image0: ImageName
+    image1: ImageName
     keypoints0: np.ndarray  # (N0, 2)
     keypoints1: np.ndarray  # (N1, 2)
     pairs: np.ndarray  # (M, 2) int
@@ -142,13 +148,13 @@ class Track:
     construction -- a single 3D point cannot project to two places in one photo.
     """
 
-    observations: dict[str, int] = field(default_factory=dict)
+    observations: dict[ImageName, KeypointIndex] = field(default_factory=dict)
 
     @property
     def length(self) -> int:
         return len(self.observations)
 
-    def images(self) -> set[str]:
+    def images(self) -> set[ImageName]:
         return set(self.observations)
 
 
@@ -161,12 +167,12 @@ class Reconstruction:
     """
 
     K: np.ndarray
-    poses: dict[str, Pose] = field(default_factory=dict)
+    poses: dict[ImageName, Pose] = field(default_factory=dict)
     points: np.ndarray = field(default_factory=lambda: np.zeros((0, 3)))
     tracks: list[Track] = field(default_factory=list)
 
     @property
-    def registered(self) -> list[str]:
+    def registered(self) -> list[ImageName]:
         return list(self.poses)
 
     @property
@@ -179,7 +185,7 @@ class Reconstruction:
             return np.zeros(0, dtype=bool)
         return np.isfinite(self.points).all(axis=1)
 
-    def observations_of(self, image: str) -> tuple[np.ndarray, np.ndarray]:
+    def observations_of(self, image: ImageName) -> tuple[np.ndarray, np.ndarray]:
         """Triangulated track ids visible in ``image``, and their keypoint indices."""
         ok = self.triangulated_mask()
         tid, kid = [], []
@@ -189,7 +195,7 @@ class Reconstruction:
                 kid.append(tr.observations[image])
         return np.asarray(tid, dtype=np.intp), np.asarray(kid, dtype=np.intp)
 
-    def relative_poses(self, reference: str) -> dict[str, Pose]:
+    def relative_poses(self, reference: ImageName) -> dict[ImageName, Pose]:
         """All poses re-expressed in ``reference``'s frame."""
         ref = self.poses[reference]
         return {n: p.relative_to(ref) for n, p in self.poses.items()}
