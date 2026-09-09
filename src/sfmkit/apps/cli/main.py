@@ -16,6 +16,7 @@ from sfmkit.apps.cli import (
     localize,
     match,
     reconstruct,
+    run,
     ui,
     verify,
 )
@@ -53,6 +54,14 @@ def build_parser() -> argparse.ArgumentParser:
     ch.add_argument("--against", help="modern image to compare against (default: the reference)")
     ch.add_argument("--threshold", type=float, default=0.38,
                     help="dissimilarity threshold in [0, 1]")
+
+    r = stage("run", run.cmd_run, "run every stage in order")
+    r.add_argument("--from", dest="From", metavar="STAGE",
+                   help="start at this stage instead of the first")
+    r.add_argument("--only", metavar="A,B", help="run only these stages")
+    r.add_argument("--skip-done", action="store_true",
+                   help="skip stages whose manifest already exists")
+    r.add_argument("--trials", type=int, default=20, help="seeds for localize")
 
     u = sub.add_parser("ui", help="browse and compare runs in a terminal interface")
     u.add_argument("--runs", default="runs", help="directory holding run outputs")

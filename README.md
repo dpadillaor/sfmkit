@@ -133,24 +133,25 @@ pip install -e ".[dev]"
 pytest                                  # 80 tests, no dataset required
 ```
 
-The full pipeline, one stage at a time:
+The whole pipeline:
 
 ```bash
-sfmkit match       --config configs/valencia_all9.yaml --out runs/all9
-sfmkit verify      --config configs/valencia_all9.yaml --out runs/all9
-sfmkit reconstruct --config configs/valencia_all9.yaml --out runs/all9
-sfmkit localize    --config configs/valencia_all9.yaml --out runs/all9
-sfmkit evaluate    --config configs/valencia_all9.yaml --out runs/all9
+sfmkit run --config configs/valencia_all9.yaml --out runs/all9
 ```
 
-or `make all CONFIG=configs/valencia_all9.yaml`. Only `match` needs a GPU;
-everything downstream runs on numpy.
-
-Two more stages, and a terminal interface for browsing and comparing runs:
+Or a stage at a time — `match`, `verify`, `reconstruct`, `localize`,
+`evaluate`, `changes`, `figures`:
 
 ```bash
-sfmkit changes --config configs/valencia_all9.yaml --out runs/all9
-sfmkit figures --config configs/valencia_all9.yaml --out runs/all9
+sfmkit reconstruct --config configs/valencia_all9.yaml --out runs/all9
+```
+
+`sfmkit run` also takes `--from <stage>`, `--only a,b` and `--skip-done`. Only
+`match` needs a GPU; everything downstream runs on numpy.
+
+A terminal interface for browsing, comparing and launching runs:
+
+```bash
 sfmkit ui                               # needs pip install 'sfmkit[tui]'
 ```
 
