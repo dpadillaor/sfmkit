@@ -19,7 +19,7 @@ Node = tuple[ImageName, KeypointIndex]
 class UnionFind:
     """Groups keypoints that are the same 3D point.
 
-    One :meth:`union` per verified match; :meth:`groups` returns what formed.
+    One ``union`` per verified match; ``groups`` returns what formed.
     Disjoint-set forest with path compression and union by size.
     """
 
@@ -67,13 +67,11 @@ def build_tracks(
 ) -> list[Track]:
     """Group verified matches into tracks.
 
-    Tracks observing the same image twice are discarded: a single 3D point
-    cannot project to two places in one photograph, so such a component contains
-    a mismatch somewhere along its chain. Dropping the whole component is
-    conservative, since which link is wrong cannot be determined locally.
+    Groups seeing the same image twice are dropped: a 3D point projects once per
+    photograph, so such a chain contains a bad match and which link is wrong
+    cannot be told from inside it.
 
-    ``max_length`` bounds a degenerate component; ``None`` caps it at one
-    observation per image.
+    ``max_length`` bounds a runaway group; ``None`` caps it at one per image.
     """
     uf = UnionFind()
     for m in matches:

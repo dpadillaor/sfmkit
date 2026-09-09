@@ -39,7 +39,7 @@ def rodrigues(w: np.ndarray) -> np.ndarray:
 
 
 def log_rotation(R: np.ndarray) -> np.ndarray:
-    """Rotation matrix to axis-angle. Inverse of :func:`rodrigues`."""
+    """Rotation matrix to axis-angle. Inverse of ``rodrigues``."""
     R = np.asarray(R, dtype=float)
     c = np.clip((np.trace(R) - 1.0) / 2.0, -1.0, 1.0)
     theta = float(np.arccos(c))

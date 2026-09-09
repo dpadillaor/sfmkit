@@ -22,7 +22,7 @@ __all__ = ["ReconstructionConfig", "StageReport", "reconstruct"]
 
 @dataclass
 class ReconstructionConfig:
-    """Thresholds and limits for :func:`reconstruct`.
+    """Thresholds and limits for ``reconstruct``.
 
     The three that matter most were chosen by grid search against COLMAP rather
     than by intuition, and two behave counter-intuitively: a tighter

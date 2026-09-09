@@ -16,7 +16,7 @@ class Pose:
 
     Construction checks shapes but not orthonormality, which costs roughly
     twenty times as much as building the object and would be paid tens of
-    thousands of times per reconstruction. Call :meth:`validate` where the
+    thousands of times per reconstruction. Call ``validate`` where the
     rotation comes from outside the library.
     """
 

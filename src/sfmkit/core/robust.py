@@ -207,7 +207,7 @@ def ransac_dlt(
 
     Use this when the query camera is not the one that built the map. PnP
     requires a calibration matrix; the DLT recovers all eleven degrees of
-    freedom, and :func:`sfmkit.core.geometry.decompose_projection` splits the
+    freedom, and ``sfmkit.core.geometry.decompose_projection`` splits the
     result into K, R and t.
 
     Estimating eleven parameters from six correspondences is less stable than

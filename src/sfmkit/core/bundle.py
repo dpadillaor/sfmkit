@@ -95,7 +95,7 @@ class BundleProblem:
     def unpack(self, params: np.ndarray) -> tuple[dict[str, Pose], np.ndarray]:
         """Rebuild poses and an ``(N, 3)`` point array from a parameter vector.
 
-        The inverse of :meth:`pack`.
+        The inverse of ``pack``.
         """
         poses = {self.images[0]: Pose.identity()}
         poses[self.images[1]] = Pose(rodrigues(params[0:3]), _polar_to_unit(params[3], params[4]))
@@ -180,7 +180,7 @@ def solve_bundle(
         Shared ``(3, 3)`` intrinsics.
     images
         Camera names in parameter order. ``images[0]`` is held at the identity
-        and ``images[1]`` keeps a unit-length baseline; see :class:`BundleProblem`.
+        and ``images[1]`` keeps a unit-length baseline; see ``BundleProblem``.
     poses, points
         Initial estimates: a pose per name, and an ``(N, 3)`` point array.
     observations

@@ -105,7 +105,7 @@ def save_matches(matches: Matches, path) -> None:
 
 
 def load_matches(path) -> Matches:
-    """Read matches written by :func:`save_matches`."""
+    """Read matches written by ``save_matches``."""
     with np.load(Path(path), allow_pickle=False) as d:
         return Matches(
             image0=str(d["image0"]),
@@ -143,7 +143,7 @@ def save_reconstruction(rec: Reconstruction, path) -> None:
 
 
 def load_reconstruction(path) -> Reconstruction:
-    """Read a reconstruction written by :func:`save_reconstruction`."""
+    """Read a reconstruction written by ``save_reconstruction``."""
     with np.load(Path(path), allow_pickle=False) as d:
         names = [str(n) for n in d["image_names"]]
         poses = {n: Pose(d["rotations"][i], d["translations"][i]) for i, n in enumerate(names)}
