@@ -1,0 +1,65 @@
+{
+  "scale": 0.45778033872686846,
+  "scale_image": "Img12",
+  "reference": "Img02",
+  "n_cameras": 9,
+  "mean_rotation_error_deg": 0.9807646170892769,
+  "max_rotation_error_deg": 2.835435930354444,
+  "mean_position_error": 0.09883268132298605,
+  "cameras": [
+    {
+      "camera": "Img02",
+      "rotation_error_deg": 1.2074182697257333e-06,
+      "position_error": 1.0477600397861882e-16,
+      "distance_from_reference": 0.0
+    },
+    {
+      "camera": "Img13",
+      "rotation_error_deg": 0.34163345985349713,
+      "position_error": 0.06366994902793037,
+      "distance_from_reference": 0.5298861038718234
+    },
+    {
+      "camera": "Img25",
+      "rotation_error_deg": 0.3692848254899304,
+      "position_error": 0.07862342361532118,
+      "distance_from_reference": 0.9999999999999999
+    },
+    {
+      "camera": "Img14",
+      "rotation_error_deg": 1.2577520846669752,
+      "position_error": 0.0776427704147115,
+      "distance_from_reference": 1.0435689592055286
+    },
+    {
+      "camera": "Img24",
+      "rotation_error_deg": 0.5430972450195005,
+      "position_error": 0.10595929756113584,
+      "distance_from_reference": 1.2928876464232013
+    },
+    {
+      "camera": "Img23",
+      "rotation_error_deg": 1.6511333285751595,
+      "position_error": 0.10895314283533981,
+      "distance_from_reference": 1.7858157617352834
+    },
+    {
+      "camera": "Img15",
+      "rotation_error_deg": 0.2996342387994729,
+      "position_error": 0.13424392138408944,
+      "distance_from_reference": 2.0788018080098576
+    },
+    {
+      "camera": "Img28",
+      "rotation_error_deg": 0.5481458239552353,
+      "position_error": 0.08846888638200275,
+      "distance_from_reference": 2.466104129152038
+    },
+    {
+      "camera": "Img12",
+      "rotation_error_deg": 2.835435930354444,
+      "position_error": 0.13310005936335748,
+      "distance_from_reference": 3.861527420113922
+    }
+  ]
+}

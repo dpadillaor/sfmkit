@@ -6,6 +6,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# The Valencia example: photos, configs and a saved run
+COPY data/valencia data/valencia
+COPY configs/valencia configs/valencia
+COPY examples/valencia/9cameras runs/valencia/9cameras
+
 # Copying and Installing sfmkit library
 COPY pyproject.toml .
 COPY src src

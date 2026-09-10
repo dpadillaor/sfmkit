@@ -12,13 +12,14 @@ htmlcov/
 runs/
 .baseline/
 
-# Generated images and arrays. The dataset under data/ and the README figures
-# are the exceptions.
+# Generated images and arrays. The dataset under data/, the saved example run
+# and the README figures are the exceptions.
 *.jpg
 *.jpeg
 *.png
 *.npz
 !data/**
+!examples/**
 !docs/figures/*.png
 !tests/**/*.npz
 

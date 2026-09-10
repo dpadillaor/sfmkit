@@ -7,4 +7,3 @@ docs/figures/
 .pytest_cache/
 .ruff_cache/
 *.pptx
-data/

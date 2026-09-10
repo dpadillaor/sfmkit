@@ -1,0 +1,208 @@
+{
+  "stage": "reconstruct",
+  "config_path": "configs/valencia/9cameras.yaml",
+  "timestamp": "2026-09-10T13:32:39.541514+00:00",
+  "git_commit": "eeb1ebde2cbbe30304c9068c15d67f12007a505a",
+  "config": {
+    "dataset": "valencia",
+    "name": "9cameras",
+    "seed": 0,
+    "calibrate": {
+      "images": "",
+      "pattern": [
+        9,
+        6
+      ],
+      "intrinsics": "data/valencia/precomputed/K.txt"
+    },
+    "sfm": {
+      "images": [
+        "Img02",
+        "Img12",
+        "Img13",
+        "Img14",
+        "Img15",
+        "Img23",
+        "Img24",
+        "Img25",
+        "Img28"
+      ],
+      "reference": "Img02",
+      "max_keypoints": 2048,
+      "exhaustive": true,
+      "ransac_threshold": 4.0,
+      "ransac_iterations": 1000,
+      "min_inliers": 20,
+      "min_track_length": 2,
+      "min_triangulation_angle_deg": 2.0,
+      "max_reprojection_error": 12.0,
+      "pnp_threshold": 6.0,
+      "min_pnp_correspondences": 12
+    },
+    "localize": {
+      "query": "Img00"
+    },
+    "colmap": {
+      "model": "data/valencia/precomputed/colmap"
+    },
+    "dataset_dir": "data/valencia"
+  },
+  "versions": {
+    "sfmkit": "0.1.0",
+    "numpy": "1.26.4",
+    "scipy": "1.13.1",
+    "python": "3.10.21"
+  },
+  "tracks": {
+    "n_tracks": 2104,
+    "mean_length": 3.304657794676806,
+    "max_length": 9,
+    "length_histogram": {
+      "2": 1014,
+      "3": 420,
+      "4": 248,
+      "5": 133,
+      "6": 123,
+      "7": 86,
+      "8": 52,
+      "9": 28
+    }
+  },
+  "n_observations": 6942,
+  "steps": [
+    {
+      "step": 0,
+      "image": "Img25",
+      "n_registered": 2,
+      "n_points": 508,
+      "n_pnp_correspondences": 581,
+      "rmse_before": 5.032173661080847,
+      "rmse_after": 3.294049385087726,
+      "bundle_seconds": 5.626613561064005,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 1,
+      "image": "Img13",
+      "n_registered": 3,
+      "n_points": 783,
+      "n_pnp_correspondences": 133,
+      "rmse_before": 3.7847977853870285,
+      "rmse_after": 3.4989582417103655,
+      "bundle_seconds": 8.13573611760512,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 2,
+      "image": "Img14",
+      "n_registered": 4,
+      "n_points": 989,
+      "n_pnp_correspondences": 73,
+      "rmse_before": 5.3647828136429805,
+      "rmse_after": 4.996780655227874,
+      "bundle_seconds": 10.083666620310396,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 3,
+      "image": "Img24",
+      "n_registered": 5,
+      "n_points": 1155,
+      "n_pnp_correspondences": 137,
+      "rmse_before": 6.136153029427894,
+      "rmse_after": 5.804655525174029,
+      "bundle_seconds": 12.046610800083727,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 4,
+      "image": "Img23",
+      "n_registered": 6,
+      "n_points": 1296,
+      "n_pnp_correspondences": 122,
+      "rmse_before": 6.394142821863163,
+      "rmse_after": 6.179462162475219,
+      "bundle_seconds": 14.409765606746078,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 5,
+      "image": "Img28",
+      "n_registered": 7,
+      "n_points": 1371,
+      "n_pnp_correspondences": 72,
+      "rmse_before": 6.657394155107611,
+      "rmse_after": 6.4332434593919166,
+      "bundle_seconds": 16.05602479726076,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 6,
+      "image": "Img15",
+      "n_registered": 8,
+      "n_points": 1540,
+      "n_pnp_correspondences": 45,
+      "rmse_before": 7.43532059844521,
+      "rmse_after": 7.194922862558035,
+      "bundle_seconds": 29.637497070245445,
+      "bundle_iterations": 2000,
+      "n_filtered": 6
+    },
+    {
+      "step": 7,
+      "image": "Img12",
+      "n_registered": 9,
+      "n_points": 1668,
+      "n_pnp_correspondences": 29,
+      "rmse_before": 7.479277571423011,
+      "rmse_after": 7.269152198112633,
+      "bundle_seconds": 33.774522630963475,
+      "bundle_iterations": 2000,
+      "n_filtered": 5
+    },
+    {
+      "step": 8,
+      "image": "<global refinement>",
+      "n_registered": 9,
+      "n_points": 1678,
+      "n_pnp_correspondences": 0,
+      "rmse_before": 7.178307402449851,
+      "rmse_after": 7.072841141496094,
+      "bundle_seconds": 40.41246617119759,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 9,
+      "image": "<global refinement>",
+      "n_registered": 9,
+      "n_points": 1691,
+      "n_pnp_correspondences": 0,
+      "rmse_before": 7.133467270734798,
+      "rmse_after": 7.054581409484804,
+      "bundle_seconds": 36.86187455430627,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    },
+    {
+      "step": 10,
+      "image": "<global refinement>",
+      "n_registered": 9,
+      "n_points": 1699,
+      "n_pnp_correspondences": 0,
+      "rmse_before": 7.178503931785703,
+      "rmse_after": 7.105529337745966,
+      "bundle_seconds": 34.40609273314476,
+      "bundle_iterations": 2000,
+      "n_filtered": 0
+    }
+  ],
+  "n_cameras": 9,
+  "n_points": 1699
+}
