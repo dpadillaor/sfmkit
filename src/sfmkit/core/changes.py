@@ -19,18 +19,16 @@ class ChangeMap:
     ``difference`` is the plain pixel difference of the aligned images, in
     their colours: what coincides goes dark and what differs stands out. It is
     for looking at, not for deciding: it also flags every change of exposure.
-    ``two_colour`` tells what appeared from what disappeared: the old photo,
-    matched to today's tones, in the red channel and today's in green and
-    blue. Grey where they agree; dark things, as objects mostly are against a
-    facade or the ground, show red where they are only today and cyan where
-    they were only in the old photo.
+    ``matched_difference`` is that difference after matching the old photo's
+    tones to today's, so that exposure and tint largely drop out, as a heat
+    map: dark where the photos agree, bright where they differ.
     ``changed_fraction`` is measured over the overlapping region, not the whole
     image.
     """
 
     warped: np.ndarray  # the historical image, aligned to the modern one
     difference: np.ndarray  # |modern - aligned historical|, per pixel and channel
-    two_colour: np.ndarray  # BGR: red only today, cyan only in the old photo, grey both
+    matched_difference: np.ndarray  # BGR heat map of the tone-matched difference
     mask: np.ndarray  # bool, True where the scene appears to have changed
     score: np.ndarray  # float32 dissimilarity in [0, 1], before thresholding
     homography: np.ndarray
@@ -69,12 +67,16 @@ def _match_histogram(image: np.ndarray, reference: np.ndarray, where: np.ndarray
     return out
 
 
-def _two_colour(historical: np.ndarray, modern: np.ndarray, valid: np.ndarray) -> np.ndarray:
-    """The old photo in red and today's in cyan, over the part they share."""
+def _matched_difference(historical: np.ndarray, modern: np.ndarray,
+                        valid: np.ndarray) -> np.ndarray:
+    """The difference of the two photos once their tones match, as a heat map."""
     old = _match_histogram(historical, modern, valid)
-    out = np.stack([modern, modern, old], axis=-1)
-    out[~valid] = (0.35 * modern[~valid, None]).astype(np.uint8)  # nothing to compare
-    return out
+    blur = lambda image: cv2.GaussianBlur(image, (0, 0), 2)  # noqa: E731  sensor noise out
+    difference = cv2.absdiff(blur(old), blur(modern)).astype(np.int32)
+    heat = cv2.applyColorMap(np.clip(2 * difference, 0, 255).astype(np.uint8),
+                             cv2.COLORMAP_INFERNO)
+    heat[~valid] = (0.35 * modern[~valid, None]).astype(np.uint8)  # nothing to compare
+    return heat
 
 
 def _structure(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -172,12 +174,12 @@ def detect_changes(
     if warped_colour.ndim != modern.ndim:  # one grey, one colour: compare in grey
         warped_colour, modern = warped, mod_grey
     difference = cv2.absdiff(modern, warped_colour)
-    two_colour = _two_colour(warped, mod_grey, valid)
+    matched_difference = _matched_difference(warped, mod_grey, valid)
 
     return ChangeMap(
         warped=warped,
         difference=difference,
-        two_colour=two_colour,
+        matched_difference=matched_difference,
         mask=cleaned,
         score=score,
         homography=H,
