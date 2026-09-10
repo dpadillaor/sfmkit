@@ -48,6 +48,13 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   cameras only, while `localize/query_pose.npz` is never checked against
   COLMAP's pose for Img00, which the model has. The project's own question goes
   unmeasured.
+- [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
+  passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
+  `max_num_keypoints`: the unknown name is kept and ignored, so there was no
+  limit (4600-5700 keypoints per modern photo, 5073 in Img02). The rewrite used
+  the right name, so our runs, and the 0.981°, use 2048. To reproduce the course
+  model with `matches: sfmkit`, allow `sfm.max_keypoints: null` (no limit).
+  Worth an experiment: does a higher limit change the result, or save Img12?
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
