@@ -107,6 +107,7 @@ def run_colmap(scene_dir, images: list[str], out_dir) -> ColmapSummary:
     beside COLMAP's database. The model names images as sfmkit does, without
     extension.
     """
+    pycolmap.logging.minloglevel = pycolmap.logging.ERROR  # ~100 lines of progress otherwise
     scene_dir, out_dir = Path(scene_dir), Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     # COLMAP names an image by its file; sfmkit, without extension.
