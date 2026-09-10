@@ -73,13 +73,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   plain `docker run` is not root and is right for the common UID 1000; compose
   keeps overriding it from `.env` (optional: without it compose uses 1000). Then
   document it in the README's "Try it".
-- [ ] **Run the gpu image with the GPU.** `sfmkit:gpu` builds (6.1 GB, `make image
-  DEVICE=gpu`) and works without a GPU (the example from `verify` gives 0.981°;
-  `dense` refuses cleanly), but Docker on this machine has no NVIDIA runtime, so
-  `docker compose run cli-gpu` cannot reach the RTX 4090 yet. Needs, once, with
-  sudo: install `nvidia-container-toolkit`, `sudo nvidia-ctk runtime configure
-  --runtime=docker`, restart Docker. Then check match on cuda and `dense`
-  inside the container. The `sfmkit-gpu` conda env already runs all of it.
 - [ ] **The `cpu` image cannot reproduce 0.981° from scratch**: its CPU matches
   give 8 cameras and 1.574°, as CPU matches do outside Docker. The saved example
   run (`--from verify`) does give 0.981°. See the Img12 item.
