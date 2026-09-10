@@ -8,7 +8,7 @@ from sfmkit.core.types import Pose
 
 __all__ = [
     "rotation_error_deg", "align_to_reference", "scale_between",
-    "compare_poses", "rmse_reprojection",
+    "compare_poses", "compare_camera", "rmse_reprojection",
 ]
 
 
@@ -79,6 +79,22 @@ def compare_poses(
         "mean_position_error": float(np.mean(pos)) if pos else 0.0,
         "cameras": rows,
     }
+
+
+def compare_camera(
+    estimate: dict[str, Pose],
+    truth: dict[str, Pose],
+    name: str,
+    reference: str,
+    scale_image: str,
+) -> dict:
+    """One camera under the alignment and scale of a ``compare_poses`` result.
+
+    For a camera kept out of that comparison, such as a query localised after
+    the reconstruction: scored the same way, without entering the others' means.
+    """
+    rows = compare_poses(estimate, truth, reference, scale_image=scale_image)["cameras"]
+    return next(r for r in rows if r["camera"] == name)
 
 
 def rmse_reprojection(errors: np.ndarray) -> float:

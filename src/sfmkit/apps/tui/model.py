@@ -114,6 +114,7 @@ def compare(a: RunSummary, b: RunSummary) -> list[tuple[str, str, str]]:
         ("verified pairs", lambda r: r.metric("n_kept", default="-")),
         ("mean rot err (deg)", lambda r: r.headline["mean_rot"]),
         ("max rot err (deg)", lambda r: r.metric("max_rotation_error_deg", default="-")),
+        ("query rot err (deg)", lambda r: r.metric("query_rotation_error_deg", default="-")),
         ("scale vs COLMAP", lambda r: r.headline["scale"]),
         ("query RMSE (px)", lambda r: r.metric("rmse_median", default="-")),
     ]

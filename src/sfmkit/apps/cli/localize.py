@@ -59,7 +59,7 @@ def cmd_localize(args) -> int:
     out = run / "localize"
     out.mkdir(parents=True, exist_ok=True)
     np.savez(out / "query_pose.npz",
-             R=best.pose.R, t=best.pose.t,
+             R=best.pose.R, t=best.pose.t, K=best.K,
              centres=centres, rmse=np.array([r.rmse for r in results]),
              inliers=np.array([r.n_inliers for r in results]))
     io.write_manifest(run, "localize", cfg, config_path=args.config, extra={

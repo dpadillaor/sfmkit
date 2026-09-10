@@ -8,31 +8,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   chessboard photos from the course were never kept. The chessboard code exists
   and is tested on synthetic boards; it needs the photos in
   `data/valencia/calibration/`.
-- [ ] **Run COLMAP for real, with pycolmap.** `colmap` only copies a precomputed
-  model; pycolmap 4.2.0 is now in the image. Agreed config, following the same
-  rule as `calibrate` (precomputed if given a file, computed otherwise):
-  ```yaml
-  colmap:
-    precomputed: precomputed/colmap/9cameras_sfmkit_matches   # copy a model; COLMAP does not run
-    # or
-    matches: colmap   # COLMAP's own SIFT, matching and mapping: the independent
-                      # reference; three pycolmap calls, ~12 s on CPU
-    # or
-    matches: sfmkit   # COLMAP's mapper only, fed the keypoints and matches from
-                      # verify through its database, as the course did: same
-                      # input, so it compares the reconstruction alone
-  ```
-  Done: the config (`colmap.model` is now `colmap.precomputed`), checked when
-  loaded: both keys at once, or another `matches` value, is an error; neither
-  is an error when the stage runs, as in `calibrate`. To do: the two
-  `matches` modes in the stage. Whatever the variant, the stage leaves
-  `colmap/{cameras,images,points3D}.txt` (from the largest model if COLMAP
-  splits the photos), so `evaluate` and `figures` do not change. Open: our K
-  from `calibrate` or COLMAP's own (the fair choice for `sfmkit` is ours);
-  whether to keep `database.db` in the run.
-- [ ] **Compare the intrinsics.** COLMAP self-calibrates (the course model: f =
-  3047) while our K says 3544. Reporting both K side by side in `evaluate` would
-  show how far apart the calibrations are, and whether it matters.
+- [ ] **Our K disagrees with COLMAP's self-calibration.** `evaluate` prints both.
+  The chessboard K says f = 3544; COLMAP, calibrating from the scene, says ~3020,
+  with its own SIFT matches and with sfmkit's alike, so the difference is not the
+  features. Either the chessboard calibration (whose photos are lost) is off, or
+  the scene does not constrain the focal length well. `colmap.camera: fixed`
+  scores the same reconstruction with our K instead.
 - [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
   was fed the course's own matches, so 0.981° against it was not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
@@ -46,8 +27,8 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `localize` uses DLT as its camera is unknown; `changes` compares it with the
   reference. And **`evaluate` never scores it**: it compares the reconstructed
   cameras only, while `localize/query_pose.npz` is never checked against
-  COLMAP's pose for Img00, which the model has. The project's own question goes
-  unmeasured.
+  COLMAP's pose for Img00, which the model has. (Now done: `evaluate` scores
+  the query against COLMAP's, apart from the other cameras.)
   **First measurement (2026-09-10), by hand:** localize's Img00 differs by
   ~14° in orientation from both COLMAP placements (13.6° from the new SIFT one,
   13.9° from the course's), while the two COLMAPs agree within 0.8° despite
@@ -56,6 +37,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   seed reaches 20 px. Hypothesis to test: DLT, which estimates the whole camera,
   degenerates when the 3D points are nearly coplanar, and the old photo sees
   mostly the facade.
+  **Strong hint:** `evaluate` now prints the K. localize's DLT puts Img00's
+  principal point at cy = 369 in a 418 px tall image (centre 209, COLMAP 209):
+  160 px off, vertically. An offset principal point is a tilt in disguise, and
+  atan(160 / 647) = 13.9°, against the 13.6° disagreement. Fixing the principal
+  point at the image centre (estimating focal and pose only) is the obvious
+  experiment.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
