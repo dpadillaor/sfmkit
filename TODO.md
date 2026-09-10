@@ -156,6 +156,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
   yet, and it would make the README's best picture. It could also feed the live
   viewer and Gaussian splatting.
+- [ ] **Viewing the dense cloud.** `fused.ply` is points only, so mesh viewers
+  (3dviewer.net) refuse it: "no faces". A throwaway three.js page with the cloud
+  embedded (2.7 MB for 133k points, orbit controls) worked well: the seed of the
+  planned web viewer, and it could be a `figures` output. For mesh viewers,
+  COLMAP can mesh the cloud (`pycolmap.poisson_meshing`), as an option of the
+  dense stage.
 - [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
   reconstruction written as a COLMAP model (see the exporter under Later).
 - [ ] **Speed up bundle adjustment: the method, not the hardware.** A full run
