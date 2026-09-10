@@ -12,8 +12,16 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   The chessboard K says f = 3544; COLMAP, calibrating from the scene, says ~3020,
   with its own SIFT matches and with sfmkit's alike, so the difference is not the
   features. Either the chessboard calibration (whose photos are lost) is off, or
-  the scene does not constrain the focal length well. `colmap.camera: fixed`
-  scores the same reconstruction with our K instead.
+  the scene does not constrain the focal length well. Scoring the same GPU
+  reconstruction (which uses our K) against the four COLMAP variants:
+  own matches + own K 1.03° (max 2.62), own matches + our K 1.44° (4.36),
+  our matches + own K 1.06° (2.72), our matches + our K 1.52° (6.70). Forcing
+  our K on COLMAP makes it agree *less* with a reconstruction that uses the
+  same K, even from identical input, while COLMAP's own K converges on ~3020
+  from either set of matches. Hypothesis: our K is wrong for these photos;
+  `legacy/` holds several phone calibrations (`K_Calibration_12MP*.txt`, a 64 MP
+  one), and the one chosen may not match how the photos were taken. Test:
+  reconstruct with f ~ 3020 and see whether the error against COLMAP drops.
 - [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
   was fed the course's own matches, so 0.981° against it was not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
