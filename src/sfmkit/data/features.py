@@ -10,7 +10,31 @@ import numpy as np
 from sfmkit.core.types import Matches
 from sfmkit.data.io import save_matches
 
-__all__ = ["match_pairs"]
+__all__ = ["DEVICES", "match_pairs", "pick_device", "resolve_device"]
+
+DEVICES = ("auto", "cpu", "cuda")
+
+
+def resolve_device(requested: str, cuda_available: bool) -> str:
+    """``auto`` becomes ``cuda`` when there is a GPU, else ``cpu``.
+
+    Asking for ``cuda`` without a GPU is an error rather than a silent fall back
+    to ``cpu``, because the two give slightly different matches.
+    """
+    if requested not in DEVICES:
+        raise ValueError(f"device must be one of {DEVICES}, not {requested!r}")
+    if requested == "auto":
+        return "cuda" if cuda_available else "cpu"
+    if requested == "cuda" and not cuda_available:
+        raise ValueError("device 'cuda' requested, but PyTorch sees no GPU")
+    return requested
+
+
+def pick_device(requested: str = "auto") -> str:
+    """``resolve_device`` against the GPUs PyTorch can actually see."""
+    import torch
+
+    return resolve_device(requested, torch.cuda.is_available())
 
 
 def match_pairs(
@@ -19,7 +43,7 @@ def match_pairs(
     out_dir: Path,
     *,
     max_keypoints: int = 2048,
-    device: str | None = None,
+    device: str = "auto",
     on_pair: Callable[[str, str, int], None] | None = None,
 ) -> list[Path]:
     """Extract features once per image and match every requested pair.
@@ -32,7 +56,7 @@ def match_pairs(
     from lightglue.utils import load_image, rbd
 
     torch.set_grad_enabled(False)
-    dev = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    dev = torch.device(pick_device(device))
     extractor = SuperPoint(max_num_keypoints=max_keypoints).eval().to(dev)
     matcher = LightGlue(features="superpoint").eval().to(dev)
 

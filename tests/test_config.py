@@ -56,6 +56,12 @@ def test_unknown_keys_are_rejected_at_the_top_and_in_sections(tmp_path):
         load_config(_write(tmp_path, "dataset: city\nsfm: {imags: [a]}\n"))
 
 
+def test_the_device_defaults_to_auto_and_is_checked(tmp_path):
+    assert load_config(_write(tmp_path, "dataset: city\n")).sfm.device == "auto"
+    with pytest.raises(ValueError, match="device"):
+        load_config(_write(tmp_path, "dataset: city\nsfm: {device: gpu}\n"))
+
+
 def test_the_run_is_named_after_the_dataset_and_the_config(tmp_path, monkeypatch):
     monkeypatch.setenv("SFMKIT_RUNS", str(tmp_path / "out"))
     c = load_config(_write(tmp_path, "dataset: city\n", name="night.yaml"))

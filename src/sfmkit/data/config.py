@@ -8,6 +8,8 @@ from pathlib import Path
 
 import yaml
 
+from sfmkit.data.features import DEVICES
+
 __all__ = [
     "CalibrateConfig", "ColmapConfig", "Config", "LocalizeConfig", "SfmConfig",
     "data_root", "default_run_dir", "load_config", "runs_root",
@@ -37,6 +39,7 @@ class SfmConfig:
     # matching
     max_keypoints: int = 2048
     exhaustive: bool = True  # all pairs, rather than only reference pairs
+    device: str = "auto"  # auto | cpu | cuda; CPU and GPU give slightly different matches
 
     # verification
     ransac_threshold: float = 4.0
@@ -49,6 +52,10 @@ class SfmConfig:
     max_reprojection_error: float = 8.0
     pnp_threshold: float = 8.0
     min_pnp_correspondences: int = 12
+
+    def __post_init__(self) -> None:
+        if self.device not in DEVICES:
+            raise ValueError(f"sfm.device must be one of {DEVICES}, not {self.device!r}")
 
 
 @dataclass

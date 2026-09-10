@@ -11,6 +11,7 @@ sfm:
   reference: Img02
   exhaustive: true
   max_keypoints: 2048
+  device: auto              # auto | cpu | cuda: CPU and GPU give slightly different matches
   ransac_threshold: 4.0
   ransac_iterations: 1000
   min_inliers: 20
