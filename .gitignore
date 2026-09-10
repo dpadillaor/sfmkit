@@ -20,7 +20,7 @@ runs/
 *.npz
 !data/**
 !examples/**
-!docs/figures/*.png
+!docs/figures/**
 !tests/**/*.npz
 
 .DS_Store
