@@ -50,7 +50,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   image to a registry.
 - [ ] **Publish the image** to a registry, so nobody has to build it.
 - [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
-  UID has no entry in the image's `/etc/passwd`. Permissions are unaffected.
+  UID has no entry in the image's `/etc/passwd`. Permissions are unaffected. The
+  full fix is an entrypoint script (start as root, `useradd` with `PUID`/`PGID`,
+  `exec setpriv` to drop root): ~15 lines, but it replaces `user:`, must cope with
+  `--user`, and needs `exec` for signals. Worth it only once others use the image.
 - [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
 - [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?
 
