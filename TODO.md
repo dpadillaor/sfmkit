@@ -30,11 +30,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   root.
 - [ ] **`sfmkit:cpu` cannot run the whole pipeline**, which its name promises: it
   has no PyTorch, so no `match`. "cpu" should mean "needs no GPU", not "no
-  PyTorch". Next: add CPU PyTorch (hundreds of MB) so `cpu` runs every stage.
-  A `gpu` image (CUDA PyTorch, ~4 GB) would differ only in that one package and
-  also runs without a GPU; add it as a second target of the same Dockerfile only
-  if speed ever matters (Valencia's `match`: ~30 s on CPU, ~3 s on GPU).
-  Remember CPU and GPU give slightly different matches.
+  PyTorch". Two images from one Dockerfile, chosen by `ARG TORCH=cpu|gpu`
+  that picks `requirements-torch-<TORCH>.txt`: `cpu` with CPU PyTorch (~1–1.5 GB
+  image) for everyone, `gpu` with CUDA PyTorch (~5 GB) for those with a GPU.
+  One image with CUDA would also run on CPU, but would make everyone download
+  ~4 GB of CUDA libraries they may never use. Start with `cpu`. Remember CPU and
+  GPU give slightly different matches.
 - [ ] **`match` without PyTorch fails with a bare `ModuleNotFoundError: No module
   named 'torch'`.** It should say that `match` needs the `[match]` extra, and that
   the image continues from a saved run with `--from verify`.
