@@ -19,8 +19,8 @@ from sfmkit.data import io
 from sfmkit.data.colmap import read_model
 from sfmkit.data.config import load_config
 
-cfg = load_config("configs/valencia/all9.yaml")
-run = Path("runs/valencia/all9")
+cfg = load_config("configs/valencia/9cameras.yaml")
+run = Path("runs/valencia/9cameras")
 K = np.loadtxt(run / "calibrate" / "K.txt").reshape(3, 3)
 gt = read_model(run / "colmap")["poses"]
 ref = cfg.sfm.reference

@@ -42,8 +42,8 @@ class TestLoadRuns:
         assert "not-a-run" not in [r.name for r in load_runs(runs_dir)]
 
     def test_nested_runs_are_named_by_their_relative_path(self, tmp_path):
-        _write_run(tmp_path, "valencia/all9", {"match": {"timestamp": "2026-09-10T01:00:00"}})
-        assert [r.name for r in load_runs(tmp_path)] == ["valencia/all9"]
+        _write_run(tmp_path, "valencia/9cameras", {"match": {"timestamp": "2026-09-10T01:00:00"}})
+        assert [r.name for r in load_runs(tmp_path)] == ["valencia/9cameras"]
 
     def test_folders_that_are_not_stages_are_ignored(self, tmp_path):
         _write_run(tmp_path, "r", {"scratch": {"timestamp": "2026-09-10T01:00:00"}})

@@ -1,4 +1,4 @@
-# Same images as all9, but only pairs touching the reference: reproduces the
+# Same images as 9cameras, but only pairs touching the reference: reproduces the
 # topology of the original course pipeline.
 dataset: valencia
 seed: 0

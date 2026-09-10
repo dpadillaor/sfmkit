@@ -1,5 +1,5 @@
 # Developer shortcuts. The pipeline itself lives in the CLI: `sfmkit run`.
-CONFIG ?= configs/valencia/all9.yaml
+CONFIG ?= configs/valencia/9cameras.yaml
 RUN    ?= runs/$(notdir $(patsubst %/,%,$(dir $(CONFIG))))/$(notdir $(basename $(CONFIG)))
 
 .PHONY: help run test lint image check clean-run

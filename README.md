@@ -147,14 +147,14 @@ pytest                                  # 115 tests, no dataset required
 The whole pipeline:
 
 ```bash
-sfmkit run --config configs/valencia/all9.yaml     # writes runs/valencia/all9/
+sfmkit run --config configs/valencia/9cameras.yaml     # writes runs/valencia/9cameras/
 ```
 
 Or a stage at a time — `calibrate`, `match`, `verify`, `reconstruct`,
 `localize`, `colmap`, `evaluate`, `changes`, `figures`:
 
 ```bash
-sfmkit reconstruct --config configs/valencia/all9.yaml
+sfmkit reconstruct --config configs/valencia/9cameras.yaml
 ```
 
 `--out` overrides the run directory. `$SFMKIT_DATA` and `$SFMKIT_RUNS` move the
@@ -208,7 +208,7 @@ comparable, the rest is not".
 
 ```bash
 make image                                   # builds sfmkit:cpu, stamped with the commit
-docker compose run --rm cli evaluate --config configs/valencia/all9.yaml
+docker compose run --rm cli evaluate --config configs/valencia/9cameras.yaml
 ```
 
 The image holds the library and its pinned dependencies (`requirements.txt`),

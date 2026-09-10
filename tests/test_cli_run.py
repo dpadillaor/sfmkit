@@ -7,7 +7,7 @@ from sfmkit.apps.cli.run import STAGES, cmd_run
 
 class _Args:
     def __init__(self, out, **kw):
-        self.config = "configs/valencia/all9.yaml"
+        self.config = "configs/valencia/9cameras.yaml"
         self.out = str(out)
         self.From = kw.get("From")
         self.only = kw.get("only")
