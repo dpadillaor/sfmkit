@@ -16,31 +16,34 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
-- [ ] **The `[match]` extra cannot be installed as written.** `pyproject.toml` asks
-  for `lightglue`, which is not on PyPI; the working install came from
-  `github.com/cvg/LightGlue` at commit `eb42fee`. And LightGlue requires
-  `opencv-python`, the GUI build, which clashes with `opencv-python-headless`
-  and brings back the missing `libGL.so.1` in the slim image.
+- [ ] **Two OpenCVs after `pip install ".[match]"`.** LightGlue (now installed from
+  its GitHub archive, as it is not on PyPI) asks for `opencv-python`, the GUI
+  build, which lands beside `opencv-python-headless`. Fine on a desktop; on a
+  machine without libGL `import cv2` fails. The image avoids it with `--no-deps`.
+  Options: depend on `opencv-python` in `pyproject.toml` (the image does not read
+  those dependencies), or document a fix-up.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
 ## Docker
 
 - [ ] **Non-root user.** Files the container creates in a mounted `runs/` belong to
-  root.
-- [ ] **`sfmkit:cpu` cannot run the whole pipeline**, which its name promises: it
-  has no PyTorch, so no `match`. "cpu" should mean "needs no GPU", not "no
-  PyTorch". Two images from one Dockerfile, chosen by `ARG TORCH=cpu|gpu`
-  that picks `requirements-torch-<TORCH>.txt`: `cpu` with CPU PyTorch (~1–1.5 GB
-  image) for everyone, `gpu` with CUDA PyTorch (~5 GB) for those with a GPU.
-  One image with CUDA would also run on CPU, but would make everyone download
-  ~4 GB of CUDA libraries they may never use. Start with `cpu`. Remember CPU and
-  GPU give slightly different matches.
+  root. `docker run --user "$(id -u):$(id -g)" -e MPLCONFIGDIR=/tmp` already
+  works (tested: the whole pipeline, files owned by the user).
+- [ ] **The `gpu` image.** `ARG TORCH` already picks `requirements-torch-<TORCH>.txt`;
+  a `gpu` image needs `requirements-torch-gpu.txt` (CUDA PyTorch, ~5 GB image
+  against 1.6 GB for `cpu`), and compose needs the GPU (`gpus: all`, and
+  nvidia-container-toolkit on the host). Two images rather than one CUDA image
+  that also runs on CPU, so nobody downloads ~4 GB of CUDA they do not use.
+- [ ] **The `cpu` image cannot reproduce 0.981° from scratch**: its CPU matches
+  give 8 cameras and 1.574°, as CPU matches do outside Docker. The saved example
+  run (`--from verify`) does give 0.981°. See the Img12 item.
 - [ ] **`match` without PyTorch fails with a bare `ModuleNotFoundError: No module
   named 'torch'`.** It should say that `match` needs the `[match]` extra, and that
   the image continues from a saved run with `--from verify`.
-- [ ] **LightGlue downloads its weights** from GitHub on the first `match`. An
-  image that runs `match` should carry them.
+- [ ] **Licence of the SuperPoint weights** baked into the image. They come from
+  Magic Leap under terms that restrict use; check them before publishing the
+  image to a registry.
 - [ ] **Publish the image** to a registry, so nobody has to build it.
 - [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
 - [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?

@@ -17,7 +17,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-match = ["torch>=2.0", "lightglue"]
+match = [
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "kornia>=0.6.11",
+    # Not on PyPI. It also asks for opencv-python, the GUI build of OpenCV.
+    "lightglue @ https://github.com/cvg/LightGlue/archive/eb42fee2d71449efb0aa5c10549752b5d75384d8.zip",
+]
 tui = ["textual>=0.60"]
 dev = ["pytest>=7.4", "pytest-cov", "ruff>=0.4", "textual>=0.60", "import-linter>=2.0"]
 

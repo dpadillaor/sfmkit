@@ -1,5 +1,6 @@
 # Developer shortcuts. The pipeline itself lives in the CLI: `sfmkit run`.
 CONFIG ?= configs/valencia/9cameras.yaml
+TORCH  ?= cpu
 RUN    ?= runs/$(notdir $(patsubst %/,%,$(dir $(CONFIG))))/$(notdir $(basename $(CONFIG)))
 
 .PHONY: help run test lint image check clean-run
@@ -9,7 +10,7 @@ help:
 	@echo "make test                                 test suite (no dataset needed)"
 	@echo "make lint                                 ruff + import contracts"
 	@echo "make check                                lint + test"
-	@echo "make image                                docker image, tagged with the commit"
+	@echo "make image  [TORCH=cpu]                    docker image sfmkit:$(TORCH), stamped with the commit"
 	@echo ""
 	@echo "individual stages: sfmkit <stage> --config ..."
 	@echo "                   sfmkit run --help"
@@ -25,7 +26,7 @@ lint:
 	lint-imports
 
 image:
-	GIT_COMMIT=$(shell git rev-parse HEAD) docker compose build
+	GIT_COMMIT=$(shell git rev-parse HEAD) TORCH=$(TORCH) docker compose build
 
 check: lint test
 
