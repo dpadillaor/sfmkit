@@ -1,8 +1,8 @@
 {
   "stage": "calibrate",
   "config_path": "configs/valencia/9cameras.yaml",
-  "timestamp": "2026-09-10T13:28:27.860123+00:00",
-  "git_commit": "eeb1ebde2cbbe30304c9068c15d67f12007a505a",
+  "timestamp": "2026-09-10T14:13:51.757489+00:00",
+  "git_commit": "86a5e8ac8dbae7256a119b43e9adf8e995012aed",
   "config": {
     "dataset": "valencia",
     "name": "9cameras",
@@ -30,6 +30,7 @@
       "reference": "Img02",
       "max_keypoints": 2048,
       "exhaustive": true,
+      "device": "auto",
       "ransac_threshold": 4.0,
       "ransac_iterations": 1000,
       "min_inliers": 20,

@@ -1,8 +1,8 @@
 {
   "stage": "reconstruct",
   "config_path": "configs/valencia/9cameras.yaml",
-  "timestamp": "2026-09-10T13:32:39.541514+00:00",
-  "git_commit": "eeb1ebde2cbbe30304c9068c15d67f12007a505a",
+  "timestamp": "2026-09-10T14:17:41.244770+00:00",
+  "git_commit": "86a5e8ac8dbae7256a119b43e9adf8e995012aed",
   "config": {
     "dataset": "valencia",
     "name": "9cameras",
@@ -30,6 +30,7 @@
       "reference": "Img02",
       "max_keypoints": 2048,
       "exhaustive": true,
+      "device": "auto",
       "ransac_threshold": 4.0,
       "ransac_iterations": 1000,
       "min_inliers": 20,
@@ -78,7 +79,7 @@
       "n_pnp_correspondences": 581,
       "rmse_before": 5.032173661080847,
       "rmse_after": 3.294049385087726,
-      "bundle_seconds": 5.626613561064005,
+      "bundle_seconds": 5.618759199976921,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -90,7 +91,7 @@
       "n_pnp_correspondences": 133,
       "rmse_before": 3.7847977853870285,
       "rmse_after": 3.4989582417103655,
-      "bundle_seconds": 8.13573611760512,
+      "bundle_seconds": 8.128621912561357,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -102,7 +103,7 @@
       "n_pnp_correspondences": 73,
       "rmse_before": 5.3647828136429805,
       "rmse_after": 4.996780655227874,
-      "bundle_seconds": 10.083666620310396,
+      "bundle_seconds": 10.069227598141879,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -114,7 +115,7 @@
       "n_pnp_correspondences": 137,
       "rmse_before": 6.136153029427894,
       "rmse_after": 5.804655525174029,
-      "bundle_seconds": 12.046610800083727,
+      "bundle_seconds": 12.031622075941414,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -126,7 +127,7 @@
       "n_pnp_correspondences": 122,
       "rmse_before": 6.394142821863163,
       "rmse_after": 6.179462162475219,
-      "bundle_seconds": 14.409765606746078,
+      "bundle_seconds": 14.422522363718599,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -138,7 +139,7 @@
       "n_pnp_correspondences": 72,
       "rmse_before": 6.657394155107611,
       "rmse_after": 6.4332434593919166,
-      "bundle_seconds": 16.05602479726076,
+      "bundle_seconds": 16.18062249198556,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -150,7 +151,7 @@
       "n_pnp_correspondences": 45,
       "rmse_before": 7.43532059844521,
       "rmse_after": 7.194922862558035,
-      "bundle_seconds": 29.637497070245445,
+      "bundle_seconds": 28.17357074795291,
       "bundle_iterations": 2000,
       "n_filtered": 6
     },
@@ -162,7 +163,7 @@
       "n_pnp_correspondences": 29,
       "rmse_before": 7.479277571423011,
       "rmse_after": 7.269152198112633,
-      "bundle_seconds": 33.774522630963475,
+      "bundle_seconds": 29.878413474187255,
       "bundle_iterations": 2000,
       "n_filtered": 5
     },
@@ -174,7 +175,7 @@
       "n_pnp_correspondences": 0,
       "rmse_before": 7.178307402449851,
       "rmse_after": 7.072841141496094,
-      "bundle_seconds": 40.41246617119759,
+      "bundle_seconds": 33.28372490592301,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -186,7 +187,7 @@
       "n_pnp_correspondences": 0,
       "rmse_before": 7.133467270734798,
       "rmse_after": 7.054581409484804,
-      "bundle_seconds": 36.86187455430627,
+      "bundle_seconds": 29.720591865014285,
       "bundle_iterations": 2000,
       "n_filtered": 0
     },
@@ -198,7 +199,7 @@
       "n_pnp_correspondences": 0,
       "rmse_before": 7.178503931785703,
       "rmse_after": 7.105529337745966,
-      "bundle_seconds": 34.40609273314476,
+      "bundle_seconds": 32.030136353801936,
       "bundle_iterations": 2000,
       "n_filtered": 0
     }
