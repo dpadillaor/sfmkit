@@ -30,6 +30,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   splits the photos), so `evaluate` and `figures` do not change. Open: our K
   from `calibrate` or COLMAP's own (the fair choice for `sfmkit` is ours);
   whether to keep `database.db` in the run.
+- [ ] **COLMAP is not deterministic.** Two runs of `run_colmap` on the same nine
+  photos gave 4216 and 4236 points (RANSAC sampling, several threads). Check
+  whether pycolmap can fix the seed (and a single thread), or measure how much
+  the poses move between runs, before treating it as the reference.
 - [ ] **Compare the intrinsics.** COLMAP self-calibrates (the course model: f =
   3047) while our K says 3544. Reporting both K side by side in `evaluate` would
   show how far apart the calibrations are, and whether it matters.
