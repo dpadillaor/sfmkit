@@ -9,8 +9,9 @@ Tick or remove an item when it is done. Read it before starting.
 
 ## Checks
 
-The conda environment is `sfmkit`: Python 3.11, CPU only, built from the
-requirements files exactly as the README tells users to. Before any commit:
+Two conda environments, built from the requirements files exactly as the README
+tells users to, Python 3.11 both: `sfmkit` (CPU, `requirements-cpu.txt`) and
+`sfmkit-gpu` (CUDA 12.1, `requirements-gpu.txt`). Before any commit:
 
 ```bash
 ruff check . && lint-imports && pytest -q
@@ -25,7 +26,8 @@ SFMKIT_RUNS=/tmp/check sfmkit run --config configs/valencia/9cameras.yaml --from
 # mean rotation error 0.981°
 ```
 
-A full run from scratch on CPU gives 1.574° with 8 cameras: CPU matches differ.
+A full run from scratch in `sfmkit-gpu` reproduces the example (9 cameras, 1699
+points); on CPU it gives 1.574° with 8 cameras, as CPU matches differ.
 
 ## Layout
 
