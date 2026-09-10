@@ -125,6 +125,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Later
 
+- [ ] **Three copies of "find the file of an image"** in `data/features.py`,
+  `apps/cli/changes.py` and `apps/cli/figures.py`: replace them with
+  `data.io.image_file`, which also refuses ambiguous names (`Img02.jpg` and
+  `Img02.png`).
 - [ ] **Live visualisation**: a callback in `reconstruct`, a Rerun sink, then a
   three.js viewer served by an `api` service.
 - [ ] **Dense reconstruction, optional, gpu image only.** COLMAP's MVS

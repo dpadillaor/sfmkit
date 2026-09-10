@@ -15,9 +15,25 @@ import numpy as np
 from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = [
-    "load_matches_npz", "save_matches", "load_matches", "save_reconstruction",
+    "image_file", "load_matches_npz", "save_matches", "load_matches", "save_reconstruction",
     "load_reconstruction", "write_manifest", "read_manifest",
 ]
+
+
+def image_file(directory, name: str) -> Path:
+    """The file of the image called ``name``: ``name`` itself, or ``name.<ext>``.
+
+    Images are named without extension throughout; this is where a name meets
+    its file. Two files that could both be ``name`` is an error, not a guess.
+    """
+    directory = Path(directory)
+    found = [p for p in [directory / name, *directory.glob(f"{name}.*")] if p.is_file()]
+    if not found:
+        raise FileNotFoundError(f"no image named {name} in {directory}")
+    if len(found) > 1:
+        names = ", ".join(sorted(p.name for p in found))
+        raise ValueError(f"image {name} is ambiguous in {directory}: {names}")
+    return found[0]
 
 
 def _git_commit() -> str | None:

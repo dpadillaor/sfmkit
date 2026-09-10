@@ -1,5 +1,7 @@
 """Run manifests: where they land and what they record."""
 
+import pytest
+
 from sfmkit.data import io
 
 
@@ -28,3 +30,24 @@ def test_paths_under_the_working_directory_are_recorded_relative(tmp_path, monke
     assert m["config"]["model"] == "/elsewhere/colmap"
     assert m["config"]["images"] == ["Img00"]
     assert m["config_path"] == "c.yaml"
+
+
+class TestImageFile:
+    """Images are named without extension; image_file finds the file."""
+
+    def test_finds_the_file_whatever_its_extension(self, tmp_path):
+        (tmp_path / "Img12.jpg").write_bytes(b"")
+        (tmp_path / "Img00").write_bytes(b"")
+        assert io.image_file(tmp_path, "Img12") == tmp_path / "Img12.jpg"
+        assert io.image_file(tmp_path, "Img00") == tmp_path / "Img00"
+
+    def test_a_name_is_not_a_prefix(self, tmp_path):
+        (tmp_path / "Img12.jpg").write_bytes(b"")
+        with pytest.raises(FileNotFoundError, match="Img1"):
+            io.image_file(tmp_path, "Img1")
+
+    def test_two_candidate_files_is_an_error(self, tmp_path):
+        (tmp_path / "Img02.jpg").write_bytes(b"")
+        (tmp_path / "Img02.png").write_bytes(b"")
+        with pytest.raises(ValueError, match="ambiguous"):
+            io.image_file(tmp_path, "Img02")
