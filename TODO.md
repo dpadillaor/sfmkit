@@ -13,7 +13,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   rule as `calibrate` (precomputed if given a file, computed otherwise):
   ```yaml
   colmap:
-    precomputed: precomputed/colmap   # copy a model; COLMAP does not run
+    precomputed: precomputed/colmap/9cameras_sfmkit_matches   # copy a model; COLMAP does not run
     # or
     matches: colmap   # COLMAP's own SIFT, matching and mapping: the independent
                       # reference; three pycolmap calls, ~12 s on CPU

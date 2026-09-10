@@ -24,4 +24,4 @@ localize:
   query: Img00
 
 colmap:
-  precomputed: precomputed/colmap
+  precomputed: precomputed/colmap/9cameras_sfmkit_matches

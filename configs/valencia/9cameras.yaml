@@ -24,4 +24,4 @@ localize:
   query: Img00
 
 colmap:
-  precomputed: precomputed/colmap   # or matches: colmap | sfmkit, once implemented
+  precomputed: precomputed/colmap/9cameras_sfmkit_matches   # or matches: colmap | sfmkit, once implemented
