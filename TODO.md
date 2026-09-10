@@ -30,6 +30,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   (f = 3047). So 0.981° compares our reconstruction with COLMAP's on similar
   matches, not with an independent reference. A full COLMAP run (its own SIFT
   features and matching) would be. Say so in the README until then.
+- [ ] **Review how the old photo (the query) is treated, stage by stage.** It is
+  handled differently almost everywhere: `match` pairs it with the reference
+  only, even when `exhaustive: true`; `reconstruct` leaves it out on purpose;
+  `localize` uses DLT as its camera is unknown; `changes` compares it with the
+  reference. And **`evaluate` never scores it**: it compares the reconstructed
+  cameras only, while `localize/query_pose.npz` is never checked against
+  COLMAP's pose for Img00, which the model has. The project's own question goes
+  unmeasured.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
