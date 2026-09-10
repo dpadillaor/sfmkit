@@ -31,7 +31,7 @@ env:
 	@cat .env
 
 image:
-	GIT_COMMIT=$(shell git rev-parse HEAD) DEVICE=$(DEVICE) docker compose build
+	GIT_COMMIT=$(shell git rev-parse HEAD) docker compose build $(if $(filter gpu,$(DEVICE)),cli-gpu,cli)
 
 check: lint test
 

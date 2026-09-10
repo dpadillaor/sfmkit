@@ -4,8 +4,8 @@ services:
       context: .
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        DEVICE: ${DEVICE:-cpu}
-    image: sfmkit:${DEVICE:-cpu}
+        DEVICE: cpu
+    image: sfmkit:cpu
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       HOME: /tmp
@@ -13,3 +13,13 @@ services:
       - ./data:/app/data:ro
       - ./configs:/app/configs:ro
       - ./runs:/app/runs
+
+  # The same, built with CUDA PyTorch and COLMAP and given the GPU. The host needs
+  # the NVIDIA driver and nvidia-container-toolkit.
+  cli-gpu:
+    extends: cli
+    build:
+      args:
+        DEVICE: gpu
+    image: sfmkit:gpu
+    gpus: all
