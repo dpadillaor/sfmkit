@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pycolmap
 
+from sfmkit.data.colmap.run import colmap_device
 from sfmkit.data.io import image_file
 
 __all__ = ["NO_CUDA", "DenseSummary", "dense_available", "run_dense"]
@@ -31,7 +32,7 @@ def dense_available() -> bool:
     A pycolmap built with CUDA is not enough: it also needs a GPU in sight,
     which a gpu image run without one does not have.
     """
-    return bool(pycolmap.has_cuda) and pycolmap.get_num_cuda_devices() > 0
+    return colmap_device() == "cuda"
 
 
 def run_dense(model_dir, scene_dir, images: list[str], out_dir, *,

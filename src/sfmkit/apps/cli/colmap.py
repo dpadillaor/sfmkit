@@ -7,7 +7,13 @@ from pathlib import Path
 
 from sfmkit.apps.cli._common import console, load_K, run_dir
 from sfmkit.data import io
-from sfmkit.data.colmap import ColmapSummary, read_model, run_colmap, run_colmap_on_matches
+from sfmkit.data.colmap import (
+    ColmapSummary,
+    colmap_device,
+    read_model,
+    run_colmap,
+    run_colmap_on_matches,
+)
 from sfmkit.data.config import Config, load_config
 
 FILES = ("cameras.txt", "images.txt", "points3D.txt")
@@ -44,7 +50,8 @@ def _computed(cfg: Config, run: Path, out: Path) -> dict:
     """COLMAP on its own matches or on this run's, with its camera or calibrate's K."""
     images, query, c = cfg.sfm.images, cfg.localize.query, cfg.colmap
     K = load_K(run / "calibrate" / "K.txt") if c.camera == "fixed" else None
-    what = "features, matching, mapping" if c.matches == "colmap" else "mapping on verify's matches"
+    what = (f"features and matching on {colmap_device()}, mapping" if c.matches == "colmap"
+            else "mapping on verify's matches")
     with console.status(f"COLMAP on {len(images)} images: {what}"):
         if c.matches == "colmap":
             s = run_colmap(cfg.scene_dir, images, out, query=query, K=K)
@@ -54,7 +61,7 @@ def _computed(cfg: Config, run: Path, out: Path) -> dict:
                 raise FileNotFoundError(f"no verified matches in {run / 'verify'}")
             s = run_colmap_on_matches(cfg.scene_dir, images, matches, out, query=query, K=K)
     _report(s, images, query)
-    return {"source": f"{c.matches} matches", "camera": c.camera,
+    return {"source": f"{c.matches} matches", "camera": c.camera, "device": s.device,
             "registered": s.registered, "missing": s.missing, "n_points": s.n_points,
             "reprojection_error": s.reprojection_error, "query": query,
             "query_registered": s.query_registered, "query_points": s.query_points}
@@ -62,7 +69,7 @@ def _computed(cfg: Config, run: Path, out: Path) -> dict:
 
 def _report(s: ColmapSummary, images: list[str], query: str | None) -> None:
     console.print(f"registered [bold]{len(s.registered)}/{len(images)}[/bold] images, "
-                  f"{s.n_points} points, {s.reprojection_error:.2f} px")
+                  f"{s.n_points} points, {s.reprojection_error:.2f} px (features on {s.device})")
     if s.missing:
         console.print(f"[yellow]not registered:[/yellow] {', '.join(s.missing)}")
     if query:

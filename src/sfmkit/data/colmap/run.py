@@ -20,7 +20,7 @@ import pycolmap
 from sfmkit.core.types import Matches
 from sfmkit.data.io import image_file
 
-__all__ = ["ColmapSummary", "run_colmap", "run_colmap_on_matches"]
+__all__ = ["ColmapSummary", "colmap_device", "run_colmap", "run_colmap_on_matches"]
 
 # An old photograph shares few matches with modern ones (32 SIFT matches at best
 # on Valencia): with COLMAP's default minimum of 30 inliers it is never placed.
@@ -40,6 +40,13 @@ class ColmapSummary:
     reprojection_error: float  # mean, in pixels
     query_registered: bool = False
     query_points: int = 0  # 3D points the query sees, if registered
+    device: str = "cpu"  # where COLMAP's features and matching ran; mapping is CPU only
+
+
+def colmap_device() -> str:
+    """``cuda`` when this pycolmap is built for CUDA and sees a GPU, else ``cpu``."""
+    has_gpu = bool(pycolmap.has_cuda) and pycolmap.get_num_cuda_devices() > 0
+    return "cuda" if has_gpu else "cpu"
 
 
 def run_colmap(scene_dir, images: list[str], out_dir, *, query: str | None = None,
@@ -49,16 +56,19 @@ def run_colmap(scene_dir, images: list[str], out_dir, *, query: str | None = Non
     ``K`` fixes the camera of ``images``; without it COLMAP calibrates it.
     """
     work = _prepare(scene_dir, images, query, out_dir)
+    device = colmap_device()
+    on = pycolmap.Device.cuda if device == "cuda" else pycolmap.Device.cpu
     pycolmap.extract_features(work.database, work.scene_dir, image_names=work.files(images),
-                              camera_mode=pycolmap.CameraMode.SINGLE, reader_options=_reader(K))
-    pycolmap.match_exhaustive(work.database)
+                              camera_mode=pycolmap.CameraMode.SINGLE, reader_options=_reader(K),
+                              device=on)
+    pycolmap.match_exhaustive(work.database, device=on)
 
     def add_query() -> None:
         pycolmap.extract_features(work.database, work.scene_dir, image_names=work.files([query]),
-                                  camera_mode=pycolmap.CameraMode.PER_IMAGE)
-        pycolmap.match_exhaustive(work.database)
+                                  camera_mode=pycolmap.CameraMode.PER_IMAGE, device=on)
+        pycolmap.match_exhaustive(work.database, device=on)
 
-    return _reconstruct(work, K, add_query if query else None)
+    return _reconstruct(work, K, add_query if query else None, device)
 
 
 def run_colmap_on_matches(scene_dir, images: list[str], matches: list[Matches], out_dir, *,
@@ -83,7 +93,7 @@ def run_colmap_on_matches(scene_dir, images: list[str], matches: list[Matches], 
                                image_names=work.files([query]))
         _write(work, keypoints, with_query)
 
-    return _reconstruct(work, K, add_query if query else None)
+    return _reconstruct(work, K, add_query if query else None, "cpu")
 
 
 @dataclass(frozen=True)
@@ -125,7 +135,7 @@ def _prepare(scene_dir, images: list[str], query: str | None, out_dir) -> _Works
 
 
 def _reconstruct(work: _Workspace, K: np.ndarray | None,
-                 add_query: Callable[[], None] | None) -> ColmapSummary:
+                 add_query: Callable[[], None] | None, device: str) -> ColmapSummary:
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         rec = _largest(pycolmap.incremental_mapping(work.database, work.scene_dir, tmp / "scene",
@@ -136,7 +146,7 @@ def _reconstruct(work: _Workspace, K: np.ndarray | None,
     for image in rec.images.values():
         image.name = work.name[image.name]
     rec.write_text(work.out_dir)
-    return _summary(rec, work.images, work.query)
+    return _summary(rec, work.images, work.query, device)
 
 
 def _place_query(rec, work: _Workspace, add_query: Callable[[], None], tmp: Path):
@@ -226,7 +236,7 @@ def _write(work: _Workspace, keypoints: dict[str, np.ndarray], matches: list[Mat
         db.close()
 
 
-def _summary(rec, images: list[str], query: str | None) -> ColmapSummary:
+def _summary(rec, images, query: str | None, device: str) -> ColmapSummary:
     posed = {image.name: image for image in rec.images.values() if image.has_pose}
     registered = sorted(n for n in posed if n != query)
     return ColmapSummary(
@@ -236,4 +246,5 @@ def _summary(rec, images: list[str], query: str | None) -> ColmapSummary:
         reprojection_error=rec.compute_mean_reprojection_error(),
         query_registered=query in posed,
         query_points=posed[query].num_points3D if query in posed else 0,
+        device=device,
     )
