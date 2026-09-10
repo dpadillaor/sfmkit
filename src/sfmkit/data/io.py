@@ -32,13 +32,28 @@ def _git_commit() -> str | None:
         return None
 
 
+def _relative(value, root: Path):
+    """Absolute paths under ``root`` made relative to it; everything else as is."""
+    if isinstance(value, dict):
+        return {k: _relative(v, root) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_relative(v, root) for v in value]
+    if isinstance(value, str) and Path(value).is_absolute():
+        try:
+            return Path(value).relative_to(root).as_posix()
+        except ValueError:
+            return value
+    return value
+
+
 def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
                    config_path: str | None = None) -> Path:
     """Record what produced this run: config, commit, versions, timestamp.
 
     ``config_path`` is recorded as well as the config's contents, so that a tool
     reading a run back can re-invoke the same stage without guessing where the
-    file lives.
+    file lives. Paths under the working directory are recorded relative to it,
+    so a manifest reads the same on any machine and inside the image.
     """
     stage_dir = Path(run_dir) / stage
     stage_dir.mkdir(parents=True, exist_ok=True)
@@ -46,12 +61,14 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
 
     import sfmkit
 
+    root = Path.cwd().resolve()
+    config = asdict(config) if is_dataclass(config) else dict(config or {})
     payload = {
         "stage": stage,
-        "config_path": config_path,
+        "config_path": _relative(config_path, root),
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "git_commit": _git_commit(),
-        "config": asdict(config) if is_dataclass(config) else dict(config or {}),
+        "config": _relative(config, root),
         "versions": {
             "sfmkit": sfmkit.__version__,
             "numpy": np.__version__,
