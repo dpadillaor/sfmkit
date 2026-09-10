@@ -52,8 +52,9 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   - `requirements-gpu.txt`: torch CUDA + pycolmap-cuda12 (later)
   - `requirements-dev.txt`: pytest, ruff, import-linter, for development and CI
   `ARG DEVICE=cpu|gpu` picks the file. Replaces requirements-torch-cpu.txt and
-  requirements-match.txt. Still to decide: what stays in `pyproject.toml`
-  (dependencies, the `[match]` extra). Loose end meanwhile: the Dockerfile reads
+  requirements-match.txt. `pyproject.toml` loses `dependencies` and every extra,
+  so there is one list only; it keeps the package definition, the `sfmkit`
+  entry point and tool settings. CI installs from the requirements files too. Loose end meanwhile: the Dockerfile reads
   `ARG DEVICE`, while compose and the Makefile still pass `TORCH` (harmless:
   DEVICE defaults to cpu). The dev conda env `mgrcv-sfm` is Python 3.10, so it
   is not the reference environment.
