@@ -110,6 +110,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 - [ ] **Live visualisation**: a callback in `reconstruct`, a Rerun sink, then a
   three.js viewer served by an `api` service.
+- [ ] **Dense reconstruction, optional, gpu image only.** COLMAP's MVS
+  (`patch_match_stereo`, then fusion to a point cloud) needs CUDA, so
+  `pycolmap-cuda12`. Not needed to compare cameras; a dense cloud would suit the
+  live viewer and Gaussian splatting.
 - [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
 - [ ] `scripts/` still do `sys.path.insert(0, "src")`, unnecessary now that the
   package is installed.
