@@ -78,7 +78,7 @@ def test_the_shipped_configs_point_at_real_files(monkeypatch):
         c = load_config(cfg)
         assert c.dataset == cfg.parent.name, f"{cfg}: lives under the wrong dataset"
         for name in [*c.sfm.images, c.localize.query]:
-            assert (c.scene_dir / name).is_file(), f"{cfg}: {name}"
+            assert list(c.scene_dir.glob(f"{name}.*")), f"{cfg}: no photo named {name}"
         if c.calibrate.intrinsics:
             assert Path(c.calibrate.intrinsics).is_file(), f"{cfg}: {c.calibrate.intrinsics}"
         if c.colmap.model:
