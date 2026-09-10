@@ -1,7 +1,8 @@
 services:
   cli:
     build:
-      context: .
+      context: .  # the root, so the image can take the Valencia example
+      dockerfile: packages/sfmkit/Dockerfile
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
         DEVICE: cpu

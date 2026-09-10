@@ -16,7 +16,7 @@ from sfmkit.data.colmap import (
 
 pytestmark = pytest.mark.slow
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[3]
 SCENE = REPO / "data" / "valencia" / "scene"
 EXAMPLE = REPO / "examples" / "valencia" / "9cameras"
 IMAGES = ["Img02", "Img25", "Img13", "Img14"]  # the four the old photo matches best

@@ -15,21 +15,24 @@ jobs:
         with:
           python-version: "3.11"  # the version the requirements are frozen for
           cache: pip
-          cache-dependency-path: requirements*.txt
+          cache-dependency-path: packages/sfmkit/requirements*.txt
 
       - name: Install
+        working-directory: packages/sfmkit
         # The same pinned environment as the image, installed the same way.
         run: |
           pip install --no-deps -r requirements-cpu.txt -r requirements.txt -r requirements-dev.txt
           pip install --no-deps -e .
 
       - name: Lint
-        run: ruff check src tests
+        run: ruff check .
 
       - name: Check the layering
+        working-directory: packages/sfmkit
         # The architecture is a contract, not a comment: this fails the build if
         # a layer imports upwards, or if the core acquires an I/O dependency.
         run: lint-imports
 
       - name: Test
+        working-directory: packages/sfmkit
         run: pytest -q --cov=sfmkit --cov-report=term-missing

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-TOUR = Path(__file__).resolve().parent.parent / "docs" / "tour.md"
+TOUR = Path(__file__).resolve().parents[3] / "docs" / "tour.md"
 
 
 def _python_blocks(text: str) -> list[str]:

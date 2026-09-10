@@ -5,7 +5,7 @@ For a runnable introduction to the library itself, see [tour.md](tour.md).
 ## Layers
 
 ```
-src/sfmkit/
+packages/sfmkit/src/sfmkit/
   core/           algorithms: arrays in, arrays out
     types.py        Pose, Matches, Track, Reconstruction
     geometry.py     two-view geometry, triangulation, projection
@@ -32,7 +32,7 @@ src/sfmkit/
 Imports may only point downwards: `apps` → `render` → `data` → `core`, and
 `core` imports nothing but numpy and scipy.
 
-**This is checked, not documented.** `pyproject.toml` carries four
+**This is checked, not documented.** `packages/sfmkit/pyproject.toml` carries four
 import-linter contracts, run by `lint-imports` in pre-commit and in CI:
 
 | Contract | What it forbids |

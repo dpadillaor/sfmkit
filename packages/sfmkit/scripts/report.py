@@ -4,10 +4,8 @@ Numbers in the README are produced from the artefacts on disk rather than typed
 by hand, so they cannot drift away from what the pipeline actually did.
 """
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, "src")
 from sfmkit.apps.tui.model import load_runs
 
 

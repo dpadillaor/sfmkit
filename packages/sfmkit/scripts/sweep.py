@@ -7,13 +7,11 @@ about, so all of them are tested.
 """
 import itertools
 import json
-import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, "src")
 from sfmkit.core.metrics import compare_poses
 from sfmkit.core.reconstruct import ReconstructionConfig, reconstruct
 from sfmkit.core.tracks import build_tracks

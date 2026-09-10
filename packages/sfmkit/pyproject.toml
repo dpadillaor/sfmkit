@@ -20,17 +20,6 @@ where = ["src"]
 testpaths = ["tests"]
 markers = ["slow: needs the real dataset or is long-running"]
 
-[tool.ruff]
-line-length = 100
-src = ["src", "tests"]
-# legacy/ holds the original course code and the scripts that reproduced its
-# baseline, kept for reference until it is removed. Linting it would mean
-# editing it, which would defeat the point of keeping it.
-exclude = ["legacy"]
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM"]
-
 
 # The package is organised in layers, and the layering is checked rather than
 # merely documented. Without this, the rule holds only for as long as everyone

@@ -9,12 +9,13 @@ Tick or remove an item when it is done. Read it before starting.
 
 ## Checks
 
-Two conda environments, built from the requirements files exactly as the README
-tells users to, Python 3.11 both: `sfmkit` (CPU, `requirements-cpu.txt`) and
-`sfmkit-gpu` (CUDA 12.1, `requirements-gpu.txt`). Before any commit:
+Two conda environments for sfmkit, built from its requirements files exactly as
+the README tells users to, Python 3.11 both: `sfmkit` (CPU,
+`requirements-cpu.txt`) and `sfmkit-gpu` (CUDA 12.1, `requirements-gpu.txt`).
+Before any commit, from the root:
 
 ```bash
-ruff check . && lint-imports && pytest -q
+ruff check . && (cd packages/sfmkit && lint-imports && pytest -q)
 ```
 
 The regression check for anything touching the pipeline starts from the saved
@@ -31,7 +32,10 @@ points); on CPU it gives 1.574° with 8 cameras, as CPU matches differ.
 
 ## Layout
 
-- `src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
+- `packages/<name>/` one installable package each, with its own `pyproject.toml`,
+  requirements, `Dockerfile`, `src/` and `tests/`. Tests and the commands are run
+  from the package's directory; the build context of every image is the root.
+- `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
   import-linter. `core` does no I/O and imports no torch, matplotlib, yaml, rich
   or textual.
 - `data/<project>/` raw inputs, never written. `configs/<project>/*.yaml` one

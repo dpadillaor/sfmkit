@@ -10,11 +10,11 @@ RUN if [ "$DEVICE" = gpu ]; then \
         && apt-get install -y --no-install-recommends libice6 libsm6 libx11-6 libxext6 \
         && rm -rf /var/lib/apt/lists/*; \
     fi
-COPY requirements-${DEVICE}.txt .
+COPY packages/sfmkit/requirements-${DEVICE}.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements-${DEVICE}.txt
 
 # Installing dependencies
-COPY requirements.txt .
+COPY packages/sfmkit/requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
 # NN Weights
@@ -27,8 +27,8 @@ COPY configs/valencia configs/valencia
 COPY examples/valencia/9cameras runs/valencia/9cameras
 
 # Copying and Installing sfmkit library
-COPY pyproject.toml .
-COPY src src
+COPY packages/sfmkit/pyproject.toml .
+COPY packages/sfmkit/src src
 RUN pip install --no-cache-dir --no-deps .
 
 # The commit this image was built from, recorded in every run manifest

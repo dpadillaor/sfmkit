@@ -6,7 +6,7 @@ import pytest
 
 from sfmkit.data.config import default_run_dir, load_config
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[3]
 
 
 def _write(dirpath: Path, body: str, name: str = "exp.yaml") -> Path:

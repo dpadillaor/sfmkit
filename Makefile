@@ -20,11 +20,11 @@ run:
 	sfmkit run --config $(CONFIG)
 
 test:
-	pytest -q
+	cd packages/sfmkit && pytest -q
 
 lint:
-	ruff check src tests
-	lint-imports
+	ruff check .
+	cd packages/sfmkit && lint-imports
 
 env:
 	@printf 'UID=%s\nGID=%s\n' "$$(id -u)" "$$(id -g)" > .env

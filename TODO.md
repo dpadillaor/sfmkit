@@ -108,15 +108,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 A web viewer of runs, live while `reconstruct` works. It is also the exercise in
 how two containers talk to each other, so the network is the point, not a cost.
 
-- [ ] **Restructure into `packages/`**, one commit that only moves:
-  `packages/sfmkit/` (`pyproject.toml`, requirements, `Dockerfile`, `src/`,
-  `tests/`) and later `packages/viewer/`, each installed on its own (different
-  dependencies, images, lifecycles). `data/`, `configs/`, `examples/`, `runs/`
-  stay at the root, shared. To update: CI, `.pre-commit-config.yaml`, the
-  Makefile, compose (build context stays the root, so `examples/` can be baked
-  in), `pyproject` paths, `CLAUDE.md`, `docs/`, and the four tests that find the
-  repo with `Path(__file__).parent.parent`. Check ruff, lint-imports, pytest and
-  a Docker build.
 - [ ] **The viewer does not import sfmkit.** It would drag in sfmkit's
   dependencies (`sfmkit.data.colmap` imports pycolmap on import) and tie the two
   together. Finished results are read from `runs/`, mounted read-only; the files
@@ -291,8 +282,6 @@ how two containers talk to each other, so the network is the point, not a cost.
     built without CUDA anyway (it falls back to the CPU; its mapping takes
     1.6 s on Valencia either way).
 - [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
-- [ ] `scripts/` still do `sys.path.insert(0, "src")`, unnecessary now that the
-  package is installed.
 
 ## Housekeeping
 

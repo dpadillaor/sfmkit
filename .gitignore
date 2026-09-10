@@ -24,7 +24,7 @@ runs/
 !data/**
 !examples/**
 !docs/figures/**
-!tests/**/*.npz
+!packages/*/tests/**/*.npz
 
 .DS_Store
 .vscode/

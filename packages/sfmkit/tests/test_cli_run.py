@@ -1,13 +1,17 @@
 """The `run` command's stage selection, without executing any stage."""
 
+from pathlib import Path
+
 import pytest
 
 from sfmkit.apps.cli.run import STAGES, cmd_run
 
+CONFIG = Path(__file__).resolve().parents[3] / "configs" / "valencia" / "9cameras.yaml"
+
 
 class _Args:
     def __init__(self, out, **kw):
-        self.config = "configs/valencia/9cameras.yaml"
+        self.config = str(CONFIG)
         self.out = str(out)
         self.From = kw.get("From")
         self.only = kw.get("only")
