@@ -114,3 +114,14 @@ class TestDegenerate:
         m.pairs = m.pairs[:5]
         with pytest.raises(RuntimeError, match="could not estimate F"):
             reconstruct([m], scene.K, build_tracks([m]), ReconstructionConfig(seed=0))
+
+
+def test_each_step_is_reported_as_soon_as_it_is_done(scene):
+    """So a caller can show progress while bundle adjustment runs."""
+    pytest.importorskip("cv2")
+    matches = _verify(_all_pairs(scene))
+    seen = []
+    result = reconstruct(matches, scene.K, build_tracks(matches),
+                         ReconstructionConfig(reference=scene.images[0]), on_step=seen.append)
+    assert seen == result.reports  # every step, in order, as it happened
+    assert [r.step for r in seen] == list(range(len(seen)))

@@ -61,10 +61,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
-- [ ] **`reconstruct` is silent for ~4 minutes**, printing nothing between the track
-  count and the final table, so it looks hung. It should report each step as it
-  happens (camera added, points, RMSE, bundle-adjustment time). The `on_step`
-  callback planned for live visualisation would give it for free.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
@@ -150,7 +146,8 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `apps/cli/changes.py` and `apps/cli/figures.py`: replace them with
   `data.io.image_file`, which also refuses ambiguous names (`Img02.jpg` and
   `Img02.png`).
-- [ ] **Live visualisation**: a callback in `reconstruct`, a Rerun sink, then a
+- [ ] **Live visualisation**: the callback is in (`reconstruct(..., on_step=...)`, used
+  by the CLI to show each step as it finishes); still to do: a Rerun sink, then a
   three.js viewer served by an `api` service.
 - [ ] **A figure of the dense cloud.** The `dense` stage writes `dense/fused.ply`
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it

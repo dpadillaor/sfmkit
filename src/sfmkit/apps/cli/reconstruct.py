@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from rich.console import Group
+from rich.live import Live
+from rich.spinner import Spinner
 from rich.table import Table
 
 from sfmkit.apps.cli._common import console, load_K, run_dir
@@ -36,25 +39,40 @@ def cmd_reconstruct(args) -> int:
 
     s = cfg.sfm
     K = load_K(run / "calibrate" / "K.txt")
-    result = reconstruct(matches, K, tracks, ReconstructionConfig(
+    options = ReconstructionConfig(
         reference=s.reference, seed=cfg.seed,
         ransac_threshold=s.ransac_threshold, ransac_iterations=s.ransac_iterations,
         pnp_threshold=s.pnp_threshold,
         min_triangulation_angle_deg=s.min_triangulation_angle_deg,
         max_reprojection_error=s.max_reprojection_error,
         min_pnp_correspondences=s.min_pnp_correspondences,
-    ))
+    )
 
+    # Each step can take tens of seconds, so its row is shown as soon as it is done.
     table = Table(title="incremental reconstruction")
     for c, j in (("step", "right"), ("image", "left"), ("cams", "right"), ("points", "right"),
                  ("pnp", "right"), ("rmse before", "right"), ("rmse after", "right"),
                  ("BA s", "right")):
         table.add_column(c, justify=j)
-    for r in result.reports:
-        table.add_row(str(r.step), r.image, str(r.n_registered), str(r.n_points),
-                      str(r.n_pnp_correspondences), f"{r.rmse_before:.3f}",
-                      f"{r.rmse_after:.3f}", f"{r.bundle_seconds:.1f}")
-    console.print(table)
+    if console.is_terminal:
+        working = Spinner("dots", text="seed pair: triangulation and bundle adjustment")
+        with Live(Group(table, working), console=console, refresh_per_second=8) as live:
+            def on_step(r):
+                _add_row(table, r)
+                working.update(text=f"{r.n_registered} cameras in; next step running "
+                                    "(bundle adjustment takes tens of seconds)")
+
+            result = reconstruct(matches, K, tracks, options, on_step=on_step)
+            live.update(table)
+    else:  # piped, as in the TUI's run tab: a line per step, then the table
+        def on_step(r):
+            console.print(f"step {r.step}: {r.image}, {r.n_registered} cameras, {r.n_points} "
+                          f"points, rmse {r.rmse_after:.3f}, BA {r.bundle_seconds:.1f} s")
+
+        result = reconstruct(matches, K, tracks, options, on_step=on_step)
+        for r in result.reports:
+            _add_row(table, r)
+        console.print(table)
 
     out = run / "reconstruct"
     out.mkdir(parents=True, exist_ok=True)
@@ -72,3 +90,9 @@ def cmd_reconstruct(args) -> int:
     console.print(f"[green]registered[/green] {len(result.reconstruction.poses)} cameras, "
                   f"{result.reconstruction.n_points} points")
     return 0
+
+
+def _add_row(table: Table, r) -> None:
+    table.add_row(str(r.step), r.image, str(r.n_registered), str(r.n_points),
+                  str(r.n_pnp_correspondences), f"{r.rmse_before:.3f}",
+                  f"{r.rmse_after:.3f}", f"{r.bundle_seconds:.1f}")

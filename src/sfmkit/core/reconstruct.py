@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -274,8 +275,13 @@ def reconstruct(
     K: np.ndarray,
     tracks: list[Track],
     cfg: ReconstructionConfig | None = None,
+    on_step: Callable[[StageReport], None] | None = None,
 ) -> ReconstructionResult:
-    """Build a reconstruction from verified matches and precomputed tracks."""
+    """Build a reconstruction from verified matches and precomputed tracks.
+
+    ``on_step`` is handed each step's report as soon as the step is done, so a
+    caller can show progress; the reports are also returned together.
+    """
     cfg = cfg or ReconstructionConfig()
     keypoints = _keypoints_by_image(matches)
     pairs = _pair_index(matches)
@@ -283,6 +289,11 @@ def reconstruct(
     rec = Reconstruction(K=np.asarray(K, dtype=float), tracks=list(tracks))
     rec.points = np.full((len(rec.tracks), 3), np.nan)
     reports: list[StageReport] = []
+
+    def done(report: StageReport) -> None:
+        reports.append(report)
+        if on_step is not None:
+            on_step(report)
 
     # ---- seed the reconstruction from one pair ----------------------------
     seed_pair = _best_initial_pair(matches, rec.K, cfg)
@@ -310,7 +321,7 @@ def reconstruct(
     r.n_filtered = _filter_observations(rec, keypoints, cfg)
     _triangulate_tracks(rec, keypoints, cfg)
     r.n_points = rec.n_points
-    reports.append(r)
+    done(r)
 
     # ---- register the remaining cameras -----------------------------------
     all_images = sorted({m.image0 for m in matches} | {m.image1 for m in matches})
@@ -351,7 +362,7 @@ def reconstruct(
             rep.n_filtered = _filter_observations(rec, keypoints, cfg)
             _triangulate_tracks(rec, keypoints, cfg)
             rep.n_points = rec.n_points
-        reports.append(rep)
+        done(rep)
         step += 1
 
     before_refinement = Reconstruction(
@@ -373,7 +384,7 @@ def reconstruct(
         rep.n_filtered = _filter_observations(rec, keypoints, cfg)
         _triangulate_tracks(rec, keypoints, cfg)
         rep.n_points = rec.n_points
-        reports.append(rep)
+        done(rep)
         if abs(rec.n_points - before) < 0.005 * max(before, 1):
             break
 
