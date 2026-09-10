@@ -1,5 +1,7 @@
-# The nine modern photographs COLMAP registered, plus the historical one as the
-# localisation query. Paths are relative to data/valencia/.
+# 9cameras with the matching forced onto the CPU. CPU and GPU give slightly
+# different matches, and here a different result: Img12 is lost (8 cameras,
+# 1.57°, against 9 and 0.98° from GPU matches). Paths are relative to
+# data/valencia/.
 dataset: valencia
 seed: 0
 
@@ -11,7 +13,7 @@ sfm:
   reference: Img02
   exhaustive: true          # every pair, not just those touching the reference
   max_keypoints: 2048
-  device: auto              # auto | cpu | cuda: CPU and GPU give slightly different matches
+  device: cpu              # auto | cpu | cuda: CPU and GPU give slightly different matches
   ransac_threshold: 4.0
   ransac_iterations: 1000
   min_inliers: 20
