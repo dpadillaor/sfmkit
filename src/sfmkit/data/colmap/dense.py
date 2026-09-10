@@ -12,8 +12,9 @@ from sfmkit.data.io import image_file
 
 __all__ = ["NO_CUDA", "DenseSummary", "dense_available", "run_dense"]
 
-NO_CUDA = ("the dense reconstruction needs CUDA: install requirements-gpu.txt, "
-           "on a machine with an NVIDIA GPU")
+NO_CUDA = ("the dense reconstruction needs an NVIDIA GPU and COLMAP built for it: "
+           "requirements-gpu.txt or the gpu image, with the GPU visible "
+           "(docker compose run cli-gpu)")
 
 
 @dataclass
