@@ -8,20 +8,19 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   chessboard photos from the course were never kept. The chessboard code exists
   and is tested on synthetic boards; it needs the photos in
   `data/valencia/calibration/`.
-- [ ] **Our K disagrees with COLMAP's self-calibration.** `evaluate` prints both.
-  The chessboard K says f = 3544; COLMAP, calibrating from the scene, says ~3020,
-  with its own SIFT matches and with sfmkit's alike, so the difference is not the
-  features. Either the chessboard calibration (whose photos are lost) is off, or
-  the scene does not constrain the focal length well. Scoring the same GPU
-  reconstruction (which uses our K) against the four COLMAP variants:
-  own matches + own K 1.03° (max 2.62), own matches + our K 1.44° (4.36),
-  our matches + own K 1.06° (2.72), our matches + our K 1.52° (6.70). Forcing
-  our K on COLMAP makes it agree *less* with a reconstruction that uses the
-  same K, even from identical input, while COLMAP's own K converges on ~3020
-  from either set of matches. Hypothesis: our K is wrong for these photos;
-  `legacy/` holds several phone calibrations (`K_Calibration_12MP*.txt`, a 64 MP
-  one), and the one chosen may not match how the photos were taken. Test:
-  reconstruct with f ~ 3020 and see whether the error against COLMAP drops.
+- [ ] **Our K is very likely wrong for these photos, by ~17%.** The chessboard
+  K (`legacy/.../camera_calibration.py`, photos `calib_*.jpg` since lost) says
+  f = 3544, and is self-consistent (its /2, /4, /6 downscaled variants agree).
+  Everything else says ~3000-3030: the photos' EXIF (SM-G996B, 5.4 mm, 26 mm
+  equivalent, no digital zoom) give 5.4 mm / 1.8 um pixels = ~3000 px and 26 mm
+  on the native 4:3 diagonal = ~3028 px; COLMAP self-calibrates to ~3020 from
+  its matches and from ours alike. Forcing our K on COLMAP makes it agree *less*
+  with a reconstruction that uses the same K (1.44° against 1.03°, max 6.70°
+  from identical input). Likely the chessboard photos were taken in another mode
+  (crop, stabilisation, video, another lens). Test: reconstruct with the EXIF K
+  (f = 3028, principal point at the centre) and see whether the error against
+  COLMAP drops. And `calibrate` could read K from EXIF when there is no
+  chessboard.
 - [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
   was fed the course's own matches, so 0.981° against it was not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
