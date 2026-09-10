@@ -1,10 +1,10 @@
 .git
 runs/
-CV/
-repro/
+legacy/
 docs/figures/
 **/__pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
 *.pptx
+data/
