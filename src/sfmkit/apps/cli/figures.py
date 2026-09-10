@@ -89,4 +89,6 @@ def cmd_figures(args) -> int:
 
     for p in written:
         console.print(f"[green]wrote[/green] {p}")
+    io.write_manifest(run, "figures", cfg, config_path=args.config,
+                      extra={"figures": [p.name for p in written]})
     return 0

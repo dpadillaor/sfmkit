@@ -45,7 +45,7 @@ class RunList(DataTable):
                          str(h["cameras"]), str(h["points"]), rot, r.timestamp, key=r.name)
 
 
-class StageDetail(Vertical):
+class StageDetail(Horizontal):
     """The selected run's stages, and the raw manifest of whichever is picked."""
 
     def compose(self) -> ComposeResult:
@@ -105,9 +105,9 @@ class CompareView(DataTable):
 
     def on_mount(self) -> None:
         self.zebra_stripes = True
-        self.add_column("field", width=22)
-        self.add_column("A", width=26)
-        self.add_column("B", width=26)
+        self.add_column("field", width=26)
+        self.add_column("A", width=48)
+        self.add_column("B", width=48)
 
     def show(self, a: RunSummary | None, b: RunSummary | None, n_runs: int = 0) -> None:
         self.clear()
@@ -155,11 +155,12 @@ class SfmkitApp(App):
 
     CSS = """
     Screen { layout: vertical; }
-    #top { height: 45%; }
-    RunList { border: round $primary; }
-    StageDetail { border: round $secondary; width: 55%; }
-    #stage-tree { height: 30%; }
-    #stage-body { padding: 0 1; overflow-y: auto; }
+    TabbedContent, ContentSwitcher, TabPane { height: 1fr; }
+    #top { height: 1fr; }
+    RunList { border: round $primary; height: auto; max-height: 40%; }
+    StageDetail { border: round $secondary; height: 1fr; }
+    #stage-tree { width: 36; }
+    #stage-body { width: 1fr; padding: 0 1; overflow-y: auto; }
     CompareView { border: round $accent; }
     #runner-controls { height: 3; }
     #stage-select { width: 24; }
@@ -187,7 +188,7 @@ class SfmkitApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         with TabbedContent():
-            with TabPane("runs", id="tab-runs"), Horizontal(id="top"):
+            with TabPane("runs", id="tab-runs"), Vertical(id="top"):
                 yield RunList(id="runs")
                 yield StageDetail()
             with TabPane("compare", id="tab-compare"):
@@ -199,6 +200,7 @@ class SfmkitApp(App):
     def on_mount(self) -> None:
         self.title = "sfmkit"
         self.action_refresh()
+        self.query_one(RunList).focus()  # so the arrow keys move through runs at once
 
     # ---- actions ----------------------------------------------------------
 
