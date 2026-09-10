@@ -158,10 +158,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   viewer and Gaussian splatting.
 - [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
   reconstruction written as a COLMAP model (see the exporter under Later).
-- [ ] **Bundle adjustment on the GPU.** On `sfmkit-gpu`, a full run spends 245 of
-  267 s in `reconstruct`, which is numpy and scipy and ignores the GPU; match and
-  COLMAP take 3 s each. A PyTorch bundle adjustment is the only way to speed
-  the GPU pipeline up much further.
+- [ ] **Speed up bundle adjustment: the method, not the hardware.** A full run
+  spends 245 of 267 s in `reconstruct`, whose bundle adjustment
+  (`core/bundle.py`) is scipy's generic `least_squares` with a finite-difference
+  Jacobian and the iterative `lsmr` solver: 20-35 s an adjustment for 9 cameras
+  and ~1700 points, which Ceres solves in well under a second on a CPU. An
+  analytic Jacobian and the Schur complement (each observation touches one
+  camera and one point), still numpy on the CPU, should bring it to seconds. A
+  GPU (a PyTorch rewrite) would only pay with thousands of cameras.
 - [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
 - [ ] `scripts/` still do `sys.path.insert(0, "src")`, unnecessary now that the
   package is installed.
