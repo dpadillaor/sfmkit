@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 from rich.table import Table
 
-from sfmkit.apps.cli._common import console, progress
+from sfmkit.apps.cli._common import console, progress, run_dir
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
@@ -17,23 +15,24 @@ def cmd_localize(args) -> int:
     from sfmkit.core.localize import localize_image
 
     cfg = load_config(args.config)
-    if not cfg.query:
-        console.print("[red]no `query` set in the config[/red]")
+    query = cfg.localize.query
+    if not query:
+        console.print("[red]no `localize.query` set in the config[/red]")
         return 1
 
-    rec = io.load_reconstruction(Path(args.out) / "reconstruction.npz")
-    verified = Path(args.out) / "verified"
-    q_files = [f for f in verified.glob("*.npz") if cfg.query in f.stem]
+    run = run_dir(cfg, args.out)
+    rec = io.load_reconstruction(run / "reconstruct" / "reconstruction.npz")
+    q_files = [f for f in (run / "verify").glob("*.npz") if query in f.stem]
     if not q_files:
-        console.print(f"[red]no verified pairs involving {cfg.query}[/red]")
+        console.print(f"[red]no verified pairs involving {query}[/red]")
         return 1
 
     seeds = list(range(args.trials))
     results = []
     with progress() as p:
-        task = p.add_task(f"localising {cfg.query}", total=len(seeds))
+        task = p.add_task(f"localising {query}", total=len(seeds))
         for s in seeds:
-            r = localize_image(rec, [io.load_matches(f) for f in q_files], cfg.query, seed=s)
+            r = localize_image(rec, [io.load_matches(f) for f in q_files], query, seed=s)
             if r is not None:
                 results.append(r)
             p.advance(task)
@@ -45,7 +44,7 @@ def cmd_localize(args) -> int:
     # Reported as a distribution rather than a single value: estimating eleven
     # parameters from six correspondences varies noticeably between seeds.
     centres = np.array([r.pose.center for r in results])
-    table = Table(title=f"localisation of {cfg.query} over {len(results)} seeds")
+    table = Table(title=f"localisation of {query} over {len(results)} seeds")
     for c in ("quantity", "median", "min", "max", "spread"):
         table.add_column(c, justify="right" if c != "quantity" else "left")
     for label, v in (("inliers", np.array([r.n_inliers for r in results], dtype=float)),
@@ -57,14 +56,16 @@ def cmd_localize(args) -> int:
     console.print(table)
 
     best = min(results, key=lambda r: r.rmse)
-    np.savez(Path(args.out) / "query_pose.npz",
+    out = run / "localize"
+    out.mkdir(parents=True, exist_ok=True)
+    np.savez(out / "query_pose.npz",
              R=best.pose.R, t=best.pose.t,
              centres=centres, rmse=np.array([r.rmse for r in results]),
              inliers=np.array([r.n_inliers for r in results]))
-    io.write_manifest(args.out, "localize", cfg, config_path=args.config, extra={
-        "query": cfg.query, "trials": len(results),
+    io.write_manifest(run, "localize", cfg, config_path=args.config, extra={
+        "query": query, "trials": len(results),
         "rmse_median": float(np.median([r.rmse for r in results])),
         "centre_spread": float(np.linalg.norm(centres.max(0) - centres.min(0))),
     })
-    console.print(f"[green]localised[/green] {cfg.query}, best RMSE {best.rmse:.3f}px")
+    console.print(f"[green]localised[/green] {query}, best RMSE {best.rmse:.3f}px")
     return 0

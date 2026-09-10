@@ -6,7 +6,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-STAGES = ["match", "verify", "reconstruct", "localize", "evaluate", "changes", "figures"]
+STAGES = ["calibrate", "match", "verify", "reconstruct", "localize", "colmap", "evaluate",
+          "changes", "figures"]
 
 
 @dataclass
@@ -36,9 +37,7 @@ class RunSummary:
             node = self.stages.get(stage)
             if node and node.get("config_path"):
                 return node["config_path"]
-        name = self.config_name
-        guess = Path("configs") / f"{name}.yaml"
-        return str(guess) if name != "-" and guess.is_file() else None
+        return None
 
     @property
     def timestamp(self) -> str:
@@ -79,24 +78,25 @@ class RunSummary:
 
 
 def load_runs(root: Path | str = "runs") -> list[RunSummary]:
-    """Every directory under ``root`` that contains at least one manifest."""
+    """Every directory under ``root`` holding at least one ``<stage>/manifest.json``.
+
+    Runs may be nested (``runs/<dataset>/<config>``); a run is named by its path
+    relative to ``root``.
+    """
     root = Path(root)
     if not root.is_dir():
         return []
-    out = []
-    for d in sorted(root.iterdir()):
-        if not d.is_dir():
+    found: dict[Path, dict[str, dict]] = {}
+    for f in sorted(root.glob("**/manifest.json")):
+        stage = f.parent.name
+        if stage not in STAGES:
             continue
-        stages = {}
-        for stage in STAGES:
-            f = d / f"manifest_{stage}.json"
-            if f.is_file():
-                try:
-                    stages[stage] = json.loads(f.read_text())
-                except json.JSONDecodeError:
-                    continue
-        if stages:
-            out.append(RunSummary(path=d, name=d.name, stages=stages))
+        try:
+            found.setdefault(f.parent.parent, {})[stage] = json.loads(f.read_text())
+        except json.JSONDecodeError:
+            continue
+    out = [RunSummary(path=d, name=d.relative_to(root).as_posix(), stages=s)
+           for d, s in found.items()]
     return sorted(out, key=lambda r: r.timestamp, reverse=True)
 
 

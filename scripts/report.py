@@ -17,7 +17,7 @@ def fmt(v, nd=3):
 
 def results_table() -> str:
     rows = []
-    topo = Path("runs/experiment_topology.json")
+    topo = Path("runs/valencia/experiment_topology.json")
     if topo.is_file():
         d = json.loads(topo.read_text())
         rows.append("### Star graph vs complete graph\n")

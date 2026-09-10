@@ -7,7 +7,7 @@ from sfmkit.apps.cli.run import STAGES, cmd_run
 
 class _Args:
     def __init__(self, out, **kw):
-        self.config = "configs/valencia_all9.yaml"
+        self.config = "configs/valencia/all9.yaml"
         self.out = str(out)
         self.From = kw.get("From")
         self.only = kw.get("only")
@@ -46,10 +46,11 @@ def test_only_rejects_unknown_stages(ran, tmp_path):
 
 
 def test_skip_done_honours_existing_manifests(ran, tmp_path):
-    (tmp_path / "manifest_match.json").write_text("{}")
-    (tmp_path / "manifest_verify.json").write_text("{}")
+    for stage in ("calibrate", "match", "verify"):
+        (tmp_path / stage).mkdir()
+        (tmp_path / stage / "manifest.json").write_text("{}")
     assert cmd_run(_Args(tmp_path, skip_done=True)) == 0
-    assert "match" not in ran and "verify" not in ran
+    assert not {"calibrate", "match", "verify"} & set(ran)
     assert ran[0] == "reconstruct"
 
 

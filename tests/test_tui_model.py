@@ -9,9 +9,9 @@ from sfmkit.apps.tui.model import RunSummary, compare, load_runs
 
 def _write_run(root, name, stages: dict):
     d = root / name
-    d.mkdir(parents=True)
     for stage, payload in stages.items():
-        (d / f"manifest_{stage}.json").write_text(json.dumps(payload))
+        (d / stage).mkdir(parents=True)
+        (d / stage / "manifest.json").write_text(json.dumps(payload))
     return d
 
 
@@ -41,13 +41,21 @@ class TestLoadRuns:
     def test_ignores_directories_without_manifests(self, runs_dir):
         assert "not-a-run" not in [r.name for r in load_runs(runs_dir)]
 
+    def test_nested_runs_are_named_by_their_relative_path(self, tmp_path):
+        _write_run(tmp_path, "valencia/all9", {"match": {"timestamp": "2026-09-10T01:00:00"}})
+        assert [r.name for r in load_runs(tmp_path)] == ["valencia/all9"]
+
+    def test_folders_that_are_not_stages_are_ignored(self, tmp_path):
+        _write_run(tmp_path, "r", {"scratch": {"timestamp": "2026-09-10T01:00:00"}})
+        assert load_runs(tmp_path) == []
+
     def test_missing_root_is_not_an_error(self, tmp_path):
         assert load_runs(tmp_path / "nope") == []
 
     def test_survives_a_corrupt_manifest(self, tmp_path):
-        d = tmp_path / "broken"
-        d.mkdir()
-        (d / "manifest_reconstruct.json").write_text("{not json")
+        d = tmp_path / "broken" / "reconstruct"
+        d.mkdir(parents=True)
+        (d / "manifest.json").write_text("{not json")
         assert load_runs(tmp_path) == []
 
 
@@ -92,17 +100,14 @@ class TestConfigPath:
     """The TUI needs to know which config produced a run in order to re-run it."""
 
     def test_reads_the_recorded_path(self, tmp_path):
-        d = tmp_path / "r"
-        d.mkdir()
-        (d / "manifest_reconstruct.json").write_text(json.dumps({
+        _write_run(tmp_path, "r", {"reconstruct": {
             "timestamp": "2026-09-02T01:00:00",
             "config_path": "configs/whatever.yaml",
             "config": {"name": "whatever"},
-        }))
+        }})
         assert load_runs(tmp_path)[0].config_path == "configs/whatever.yaml"
 
     def test_returns_none_when_unrecorded_and_unguessable(self, runs_dir):
-        # These fixtures predate config_path, and no configs/star.yaml exists
-        # relative to the test's working directory.
+        # These fixtures predate config_path, so there is nothing to report.
         alpha = next(r for r in load_runs(runs_dir) if r.name == "alpha")
-        assert alpha.config_path is None or alpha.config_path.endswith(".yaml")
+        assert alpha.config_path is None

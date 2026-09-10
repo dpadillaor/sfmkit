@@ -101,7 +101,7 @@ colours the columns — 1766 finite-difference evaluations become 10 — and for
 **not composable**: they live on mutually exclusive branches, so the sparse path
 was never affected by problem A, which makes the comparison above fair.
 
-Implemented in `repro/fastba.py`, driven by `repro/stage23_fast.py`.
+Prototyped in `repro/fastba.py`, driven by `repro/stage23_fast.py` (both in the history before commit c665df5); the library version is `sfmkit.core.bundle`.
 
 ### 1.2 Three hypotheses that were wrong
 
@@ -188,7 +188,7 @@ tied to the reference and to nothing else.
 ### 1.6 Threshold calibration by grid search
 
 The reconstruction thresholds were chosen by exhaustive search over 27
-combinations, each scored against COLMAP (`repro/sweep.py`), rather than by
+combinations, each scored against COLMAP (`scripts/sweep.py`), rather than by
 intuition. This moved the mean rotation error further than any structural
 change in this document: **1.603 -> 0.981 degrees**, and `Img12` from 7.20 to
 2.84.

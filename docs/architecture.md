@@ -50,21 +50,25 @@ opens a plot.
 
 ## Stage contract
 
-Each stage reads one directory and writes another, and every output carries a
-`manifest_<stage>.json` with the config, the git commit, and package versions.
+A run lives in `runs/<dataset>/<config>/`. Each stage writes its own subfolder,
+with a `manifest.json` holding the config, the git commit and package versions,
+and reads only from the dataset and from earlier stages' subfolders.
 
 ```
-match        images/                 -> runs/<name>/matches/*.npz
-verify       matches/                -> runs/<name>/verified/*.npz
-reconstruct  verified/               -> runs/<name>/reconstruction.npz
-localize     reconstruction + verified -> runs/<name>/query_pose.npz
-evaluate     reconstruction + COLMAP -> runs/<name>/evaluation.json
-changes      images + verified       -> runs/<name>/changes/*.png
-figures      reconstruction + COLMAP -> runs/<name>/figures/*.png
+calibrate    chessboard photos, or a K    -> calibrate/K.txt
+match        scene photos                 -> match/*.npz
+verify       match/                       -> verify/*.npz
+reconstruct  verify/ + calibrate/         -> reconstruct/reconstruction.npz
+localize     reconstruct/ + verify/       -> localize/query_pose.npz
+colmap       a COLMAP model               -> colmap/{cameras,images,points3D}.txt
+evaluate     reconstruct/ + colmap/       -> evaluate/evaluation.json
+changes      scene photos + verify/       -> changes/*.png
+figures      reconstruct/ + colmap/       -> figures/*.png
 ```
 
-Stage order lives in the `Makefile`, not in module names, so inserting a stage
-renames nothing.
+`colmap` depends on nothing but the dataset, so it could run alongside the
+matching chain. Stage order lives in `apps/cli/run.py`, not in module names, so
+inserting a stage renames nothing.
 
 ## Conventions
 

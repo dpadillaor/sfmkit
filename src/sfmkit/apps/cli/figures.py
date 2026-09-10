@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from sfmkit.apps.cli._common import console
+from sfmkit.apps.cli._common import console, run_dir
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
@@ -26,11 +24,12 @@ def cmd_figures(args) -> int:
     )
 
     cfg = load_config(args.config)
-    run = Path(args.out)
-    rec = io.load_reconstruction(run / "reconstruction.npz")
-    ref = cfg.reference or rec.registered[0]
+    run = run_dir(cfg, args.out)
+    rec = io.load_reconstruction(run / "reconstruct" / "reconstruction.npz")
+    ref = cfg.sfm.reference or rec.registered[0]
+    query = cfg.localize.query
     out = run / "figures"
-    images = Path(cfg.images_dir)
+    images = cfg.scene_dir
     written = []
 
     def read(name):
@@ -40,14 +39,14 @@ def cmd_figures(args) -> int:
         img = cv2.imread(str(path), cv2.IMREAD_COLOR)
         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB) if img is not None else None
 
-    if cfg.colmap_model:
-        model = read_model(cfg.colmap_model)
+    if (run / "colmap" / "images.txt").is_file():
+        model = read_model(run / "colmap")
         written += [plot_comparison(rec, model, ref, out / "comparison.png"),
                     plot_camera_layout(rec, model, ref, out / "cameras.png")]
 
-    verified = sorted((run / "verified").glob("*.npz"))
+    verified = sorted((run / "verify").glob("*.npz"))
     all_m = [io.load_matches(f) for f in verified]
-    scene = [m for m in all_m if cfg.query not in (m.image0, m.image1)]
+    scene = [m for m in all_m if query not in (m.image0, m.image1)]
     if scene:
         star = [m for m in scene if ref in (m.image0, m.image1)]
         written.append(plot_track_lengths(
@@ -71,7 +70,7 @@ def cmd_figures(args) -> int:
     for mm in scene:
         kp.setdefault(mm.image0, mm.keypoints0)
         kp.setdefault(mm.image1, mm.keypoints1)
-    before_path = run / "reconstruction_before_refinement.npz"
+    before_path = run / "reconstruct" / "reconstruction_before_refinement.npz"
     states = [("after", rec)]
     if before_path.is_file():
         states.insert(0, ("before", io.load_reconstruction(before_path)))

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from sfmkit.apps.cli._common import console, pairs_of, progress
+from sfmkit.apps.cli._common import console, pairs_of, progress, run_dir
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
@@ -14,20 +12,21 @@ def cmd_match(args) -> int:
     from sfmkit.data.features import match_pairs
 
     cfg = load_config(args.config)
-    out = Path(args.out) / "matches"
+    run = run_dir(cfg, args.out)
+    out = run / "match"
     pairs = pairs_of(cfg)
-    if cfg.query:
-        pairs += [(cfg.reference or cfg.image_names[0], cfg.query)]
+    if cfg.localize.query:
+        pairs += [(cfg.sfm.reference or cfg.sfm.images[0], cfg.localize.query)]
 
-    console.print(f"[bold]matching[/bold] {len(pairs)} pairs from {cfg.images_dir}")
+    console.print(f"[bold]matching[/bold] {len(pairs)} pairs from {cfg.scene_dir}")
     with progress() as p:
         task = p.add_task("extract + match", total=len(pairs))
         written = match_pairs(
-            Path(cfg.images_dir), pairs, out,
-            max_keypoints=cfg.max_keypoints,
+            cfg.scene_dir, pairs, out,
+            max_keypoints=cfg.sfm.max_keypoints,
             on_pair=lambda a, b, n: p.advance(task),
         )
-    io.write_manifest(args.out, "match", cfg, extra={"n_pairs": len(written)},
+    io.write_manifest(run, "match", cfg, extra={"n_pairs": len(written)},
                       config_path=args.config)
     console.print(f"[green]wrote[/green] {len(written)} match files to {out}")
     return 0

@@ -2,18 +2,28 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from sfmkit.apps.cli import changes, evaluate, figures, localize, match, reconstruct, verify
-from sfmkit.apps.cli._common import console
+from sfmkit.apps.cli import (
+    calibrate,
+    changes,
+    colmap,
+    evaluate,
+    figures,
+    localize,
+    match,
+    reconstruct,
+    verify,
+)
+from sfmkit.apps.cli._common import console, run_dir
 from sfmkit.data.config import load_config
 
 #: Stage order. This is where it lives; module names carry no number.
 STAGES = [
+    ("calibrate", calibrate.cmd_calibrate),
     ("match", match.cmd_match),
     ("verify", verify.cmd_verify),
     ("reconstruct", reconstruct.cmd_reconstruct),
     ("localize", localize.cmd_localize),
+    ("colmap", colmap.cmd_colmap),
     ("evaluate", evaluate.cmd_evaluate),
     ("changes", changes.cmd_changes),
     ("figures", figures.cmd_figures),
@@ -22,8 +32,8 @@ STAGES = [
 
 def cmd_run(args) -> int:
     """Run the pipeline end to end, stopping at the first stage that fails."""
-    load_config(args.config)  # fail early on a bad config, before any stage runs
-    out = Path(args.out)
+    cfg = load_config(args.config)  # fail early on a bad config, before any stage runs
+    out = run_dir(cfg, args.out)
 
     names = [n for n, _ in STAGES]
     if args.only:
@@ -40,7 +50,7 @@ def cmd_run(args) -> int:
 
     skipped = []
     for name, fn in stages:
-        if args.skip_done and (out / f"manifest_{name}.json").is_file():
+        if args.skip_done and (out / name / "manifest.json").is_file():
             skipped.append(name)
             continue
         console.rule(f"[bold]{name}")

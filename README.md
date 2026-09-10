@@ -22,8 +22,19 @@ Two things, deliberately separated:
   estimation, feature tracks, incremental reconstruction, bundle adjustment,
   visual localisation. Pure functions over numpy arrays; no file paths, no
   global state, no plotting. It knows nothing about Valencia.
-* **`pipelines` (the `sfmkit` CLI) and `configs/`** — the case study. Which
-  images, which thresholds, where the data lives.
+* **`apps/` (the `sfmkit` CLI and TUI), `data/` and `configs/`** — the case
+  study. Three folders with the same shape:
+
+  ```
+  data/valencia/      raw inputs, read-only: scene/ photos (+ precomputed/ stand-ins)
+  configs/valencia/   one YAML per experiment: which images each stage uses
+  runs/valencia/      one folder per config, one subfolder per stage
+  ```
+
+  Intrinsics and the COLMAP reference are stages of the run, not fixed data, so
+  each experiment can compute them from its own images. Until the chessboard
+  photos and COLMAP are wired in, both stages copy a precomputed result from
+  `data/valencia/precomputed/`.
 
 The split is not cosmetic. It is what lets the whole library be tested on
 synthetic scenes with exact ground truth, in seconds, with no dataset present.
@@ -71,7 +82,7 @@ worse (0.981° to 1.001°); the result is recorded in
 [docs/optimizations.md](docs/optimizations.md) rather than kept behind a flag.
 
 These three thresholds (`pnp_threshold`, `min_triangulation_angle_deg`,
-`max_reprojection_error`) were chosen by the grid search in `repro/sweep.py`,
+`max_reprojection_error`) were chosen by the grid search in `scripts/sweep.py`,
 scored against COLMAP. Two of its results are counter-intuitive and worth
 knowing: a *tighter* reprojection threshold makes things worse, because it
 discards points a later bundle adjustment would have pulled into line, and a
@@ -130,21 +141,24 @@ keeps the full account.
 
 ```bash
 pip install -e ".[dev]"
-pytest                                  # 80 tests, no dataset required
+pytest                                  # 115 tests, no dataset required
 ```
 
 The whole pipeline:
 
 ```bash
-sfmkit run --config configs/valencia_all9.yaml --out runs/all9
+sfmkit run --config configs/valencia/all9.yaml     # writes runs/valencia/all9/
 ```
 
-Or a stage at a time — `match`, `verify`, `reconstruct`, `localize`,
-`evaluate`, `changes`, `figures`:
+Or a stage at a time — `calibrate`, `match`, `verify`, `reconstruct`,
+`localize`, `colmap`, `evaluate`, `changes`, `figures`:
 
 ```bash
-sfmkit reconstruct --config configs/valencia_all9.yaml --out runs/all9
+sfmkit reconstruct --config configs/valencia/all9.yaml
 ```
+
+`--out` overrides the run directory. `$SFMKIT_DATA` and `$SFMKIT_RUNS` move the
+data and runs roots (default `data/` and `runs/` in the working directory).
 
 `sfmkit run` also takes `--from <stage>`, `--only a,b` and `--skip-done`. Only
 `match` needs a GPU; everything downstream runs on numpy.
@@ -198,7 +212,7 @@ machine without Docker. Treat it as a starting point that needs one
 
 ```bash
 docker build -t sfmkit .
-docker compose run --rm sfmkit reconstruct --config configs/valencia_all9.yaml --out runs/all9
+docker compose run --rm sfmkit reconstruct --config configs/valencia/all9.yaml
 ```
 
 The dependency that justifies containerising this project is COLMAP: a system

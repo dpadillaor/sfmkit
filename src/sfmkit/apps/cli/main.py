@@ -1,7 +1,7 @@
 """Argument parsing and dispatch.
 
-One subcommand per module. Stage order lives in the Makefile and in the config,
-not in module names, so inserting a stage renames nothing.
+One subcommand per module. Stage order lives in ``run.STAGES``, not in module
+names, so inserting a stage renames nothing.
 """
 
 from __future__ import annotations
@@ -10,7 +10,9 @@ import argparse
 import sys
 
 from sfmkit.apps.cli import (
+    calibrate,
     changes,
+    colmap,
     evaluate,
     figures,
     localize,
@@ -33,10 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
     def stage(name, fn, help_):
         s = sub.add_parser(name, help=help_)
         s.add_argument("--config", required=True, help="YAML experiment config")
-        s.add_argument("--out", required=True, help="run directory for inputs and outputs")
+        s.add_argument("--out", help="run directory (default: runs/<dataset>/<config>)")
         s.set_defaults(func=fn)
         return s
 
+    stage("calibrate", calibrate.cmd_calibrate,
+          "intrinsics from chessboard photos, or a precomputed K")
     stage("match", match.cmd_match, "detect and match features for every configured pair")
     stage("verify", verify.cmd_verify, "fit fundamental matrices and keep geometric inliers")
     stage("reconstruct", reconstruct.cmd_reconstruct, "build tracks and run incremental SfM + BA")
@@ -46,7 +50,8 @@ def build_parser() -> argparse.ArgumentParser:
     loc.add_argument("--trials", type=int, default=20,
                      help="seeds to run, so the pose is reported as a distribution")
 
-    stage("evaluate", evaluate.cmd_evaluate, "compare the reconstruction against a COLMAP model")
+    stage("colmap", colmap.cmd_colmap, "the COLMAP model the run is scored against")
+    stage("evaluate", evaluate.cmd_evaluate, "compare the reconstruction against COLMAP")
     stage("figures", figures.cmd_figures, "render figures for a finished run")
 
     ch = stage("changes", changes.cmd_changes,

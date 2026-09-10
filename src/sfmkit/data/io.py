@@ -36,8 +36,8 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
     reading a run back can re-invoke the same stage without guessing where the
     file lives.
     """
-    run_dir = Path(run_dir)
-    run_dir.mkdir(parents=True, exist_ok=True)
+    stage_dir = Path(run_dir) / stage
+    stage_dir.mkdir(parents=True, exist_ok=True)
     import scipy
 
     import sfmkit
@@ -56,14 +56,14 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
         },
         **(extra or {}),
     }
-    path = run_dir / f"manifest_{stage}.json"
+    path = stage_dir / "manifest.json"
     path.write_text(json.dumps(payload, indent=2, default=str))
     return path
 
 
 def read_manifest(run_dir, stage: str) -> dict:
     """Read back the manifest a stage wrote."""
-    return json.loads((Path(run_dir) / f"manifest_{stage}.json").read_text())
+    return json.loads((Path(run_dir) / stage / "manifest.json").read_text())
 
 
 def load_matches_npz(path, image0: str, image1: str) -> Matches:
