@@ -29,8 +29,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 - [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
   `.env` (`make env`); without compose, files written to a mounted `runs/` belong
-  to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Document it
-  in the README's "Try it".
+  to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
+  default non-root user in the Dockerfile (`sfmkit`, UID 1000, with a home), so
+  plain `docker run` is not root and is right for the common UID 1000; compose
+  keeps overriding it from `.env`. Then document it in the README's "Try it".
 - [ ] **The `gpu` image.** `ARG TORCH` already picks `requirements-torch-<TORCH>.txt`;
   a `gpu` image needs `requirements-torch-gpu.txt` (CUDA PyTorch, ~5 GB image
   against 1.6 GB for `cpu`), and compose needs the GPU (`gpus: all`, and
