@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import platform
 import subprocess
 from dataclasses import asdict, is_dataclass
@@ -20,6 +21,9 @@ __all__ = [
 
 
 def _git_commit() -> str | None:
+    """``$SFMKIT_GIT_COMMIT`` if set, as in an image built without ``.git``; else git's HEAD."""
+    if commit := os.environ.get("SFMKIT_GIT_COMMIT"):
+        return commit
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5, check=True

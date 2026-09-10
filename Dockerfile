@@ -6,9 +6,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copying and Installing sfm library
+# Copying and Installing sfmkit library
 COPY pyproject.toml .
 COPY src src
 RUN pip install --no-cache-dir --no-deps .
 
-CMD ["sfmkit", "--help"]
+# The commit this image was built from, recorded in every run manifest
+ARG GIT_COMMIT=unknown
+ENV SFMKIT_GIT_COMMIT=$GIT_COMMIT
+
+# Entrypoint
+ENTRYPOINT ["sfmkit"]
+CMD ["--help"]
