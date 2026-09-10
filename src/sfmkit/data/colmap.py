@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+import pycolmap
 
 from sfmkit.core.types import Pose
 from sfmkit.data.io import image_file
@@ -106,8 +107,6 @@ def run_colmap(scene_dir, images: list[str], out_dir) -> ColmapSummary:
     beside COLMAP's database. The model names images as sfmkit does, without
     extension.
     """
-    import pycolmap
-
     scene_dir, out_dir = Path(scene_dir), Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     # COLMAP names an image by its file; sfmkit, without extension.
