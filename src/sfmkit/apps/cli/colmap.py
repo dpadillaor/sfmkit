@@ -19,18 +19,21 @@ def cmd_colmap(args) -> int:
     run = run_dir(cfg, args.out)
     out = run / "colmap"
 
-    if not cfg.colmap.model:
-        console.print("[red]running COLMAP is not wired in yet;[/red] "
-                      "set `colmap.model` to a precomputed model")
+    if cfg.colmap.matches:
+        console.print(f"[red]colmap.matches: {cfg.colmap.matches} is not implemented yet;[/red] "
+                      "use `colmap.precomputed`")
+        return 1
+    if not cfg.colmap.precomputed:
+        console.print("[red]set `colmap.precomputed` or `colmap.matches`[/red]")
         return 1
 
     out.mkdir(parents=True, exist_ok=True)
     for name in FILES:
-        shutil.copyfile(f"{cfg.colmap.model}/{name}", out / name)
+        shutil.copyfile(f"{cfg.colmap.precomputed}/{name}", out / name)
     model = read_model(out)
     io.write_manifest(run, "colmap", cfg, config_path=args.config, extra={
         "source": "precomputed", "n_images": len(model["poses"]),
     })
-    console.print(f"using precomputed model from {cfg.colmap.model}: "
+    console.print(f"using precomputed model from {cfg.colmap.precomputed}: "
                   f"{len(model['poses'])} images")
     return 0

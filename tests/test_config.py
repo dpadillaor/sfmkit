@@ -21,26 +21,26 @@ def test_paths_resolve_against_the_dataset_under_the_data_root(tmp_path, monkeyp
     cfg = _write(tmp_path / "configs", (
         "dataset: city\n"
         "calibrate: {intrinsics: precomputed/K.txt}\n"
-        "colmap: {model: precomputed/colmap}\n"
+        "colmap: {precomputed: precomputed/colmap}\n"
     ))
     monkeypatch.chdir(tmp_path)  # run from an unrelated directory
     c = load_config(cfg)
     dataset = tmp_path / "mnt" / "city"
     assert c.scene_dir == dataset / "scene"
     assert Path(c.calibrate.intrinsics) == dataset / "precomputed" / "K.txt"
-    assert Path(c.colmap.model) == dataset / "precomputed" / "colmap"
+    assert Path(c.colmap.precomputed) == dataset / "precomputed" / "colmap"
 
 
 def test_absolute_paths_are_left_alone(tmp_path):
-    cfg = _write(tmp_path, "dataset: city\ncolmap: {model: /models/city}\n")
-    assert load_config(cfg).colmap.model == "/models/city"
+    cfg = _write(tmp_path, "dataset: city\ncolmap: {precomputed: /models/city}\n")
+    assert load_config(cfg).colmap.precomputed == "/models/city"
 
 
 def test_empty_paths_stay_empty(tmp_path):
     """An absent COLMAP model must not become the dataset directory."""
     cfg = _write(tmp_path, "dataset: city\n")
     c = load_config(cfg)
-    assert c.colmap.model == "" and c.calibrate.intrinsics == ""
+    assert c.colmap.precomputed == "" and c.calibrate.intrinsics == ""
 
 
 def test_dataset_is_required(tmp_path):
@@ -62,6 +62,16 @@ def test_the_device_defaults_to_auto_and_is_checked(tmp_path):
         load_config(_write(tmp_path, "dataset: city\nsfm: {device: gpu}\n"))
 
 
+def test_colmap_is_either_precomputed_or_computed_never_both(tmp_path):
+    with pytest.raises(ValueError, match="not both"):
+        load_config(_write(tmp_path, "dataset: city\ncolmap: {precomputed: m, matches: colmap}\n"))
+    with pytest.raises(ValueError, match="matches"):
+        load_config(_write(tmp_path, "dataset: city\ncolmap: {matches: sift}\n"))
+    for who in ("colmap", "sfmkit"):
+        c = load_config(_write(tmp_path, f"dataset: city\ncolmap: {{matches: {who}}}\n"))
+        assert c.colmap.matches == who
+
+
 def test_the_run_is_named_after_the_dataset_and_the_config(tmp_path, monkeypatch):
     monkeypatch.setenv("SFMKIT_RUNS", str(tmp_path / "out"))
     c = load_config(_write(tmp_path, "dataset: city\n", name="night.yaml"))
@@ -81,5 +91,6 @@ def test_the_shipped_configs_point_at_real_files(monkeypatch):
             assert list(c.scene_dir.glob(f"{name}.*")), f"{cfg}: no photo named {name}"
         if c.calibrate.intrinsics:
             assert Path(c.calibrate.intrinsics).is_file(), f"{cfg}: {c.calibrate.intrinsics}"
-        if c.colmap.model:
-            assert (Path(c.colmap.model) / "images.txt").is_file(), f"{cfg}: {c.colmap.model}"
+        if c.colmap.precomputed:
+            model = Path(c.colmap.precomputed)
+            assert (model / "images.txt").is_file(), f"{cfg}: {model}"

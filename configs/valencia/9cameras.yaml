@@ -24,4 +24,4 @@ localize:
   query: Img00
 
 colmap:
-  model: precomputed/colmap       # until COLMAP runs as part of the pipeline
+  precomputed: precomputed/colmap   # or matches: colmap | sfmkit, once implemented

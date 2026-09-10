@@ -22,7 +22,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
                       # verify through its database, as the course did: same
                       # input, so it compares the reconstruction alone
   ```
-  Both keys at once is an error. Whatever the variant, the stage leaves
+  Done: the config (`colmap.model` is now `colmap.precomputed`), checked when
+  loaded: both keys at once, or another `matches` value, is an error; neither
+  is an error when the stage runs, as in `calibrate`. To do: the two
+  `matches` modes in the stage. Whatever the variant, the stage leaves
   `colmap/{cameras,images,points3D}.txt` (from the largest model if COLMAP
   splits the photos), so `evaluate` and `figures` do not change. Open: our K
   from `calibrate` or COLMAP's own (the fair choice for `sfmkit` is ours);

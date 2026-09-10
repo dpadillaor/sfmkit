@@ -65,11 +65,27 @@ class LocalizeConfig:
     query: str | None = None
 
 
+COLMAP_MATCHES = ("colmap", "sfmkit")
+
+
 @dataclass
 class ColmapConfig:
-    """The COLMAP model the run is scored against."""
+    """The COLMAP model the run is scored against: copied, or computed.
 
-    model: str = ""  # precomputed model directory
+    ``precomputed`` copies a model directory. Otherwise COLMAP runs, and
+    ``matches`` says whose keypoints and matches it reconstructs from: its own
+    (``colmap``) or those of ``verify`` (``sfmkit``).
+    """
+
+    precomputed: str = ""
+    matches: str = ""
+
+    def __post_init__(self) -> None:
+        if self.precomputed and self.matches:
+            raise ValueError("set either colmap.precomputed or colmap.matches, not both")
+        if self.matches and self.matches not in COLMAP_MATCHES:
+            raise ValueError(
+                f"colmap.matches must be one of {COLMAP_MATCHES}, not {self.matches!r}")
 
 
 @dataclass
@@ -105,7 +121,7 @@ SECTIONS = {
 }
 
 #: Paths inside a section, resolved against the dataset directory.
-PATH_FIELDS = {"calibrate": ("images", "intrinsics"), "colmap": ("model",)}
+PATH_FIELDS = {"calibrate": ("images", "intrinsics"), "colmap": ("precomputed",)}
 
 
 def data_root() -> Path:

@@ -24,4 +24,4 @@ localize:
   query: Img00
 
 colmap:
-  model: precomputed/colmap
+  precomputed: precomputed/colmap
