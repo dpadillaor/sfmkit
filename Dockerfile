@@ -4,6 +4,12 @@ WORKDIR /app
 
 # PyTorch and COLMAP depending on device.
 ARG DEVICE=cpu
+# COLMAP's CUDA build links X11 libraries the slim image lacks.
+RUN if [ "$DEVICE" = gpu ]; then \
+        apt-get update \
+        && apt-get install -y --no-install-recommends libice6 libsm6 libx11-6 libxext6 \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
 COPY requirements-${DEVICE}.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements-${DEVICE}.txt
 
