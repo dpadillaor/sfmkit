@@ -43,6 +43,13 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Docker
 
+- [ ] **Design the dependency setup once, on paper, before more changes.** It grew
+  patch by patch: requirements.txt, requirements-torch-cpu.txt,
+  requirements-match.txt, `--no-deps` in places, all to dodge LightGlue's
+  `opencv-python`. Cover manual install and Docker, cpu and gpu, pycolmap
+  included, then change code. Loose end meanwhile: the Dockerfile now reads
+  `ARG DEVICE`, while compose and the Makefile still pass `TORCH` (harmless:
+  DEVICE defaults to cpu).
 - [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
   `.env` (`make env`); without compose, files written to a mounted `runs/` belong
   to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
