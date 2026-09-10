@@ -9,17 +9,24 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   and is tested on synthetic boards; it needs the photos in
   `data/valencia/calibration/`.
 - [ ] **Run COLMAP for real, with pycolmap.** `colmap` only copies a precomputed
-  model; pycolmap 4.2.0 is now in the image. Three variants, each answering a
-  different question, chosen by `colmap.source`:
-  - `precomputed`: copy `colmap.model` (today's behaviour; a fixed reference).
-  - `matches`: COLMAP's `mapper` only, fed our keypoints and verified matches
-    through its database, as the course did. Same input, so it compares the
-    reconstruction and bundle adjustment alone. The most code of the three.
-  - `full`: COLMAP's own SIFT, matching and mapping. The only independent
-    reference. Three pycolmap calls (tested: ~12 s on CPU, all 10 photos).
-  Config stays flat (`source`, plus `model` only for `precomputed`), with a clear
-  error when they do not fit. Open for `matches` and `full`: our K from
-  `calibrate` or COLMAP's own (the fair choice for `matches` is ours).
+  model; pycolmap 4.2.0 is now in the image. Agreed config, following the same
+  rule as `calibrate` (precomputed if given a file, computed otherwise):
+  ```yaml
+  colmap:
+    precomputed: precomputed/colmap   # copy a model; COLMAP does not run
+    # or
+    matches: colmap   # COLMAP's own SIFT, matching and mapping: the independent
+                      # reference; three pycolmap calls, ~12 s on CPU
+    # or
+    matches: sfmkit   # COLMAP's mapper only, fed the keypoints and matches from
+                      # verify through its database, as the course did: same
+                      # input, so it compares the reconstruction alone
+  ```
+  Both keys at once is an error. Whatever the variant, the stage leaves
+  `colmap/{cameras,images,points3D}.txt` (from the largest model if COLMAP
+  splits the photos), so `evaluate` and `figures` do not change. Open: our K
+  from `calibrate` or COLMAP's own (the fair choice for `sfmkit` is ours);
+  whether to keep `database.db` in the run.
 - [ ] **Compare the intrinsics.** COLMAP self-calibrates (the course model: f =
   3047) while our K says 3544. Reporting both K side by side in `evaluate` would
   show how far apart the calibrations are, and whether it matters.
