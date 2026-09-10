@@ -77,6 +77,16 @@ class TestDetectChanges:
         # The flagged region should overlap where the object was inserted.
         assert result.mask[150:280, 250:380].mean() > 0.3
 
+    def test_the_difference_image_is_dark_where_the_images_agree(self):
+        img = _textured_image(4)
+        modified = img.copy()
+        cv2.rectangle(modified, (250, 150), (380, 280), 0, -1)
+        src, dst = _grid_correspondences(np.eye(3))
+        result = detect_changes(img, modified, src, dst, seed=0)
+        assert result.difference.shape == img.shape
+        assert result.difference[20:120, 20:200].mean() < 2  # unchanged: near black
+        assert result.difference[160:270, 260:370].mean() > 40  # the inserted object
+
     def test_reports_the_homography_and_inliers(self):
         img = _textured_image(3)
         src, dst = _grid_correspondences(np.eye(3))

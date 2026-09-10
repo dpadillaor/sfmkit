@@ -51,6 +51,7 @@ def cmd_changes(args) -> int:
     overlay[result.mask] = (0.45 * overlay[result.mask] +
                             0.55 * np.array([0, 0, 255])).astype(np.uint8)
     cv2.imwrite(str(out / f"{query}_warped.png"), result.warped)
+    cv2.imwrite(str(out / f"difference_{query}_vs_{target}.png"), result.difference)
     cv2.imwrite(str(out / f"changes_{query}_vs_{target}.png"), overlay)
     cv2.imwrite(str(out / "score.png"), (255 * result.score).astype(np.uint8))
     io.write_manifest(run, "changes", cfg, config_path=args.config, extra={

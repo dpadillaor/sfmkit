@@ -16,11 +16,15 @@ class ChangeMap:
 
     ``score`` is the raw dissimilarity in [0, 1] before thresholding; ``mask``
     is what survived the threshold and the morphological clean-up.
+    ``difference`` is the plain pixel difference of the aligned images, in
+    their colours: what coincides goes dark and what differs stands out. It is
+    for looking at, not for deciding: it also flags every change of exposure.
     ``changed_fraction`` is measured over the overlapping region, not the whole
     image.
     """
 
     warped: np.ndarray  # the historical image, aligned to the modern one
+    difference: np.ndarray  # |modern - aligned historical|, per pixel and channel
     mask: np.ndarray  # bool, True where the scene appears to have changed
     score: np.ndarray  # float32 dissimilarity in [0, 1], before thresholding
     homography: np.ndarray
@@ -139,8 +143,14 @@ def detect_changes(
         if stats[i, cv2.CC_STAT_AREA] >= min_area:
             cleaned |= labels == i
 
+    warped_colour = cv2.warpPerspective(historical, H, (w, h))
+    if warped_colour.ndim != modern.ndim:  # one grey, one colour: compare in grey
+        warped_colour, modern = warped, mod_grey
+    difference = cv2.absdiff(modern, warped_colour)
+
     return ChangeMap(
         warped=warped,
+        difference=difference,
         mask=cleaned,
         score=score,
         homography=H,
