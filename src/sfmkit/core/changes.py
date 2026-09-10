@@ -19,12 +19,18 @@ class ChangeMap:
     ``difference`` is the plain pixel difference of the aligned images, in
     their colours: what coincides goes dark and what differs stands out. It is
     for looking at, not for deciding: it also flags every change of exposure.
+    ``two_colour`` tells what appeared from what disappeared: the old photo,
+    matched to today's tones, in the red channel and today's in green and
+    blue. Grey where they agree; dark things, as objects mostly are against a
+    facade or the ground, show red where they are only today and cyan where
+    they were only in the old photo.
     ``changed_fraction`` is measured over the overlapping region, not the whole
     image.
     """
 
     warped: np.ndarray  # the historical image, aligned to the modern one
     difference: np.ndarray  # |modern - aligned historical|, per pixel and channel
+    two_colour: np.ndarray  # BGR: red only today, cyan only in the old photo, grey both
     mask: np.ndarray  # bool, True where the scene appears to have changed
     score: np.ndarray  # float32 dissimilarity in [0, 1], before thresholding
     homography: np.ndarray
@@ -50,6 +56,25 @@ def align_by_homography(
     if H is None:
         raise ValueError("could not estimate a homography from these correspondences")
     return H, (mask.ravel().astype(bool) if mask is not None else np.ones(len(src_points), bool))
+
+
+def _match_histogram(image: np.ndarray, reference: np.ndarray, where: np.ndarray) -> np.ndarray:
+    """``image`` with the tones of ``reference``, both measured over ``where``."""
+    values, index, counts = np.unique(image[where], return_inverse=True, return_counts=True)
+    ref_values, ref_counts = np.unique(reference[where], return_counts=True)
+    quantiles = np.cumsum(counts) / counts.sum()
+    ref_quantiles = np.cumsum(ref_counts) / ref_counts.sum()
+    out = image.copy()
+    out[where] = np.interp(quantiles, ref_quantiles, ref_values)[index].astype(image.dtype)
+    return out
+
+
+def _two_colour(historical: np.ndarray, modern: np.ndarray, valid: np.ndarray) -> np.ndarray:
+    """The old photo in red and today's in cyan, over the part they share."""
+    old = _match_histogram(historical, modern, valid)
+    out = np.stack([modern, modern, old], axis=-1)
+    out[~valid] = (0.35 * modern[~valid, None]).astype(np.uint8)  # nothing to compare
+    return out
 
 
 def _structure(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -147,10 +172,12 @@ def detect_changes(
     if warped_colour.ndim != modern.ndim:  # one grey, one colour: compare in grey
         warped_colour, modern = warped, mod_grey
     difference = cv2.absdiff(modern, warped_colour)
+    two_colour = _two_colour(warped, mod_grey, valid)
 
     return ChangeMap(
         warped=warped,
         difference=difference,
+        two_colour=two_colour,
         mask=cleaned,
         score=score,
         homography=H,

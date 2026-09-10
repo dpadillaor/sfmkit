@@ -87,6 +87,18 @@ class TestDetectChanges:
         assert result.difference[20:120, 20:200].mean() < 2  # unchanged: near black
         assert result.difference[160:270, 260:370].mean() > 40  # the inserted object
 
+    def test_two_colours_tell_what_appeared_from_what_went(self):
+        base = _textured_image(5)
+        old, today = base.copy(), base.copy()
+        cv2.rectangle(old, (60, 80), (160, 180), 0, -1)  # there then, gone now
+        cv2.rectangle(today, (300, 150), (420, 270), 0, -1)  # there now only
+        src, dst = _grid_correspondences(np.eye(3))
+        tc = detect_changes(old, today, src, dst, seed=0).two_colour.astype(int)
+        g, r = tc[..., 1], tc[..., 2]  # BGR
+        assert (r - g)[160:260, 310:410].mean() > 60  # today only: red
+        assert (g - r)[90:170, 70:150].mean() > 60  # old only: cyan
+        assert np.abs(r - g)[20:60, 450:580].mean() < 15  # unchanged: grey
+
     def test_reports_the_homography_and_inliers(self):
         img = _textured_image(3)
         src, dst = _grid_correspondences(np.eye(3))

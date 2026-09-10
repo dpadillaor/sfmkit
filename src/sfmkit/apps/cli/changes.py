@@ -52,6 +52,9 @@ def cmd_changes(args) -> int:
                             0.55 * np.array([0, 0, 255])).astype(np.uint8)
     cv2.imwrite(str(out / f"{query}_warped.png"), result.warped)
     cv2.imwrite(str(out / f"difference_{query}_vs_{target}.png"), result.difference)
+    cv2.imwrite(str(out / f"two_colour_{query}_vs_{target}.png"),
+                _legend(result.two_colour, f"red: only today ({target})    "
+                                           f"cyan: only in the old photo ({query})"))
     cv2.imwrite(str(out / f"changes_{query}_vs_{target}.png"), overlay)
     cv2.imwrite(str(out / "score.png"), (255 * result.score).astype(np.uint8))
     io.write_manifest(run, "changes", cfg, config_path=args.config, extra={
@@ -62,3 +65,15 @@ def cmd_changes(args) -> int:
     })
     console.print(f"[green]wrote[/green] {out}")
     return 0
+
+
+def _legend(image: np.ndarray, text: str) -> np.ndarray:
+    """``image`` under a black strip saying how to read it."""
+    import cv2
+
+    h = max(40, image.shape[1] // 40)
+    strip = np.zeros((h, image.shape[1], 3), np.uint8)
+    scale = h / 45
+    cv2.putText(strip, text, (h // 3, int(h * 0.7)), cv2.FONT_HERSHEY_SIMPLEX, scale,
+                (255, 255, 255), max(1, int(2 * scale)), cv2.LINE_AA)
+    return np.vstack([strip, image])
