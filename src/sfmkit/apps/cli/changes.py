@@ -52,6 +52,7 @@ def cmd_changes(args) -> int:
                             0.55 * np.array([0, 0, 255])).astype(np.uint8)
     cv2.imwrite(str(out / f"{query}_warped.png"), result.warped)
     cv2.imwrite(str(out / f"difference_{query}_vs_{target}.png"), result.difference)
+    cv2.imwrite(str(out / f"overlay_{query}_on_{target}.png"), result.overlay)
     cv2.imwrite(str(out / f"matched_difference_{query}_vs_{target}.png"),
                 _legend(result.matched_difference, "bright: differs    dark: the same "
                                                    "(the old photo's tones matched to today's)"))

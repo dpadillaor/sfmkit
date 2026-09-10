@@ -87,6 +87,16 @@ class TestDetectChanges:
         assert result.difference[20:120, 20:200].mean() < 2  # unchanged: near black
         assert result.difference[160:270, 260:370].mean() > 40  # the inserted object
 
+    def test_the_overlay_is_the_old_photo_where_it_reaches(self):
+        old, today = _textured_image(7), _textured_image(8)
+        H = np.array([[0.8, 0.0, 30.0], [0.0, 0.8, 20.0], [0.0, 0.0, 1.0]])  # smaller, shifted
+        src, dst = _grid_correspondences(H)
+        result = detect_changes(old, today, src, dst, seed=0)
+        inside = cv2.warpPerspective(np.ones_like(old), result.homography, old.shape[::-1]) > 0
+        inside = cv2.erode(inside.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        assert np.array_equal(result.overlay[inside], result.warped[inside])
+        assert np.array_equal(result.overlay[380:, 560:], today[380:, 560:])  # beyond it: today
+
     def test_the_matched_difference_ignores_exposure_but_not_objects(self):
         base = _textured_image(6)
         today = np.clip(base.astype(float) * 0.55 + 60, 0, 255).astype(np.uint8)  # other light

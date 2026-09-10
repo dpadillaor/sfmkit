@@ -19,6 +19,8 @@ class ChangeMap:
     ``difference`` is the plain pixel difference of the aligned images, in
     their colours: what coincides goes dark and what differs stands out. It is
     for looking at, not for deciding: it also flags every change of exposure.
+    ``overlay`` is the aligned old photo pasted over today's, which shows
+    through only where the old one does not reach.
     ``matched_difference`` is that difference after matching the old photo's
     tones to today's, so that exposure and tint largely drop out, as a heat
     map: dark where the photos agree, bright where they differ.
@@ -28,6 +30,7 @@ class ChangeMap:
 
     warped: np.ndarray  # the historical image, aligned to the modern one
     difference: np.ndarray  # |modern - aligned historical|, per pixel and channel
+    overlay: np.ndarray  # the aligned old photo in front of today's
     matched_difference: np.ndarray  # BGR heat map of the tone-matched difference
     mask: np.ndarray  # bool, True where the scene appears to have changed
     score: np.ndarray  # float32 dissimilarity in [0, 1], before thresholding
@@ -174,11 +177,14 @@ def detect_changes(
     if warped_colour.ndim != modern.ndim:  # one grey, one colour: compare in grey
         warped_colour, modern = warped, mod_grey
     difference = cv2.absdiff(modern, warped_colour)
+    overlay = modern.copy()
+    overlay[valid] = warped_colour[valid]
     matched_difference = _matched_difference(warped, mod_grey, valid)
 
     return ChangeMap(
         warped=warped,
         difference=difference,
+        overlay=overlay,
         matched_difference=matched_difference,
         mask=cleaned,
         score=score,
