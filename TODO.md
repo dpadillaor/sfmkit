@@ -129,6 +129,11 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Later
 
+- [ ] **Review the imports inside functions.** Several modules import inside
+  functions (torch in `data/features.py`, cv2 and core modules in the CLI
+  commands) so they would load without optional packages. Every supported
+  install now has them all. Keep the lazy ones only where they save start-up
+  time worth having (torch costs 0.6 s, pycolmap 0.1 s).
 - [ ] **Three copies of "find the file of an image"** in `data/features.py`,
   `apps/cli/changes.py` and `apps/cli/figures.py`: replace them with
   `data.io.image_file`, which also refuses ambiguous names (`Img02.jpg` and
