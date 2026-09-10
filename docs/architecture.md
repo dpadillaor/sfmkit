@@ -63,6 +63,7 @@ reconstruct  verify/ + calibrate/         -> reconstruct/reconstruction.npz
 localize     reconstruct/ + verify/       -> localize/query_pose.npz
 colmap       a model, or COLMAP run on    -> colmap/{cameras,images,points3D}.txt, database.db
              the photos or on verify/
+dense        colmap/ + the photos         -> dense/fused.ply   (optional, CUDA only)
 evaluate     reconstruct/ + localize/     -> evaluate/evaluation.json
              + colmap/ + calibrate/
 changes      scene photos + verify/       -> changes/*.png

@@ -6,6 +6,7 @@ from sfmkit.apps.cli import (
     calibrate,
     changes,
     colmap,
+    dense,
     evaluate,
     figures,
     localize,
@@ -14,7 +15,8 @@ from sfmkit.apps.cli import (
     verify,
 )
 from sfmkit.apps.cli._common import console, run_dir
-from sfmkit.data.config import load_config
+from sfmkit.data.colmap import NO_CUDA, dense_available
+from sfmkit.data.config import Config, load_config
 
 #: Stage order. This is where it lives; module names carry no number.
 STAGES = [
@@ -24,6 +26,7 @@ STAGES = [
     ("reconstruct", reconstruct.cmd_reconstruct),
     ("localize", localize.cmd_localize),
     ("colmap", colmap.cmd_colmap),
+    ("dense", dense.cmd_dense),
     ("evaluate", evaluate.cmd_evaluate),
     ("changes", changes.cmd_changes),
     ("figures", figures.cmd_figures),
@@ -48,6 +51,11 @@ def cmd_run(args) -> int:
         start = names.index(args.From) if args.From else 0
         stages = STAGES[start:]
 
+    problem = _needs_missing_cuda(cfg, {n for n, _ in stages})
+    if problem:
+        console.print(f"[red]{problem}[/red]")
+        return 1
+
     skipped = []
     for name, fn in stages:
         if args.skip_done and (out / name / "manifest.json").is_file():
@@ -64,6 +72,20 @@ def cmd_run(args) -> int:
     console.rule("[green]done")
     console.print(f"run: {out}")
     return 0
+
+
+def _needs_missing_cuda(cfg: Config, stages: set[str]) -> str | None:
+    """Why the config asks for CUDA this machine lacks, before any stage runs."""
+    if "dense" in stages and cfg.dense.enabled and not dense_available():
+        return NO_CUDA
+    if "match" in stages and cfg.sfm.device == "cuda":
+        from sfmkit.data.features import pick_device  # imports torch, so only when asked
+
+        try:
+            pick_device("cuda")
+        except ValueError as e:
+            return str(e)
+    return None
 
 
 class _StageArgs:

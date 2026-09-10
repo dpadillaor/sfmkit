@@ -135,10 +135,16 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `Img02.png`).
 - [ ] **Live visualisation**: a callback in `reconstruct`, a Rerun sink, then a
   three.js viewer served by an `api` service.
-- [ ] **Dense reconstruction, optional, gpu image only.** COLMAP's MVS
-  (`patch_match_stereo`, then fusion to a point cloud) needs CUDA, so
-  `pycolmap-cuda12`. Not needed to compare cameras; a dense cloud would suit the
-  live viewer and Gaussian splatting.
+- [ ] **A figure of the dense cloud.** The `dense` stage writes `dense/fused.ply`
+  (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
+  yet, and it would make the README's best picture. It could also feed the live
+  viewer and Gaussian splatting.
+- [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
+  reconstruction written as a COLMAP model (see the exporter under Later).
+- [ ] **Bundle adjustment on the GPU.** On `sfmkit-gpu`, a full run spends 245 of
+  267 s in `reconstruct`, which is numpy and scipy and ignores the GPU; match and
+  COLMAP take 3 s each. A PyTorch bundle adjustment is the only way to speed
+  the GPU pipeline up much further.
 - [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
 - [ ] `scripts/` still do `sys.path.insert(0, "src")`, unnecessary now that the
   package is installed.

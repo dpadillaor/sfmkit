@@ -11,7 +11,7 @@ import yaml
 from sfmkit.data.features import DEVICES
 
 __all__ = [
-    "CalibrateConfig", "ColmapConfig", "Config", "LocalizeConfig", "SfmConfig",
+    "CalibrateConfig", "ColmapConfig", "Config", "DenseConfig", "LocalizeConfig", "SfmConfig",
     "data_root", "default_run_dir", "load_config", "runs_root",
 ]
 
@@ -98,6 +98,18 @@ class ColmapConfig:
 
 
 @dataclass
+class DenseConfig:
+    """COLMAP's dense reconstruction of the colmap stage's model. Needs CUDA."""
+
+    enabled: bool = False
+    max_image_size: int = 2000  # images are downscaled to this size for stereo
+
+    def __post_init__(self) -> None:
+        if self.max_image_size <= 0:
+            raise ValueError(f"dense.max_image_size must be positive, not {self.max_image_size}")
+
+
+@dataclass
 class Config:
     """One experiment over one dataset.
 
@@ -112,6 +124,7 @@ class Config:
     sfm: SfmConfig = field(default_factory=SfmConfig)
     localize: LocalizeConfig = field(default_factory=LocalizeConfig)
     colmap: ColmapConfig = field(default_factory=ColmapConfig)
+    dense: DenseConfig = field(default_factory=DenseConfig)
     dataset_dir: str = ""
 
     @property
@@ -127,6 +140,7 @@ SECTIONS = {
     "sfm": SfmConfig,
     "localize": LocalizeConfig,
     "colmap": ColmapConfig,
+    "dense": DenseConfig,
 }
 
 #: Paths inside a section, resolved against the dataset directory.

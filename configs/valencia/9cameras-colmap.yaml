@@ -27,3 +27,7 @@ localize:
 colmap:
   matches: colmap   # colmap: COLMAP's own features | sfmkit: this run's verify/
   camera: self      # self: COLMAP calibrates the phone | fixed: calibrate's K
+
+dense:
+  enabled: false    # COLMAP's dense point cloud of the scene; needs CUDA
+  max_image_size: 2000

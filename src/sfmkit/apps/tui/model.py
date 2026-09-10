@@ -6,8 +6,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-STAGES = ["calibrate", "match", "verify", "reconstruct", "localize", "colmap", "evaluate",
-          "changes", "figures"]
+STAGES = ["calibrate", "match", "verify", "reconstruct", "localize", "colmap", "dense",
+          "evaluate", "changes", "figures"]
 
 
 @dataclass

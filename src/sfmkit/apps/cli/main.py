@@ -13,6 +13,7 @@ from sfmkit.apps.cli import (
     calibrate,
     changes,
     colmap,
+    dense,
     evaluate,
     figures,
     localize,
@@ -51,6 +52,7 @@ def build_parser() -> argparse.ArgumentParser:
                      help="seeds to run, so the pose is reported as a distribution")
 
     stage("colmap", colmap.cmd_colmap, "the COLMAP model the run is scored against")
+    stage("dense", dense.cmd_dense, "COLMAP's dense point cloud of the scene (needs CUDA)")
     stage("evaluate", evaluate.cmd_evaluate, "compare the reconstruction against COLMAP")
     stage("figures", figures.cmd_figures, "render figures for a finished run")
 

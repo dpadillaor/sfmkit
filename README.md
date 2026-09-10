@@ -33,6 +33,7 @@ order.
 | `reconstruct` | Builds the 3D model: starts from two photos and adds the rest one at a time | 9 cameras, 1699 points |
 | `localize` | Places the old photo in the model | located to within 2 px |
 | `colmap` | Gets COLMAP's model of the same photos, to compare against | 10 cameras |
+| `dense` | Optional, needs an NVIDIA GPU: a dense point cloud of the scene from COLMAP's model | 137 650 points |
 | `evaluate` | Measures how far each camera is from COLMAP's | 0.98° mean error |
 | `changes` | Overlays the old photo on a modern one and marks what differs | 7.6% of the overlap |
 | `figures` | Draws the plots for a finished run | |

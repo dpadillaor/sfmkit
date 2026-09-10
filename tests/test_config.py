@@ -80,6 +80,13 @@ def test_the_colmap_camera_is_checked(tmp_path):
         load_config(_write(tmp_path, "dataset: city\ncolmap: {precomputed: m, camera: fixed}\n"))
 
 
+def test_the_dense_map_is_off_unless_asked_for(tmp_path):
+    c = load_config(_write(tmp_path, "dataset: city\n"))
+    assert c.dense.enabled is False and c.dense.max_image_size == 2000
+    with pytest.raises(ValueError, match="max_image_size"):
+        load_config(_write(tmp_path, "dataset: city\ndense: {enabled: true, max_image_size: 0}\n"))
+
+
 def test_the_run_is_named_after_the_dataset_and_the_config(tmp_path, monkeypatch):
     monkeypatch.setenv("SFMKIT_RUNS", str(tmp_path / "out"))
     c = load_config(_write(tmp_path, "dataset: city\n", name="night.yaml"))
