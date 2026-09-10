@@ -8,19 +8,21 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   chessboard photos from the course were never kept. The chessboard code exists
   and is tested on synthetic boards; it needs the photos in
   `data/valencia/calibration/`.
-- [ ] **Our K is very likely wrong for these photos, by ~17%.** The chessboard
-  K (`legacy/.../camera_calibration.py`, photos `calib_*.jpg` since lost) says
-  f = 3544, and is self-consistent (its /2, /4, /6 downscaled variants agree).
-  Everything else says ~3000-3030: the photos' EXIF (SM-G996B, 5.4 mm, 26 mm
-  equivalent, no digital zoom) give 5.4 mm / 1.8 um pixels = ~3000 px and 26 mm
-  on the native 4:3 diagonal = ~3028 px; COLMAP self-calibrates to ~3020 from
-  its matches and from ours alike. Forcing our K on COLMAP makes it agree *less*
-  with a reconstruction that uses the same K (1.44° against 1.03°, max 6.70°
-  from identical input). Likely the chessboard photos were taken in another mode
-  (crop, stabilisation, video, another lens). Test: reconstruct with the EXIF K
-  (f = 3028, principal point at the centre) and see whether the error against
-  COLMAP drops. And `calibrate` could read K from EXIF when there is no
-  chessboard.
+- [ ] **Our K is wrong for these photos, by ~17%: confirmed.** The chessboard K
+  (`legacy/.../camera_calibration.py`, photos `calib_*.jpg` lost, never pushed
+  to ipastore/MGRCV either) says f = 3544, self-consistent but at odds with
+  everything else: the photos' EXIF (SM-G996B, 5.4 mm, 26 mm equivalent, no
+  zoom) give ~3000-3028 px and COLMAP self-calibrates to ~3020. Reconstructing
+  with the EXIF K (f = 3028.4, principal point at the centre), same GPU
+  matches, same code: final reprojection 7.11 -> 5.10 px, 1699 -> 1854 points,
+  and against the same COLMAP models the mean rotation error falls ~4x:
+  1.06 -> 0.26° (GPU SIFT), 1.03 -> 0.22° (CPU SIFT), 0.98 -> 0.30° (course
+  model); max 2.7 -> 0.5-1.0°; Img12 no longer the worst. The old photo only
+  improves 13.7 -> 11.7° (its own problem, see the query item).
+  To do: (1) recalibrate with the chessboard, photos taken in the same mode as
+  the scene (main lens 1x, 16:9, 4032x2268), kept in data/valencia/calibration/;
+  (2) meanwhile, a `calibrate` source that reads K from EXIF, and use it in the
+  configs; (3) regenerate the example run and the README numbers.
 - [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
   was fed the course's own matches, so 0.981° against it was not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
@@ -57,9 +59,8 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the right name, so our runs, and the 0.981°, use 2048. To reproduce the course
   model with `matches: sfmkit`, allow `sfm.max_keypoints: null` (no limit).
   Worth an experiment: does a higher limit change the result, or save Img12?
-- [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
-  1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
-  matches should not lose a camera.
+- [ ] **Img12 is fragile**, partly because of the wrong K: with the EXIF K it is no
+  longer the worst camera. Recheck with CPU matches once K is fixed.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
