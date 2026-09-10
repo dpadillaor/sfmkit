@@ -6,6 +6,9 @@ services:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
         TORCH: ${TORCH:-cpu}
     image: sfmkit:${TORCH:-cpu}
+    user: "${UID:?run make env}:${GID:?run make env}"
+    environment:
+      HOME: /tmp
     volumes:
       - ./data:/app/data:ro
       - ./configs:/app/configs:ro

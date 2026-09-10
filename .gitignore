@@ -8,6 +8,9 @@ dist/
 .coverage
 htmlcov/
 
+# Per-machine settings read by docker compose, such as UID and GID.
+.env
+
 # Run outputs are reproducible artefacts, not source.
 runs/
 .baseline/
