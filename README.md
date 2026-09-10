@@ -206,23 +206,21 @@ comparable, the rest is not".
 
 ## Container
 
-⚠️ **The `Dockerfile` has not been built or tested** — it was written on a
-machine without Docker. Treat it as a starting point that needs one
-`docker build` before being trusted.
-
 ```bash
-docker build -t sfmkit .
-docker compose run --rm sfmkit reconstruct --config configs/valencia/all9.yaml
+make image                                   # builds sfmkit:cpu, stamped with the commit
+docker compose run --rm cli evaluate --config configs/valencia/all9.yaml
 ```
 
-The dependency that justifies containerising this project is COLMAP: a system
-binary with an unpleasant dependency tree, without which the reference model
-cannot be regenerated. Python dependencies alone would be adequately served by a
-lockfile.
+The image holds the library and its pinned dependencies (`requirements.txt`),
+not the data: `data/` and `configs/` are mounted read-only and `runs/` writable,
+at the same relative paths as outside the container, so commands and recorded
+paths are identical in both. Evaluating inside it reproduces the 0.981° above.
 
-The build is multi-stage so that build tooling does not reach the runtime image,
-and layers are ordered by change frequency so editing a source file does not
-reinstall PyTorch. Images and run outputs are mounted, never baked in.
+An image has no `.git`, so `make image` passes the commit in at build time and
+every manifest written inside the container records it.
+
+It is the CPU image: every stage except `match`, which needs PyTorch and a GPU
+and runs outside it for now.
 
 ## Design notes
 

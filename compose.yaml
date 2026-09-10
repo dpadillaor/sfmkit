@@ -1,0 +1,11 @@
+services:
+  cli:
+    build:
+      context: .
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    image: sfmkit:cpu
+    volumes:
+      - ./data:/app/data:ro
+      - ./configs:/app/configs:ro
+      - ./runs:/app/runs
