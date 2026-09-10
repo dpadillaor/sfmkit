@@ -23,9 +23,11 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 - [ ] **Non-root user.** Files the container creates in a mounted `runs/` belong to
   root.
-- [ ] **`match` inside a container.** The image has no PyTorch. Options: CPU
-  PyTorch in the current image (a few hundred MB), and/or a GPU image; one
-  Dockerfile with multi-stage `cpu`/`gpu` targets.
+- [ ] **`sfmkit:cpu` cannot run the whole pipeline**, which its name promises: it
+  has no PyTorch, so no `match`. "cpu" should mean "needs no GPU", not "no
+  PyTorch". Target: `cpu` with CPU PyTorch (hundreds of MB) runs every stage;
+  `gpu` with CUDA PyTorch (~4 GB) runs them faster. One Dockerfile, multi-stage
+  `cpu`/`gpu` targets. Remember CPU and GPU give slightly different matches.
 - [ ] **`match` without PyTorch fails with a bare `ModuleNotFoundError: No module
   named 'torch'`.** It should say that `match` needs the `[match]` extra, and that
   the image continues from a saved run with `--from verify`.
