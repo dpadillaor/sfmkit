@@ -16,6 +16,11 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
+- [ ] **The `[match]` extra cannot be installed as written.** `pyproject.toml` asks
+  for `lightglue`, which is not on PyPI; the working install came from
+  `github.com/cvg/LightGlue` at commit `eb42fee`. And LightGlue requires
+  `opencv-python`, the GUI build, which clashes with `opencv-python-headless`
+  and brings back the missing `libGL.so.1` in the slim image.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
