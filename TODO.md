@@ -13,6 +13,13 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   SIFT, its own compose service); fixed K from `calibrate` (fair comparison) or
   self-calibration (current model: f = 3047 against our 3544). It depends only on
   the photos and K, so it could run alongside the match chain.
+- [ ] **The COLMAP reference is not independent.** The course built it with
+  `feature_importer` and `matches_importer` (`legacy/.../colcommands.txt`): COLMAP
+  was given the course pipeline's own SuperPoint + LightGlue matches, RANSAC
+  inliers, reference pairs only, and ran just `mapper`, self-calibrating
+  (f = 3047). So 0.981° compares our reconstruction with COLMAP's on similar
+  matches, not with an independent reference. A full COLMAP run (its own SIFT
+  features and matching) would be. Say so in the README until then.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
