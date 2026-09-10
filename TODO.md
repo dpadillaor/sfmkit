@@ -166,6 +166,22 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   analytic Jacobian and the Schur complement (each observation touches one
   camera and one point), still numpy on the CPU, should bring it to seconds. A
   GPU (a PyTorch rewrite) would only pay with thousands of cameras.
+  Options, from most to least our own:
+  - **Write the solver**: analytic Jacobian, Schur complement, Levenberg-Marquardt
+    loop, in numpy, in `core`. Model and solver both ours; no new dependency;
+    tested on synthetic scenes. The recommended one.
+  - **Swap scipy for Ceres** (`pyceres`, the COLMAP team's Python bindings): the
+    model stays ours, the solver is Ceres, as it is scipy's today. But bindings
+    speed up calling Ceres, not what Ceres calls back: a reprojection cost in
+    Python is called per observation per iteration, millions of Python calls,
+    and throws the speed away. Fast needs the cost in C++, either COLMAP's
+    (`pycolmap.cost_functions`, then part of the model is COLMAP's) or our own
+    compiled. Another compiled dependency to pin, and the result would move a
+    little (another solver converges to a nearby point).
+  - **PyTorch on the GPU**: only pays with thousands of cameras. COLMAP itself
+    uses its GPU solver from 50 images up only, and pycolmap-cuda12's Ceres is
+    built without CUDA anyway (it falls back to the CPU; its mapping takes
+    1.6 s on Valencia either way).
 - [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
 - [ ] `scripts/` still do `sys.path.insert(0, "src")`, unnecessary now that the
   package is installed.
