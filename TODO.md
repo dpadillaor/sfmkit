@@ -8,11 +8,16 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   chessboard photos from the course were never kept. The chessboard code exists
   and is tested on synthetic boards; it needs the photos in
   `data/valencia/calibration/`.
-- [ ] **Run COLMAP for real.** `colmap` only copies a precomputed model. To decide:
-  pycolmap (pip, same image) or the official binary (`colmap/colmap` image, GPU
-  SIFT, its own compose service); fixed K from `calibrate` (fair comparison) or
-  self-calibration (current model: f = 3047 against our 3544). It depends only on
-  the photos and K, so it could run alongside the match chain.
+- [ ] **Run COLMAP for real, with pycolmap.** `colmap` only copies a precomputed
+  model. pycolmap is COLMAP itself, from the same repository and releases, on
+  PyPI (`pycolmap`, and `pycolmap-cuda12` for a gpu image). Tested in a clean
+  container: 4.2.0 installs beside our pins without changing any (numpy stays
+  1.26.4), ~135 MB; `extract_features` + `match_exhaustive` +
+  `incremental_mapping` on the 10 photos take ~12 s on CPU and register all 10,
+  Img00 included (4248 points, 1.0 px). Plan: rename `ARG TORCH` to cover
+  everything that differs between cpu and gpu (`requirements-cpu.txt`: torch CPU
+  + pycolmap). Still to decide: fixed K from `calibrate` or self-calibration
+  (the course model self-calibrated: f = 3047 against our 3544).
 - [ ] **The COLMAP reference is not independent.** The course built it with
   `feature_importer` and `matches_importer` (`legacy/.../colcommands.txt`): COLMAP
   was given the course pipeline's own SuperPoint + LightGlue matches, RANSAC
