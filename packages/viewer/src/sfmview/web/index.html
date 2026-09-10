@@ -36,6 +36,11 @@
   <main id="stage">
     <canvas id="view"></canvas>
     <div id="status" class="status" hidden></div>
+    <div id="timeline" class="timeline" hidden>
+      <span id="live-badge" class="live-badge" hidden>live</span>
+      <input id="scrub" type="range" min="0" max="0" value="0" aria-label="step">
+      <span id="step-label" class="step-label"></span>
+    </div>
     <p class="hint muted">drag to orbit · right-drag to pan · scroll to zoom</p>
   </main>
   <script type="module" src="js/main.js"></script>

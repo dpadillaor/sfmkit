@@ -11,6 +11,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -92,3 +93,29 @@ ul { list-style: none; margin: 0; padding: 0; }
 .status.error { border-color: var(--warn); color: var(--warn); }
 
 .hint { position: absolute; bottom: 10px; right: 14px; font-size: 12px; pointer-events: none; }
+
+.timeline {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 40px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(22, 26, 33, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+.timeline input { flex: 1; accent-color: #ffd166; }
+.step-label { font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.live-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #ff6b6b;
+}
+.live-badge::before { content: "● "; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.3; } }

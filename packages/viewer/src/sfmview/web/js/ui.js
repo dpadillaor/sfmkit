@@ -23,7 +23,8 @@ export function renderRuns(runs, onSelect) {
       el('div', { class: 'name' }, run.config),
       el('div', { class: 'meta' },
         run.project,
-        ...run.layers.map((l) => el('span', { class: 'badge' }, l)),
+        ...(run.layers.length ? run.layers.map((l) => el('span', { class: 'badge' }, l))
+          : [el('span', { class: 'badge' }, 'no results yet')]),
         mean && el('span', { class: 'metric', title: 'mean rotation error against COLMAP' }, mean)));
   }));
 }
@@ -48,7 +49,7 @@ export function renderInfo(run, scene) {
   const rows = [
     ['run', run.id],
     ['stages', run.stages.join(', ')],
-    ['reference', scene.reference ?? '—'],
+    ['reference', scene?.reference ?? '—'],
     ['mean rot. err', degrees(run.metrics.mean_rotation_error_deg) ?? '—'],
     ['max rot. err', degrees(run.metrics.max_rotation_error_deg) ?? '—'],
     ['query rot. err', degrees(run.metrics.query_rotation_error_deg) ?? '—'],
@@ -62,4 +63,20 @@ export function status(text, error = false) {
   node.hidden = !text;
   node.textContent = text;
   node.classList.toggle('error', error);
+}
+
+// The live run's steps: hidden without any; ``index`` is the one drawn.
+export function renderTimeline(steps, index, running, onScrub) {
+  const bar = $('timeline');
+  bar.hidden = steps.length === 0;
+  if (bar.hidden) return;
+  const scrub = $('scrub');
+  scrub.max = String(steps.length - 1);
+  scrub.value = String(index);
+  scrub.oninput = () => onScrub(Number(scrub.value));
+  $('live-badge').hidden = !running;
+  const s = steps[index];
+  const rmse = s.rmse_after === null ? '' : ` · rmse ${s.rmse_after.toFixed(2)} px`;
+  $('step-label').textContent = `step ${index + 1}/${steps.length} · ${s.image} · `
+    + `${s.n_registered} cameras · ${count(s.n_points)} points${rmse}`;
 }

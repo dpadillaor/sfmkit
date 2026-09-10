@@ -33,8 +33,12 @@ Run = Annotated[RunId, Depends(get_run)]
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+async def health(request: Request) -> dict[str, str | bool]:
+    """Up, and whether live progress is on and its broker reachable."""
+    steps = request.app.state.steps
+    if steps is None:
+        return {"status": "ok", "live": False}
+    return {"status": "ok", "live": True, "broker": "ok" if await steps.ping() else "unreachable"}
 
 
 @router.get("/runs")

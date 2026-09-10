@@ -1,9 +1,11 @@
 # sfmview, the viewer
 
 A web page that draws a run in 3D: sfmkit's reconstruction, COLMAP's, the old
-photo as each of them placed it, and COLMAP's dense cloud. It is its own
-package, `packages/viewer/`, with its own dependencies and image, and it does
-not import sfmkit: the two share files, described below, and nothing else.
+photo as each of them placed it, and COLMAP's dense cloud; and, while
+`reconstruct` works, the model growing step by step, with a timeline to rewind
+it. It is its own package, `packages/viewer/`, with its own dependencies and
+image, and it does not import sfmkit: the two share files and a message
+format, described below, and nothing else.
 
 ![The viewer on valencia/9cameras-dense](figures/viewer.png)
 
@@ -19,9 +21,28 @@ cd ../..
 sfmview --runs runs        # http://127.0.0.1:8000
 ```
 
-`--runs`, `--host` and `--port`, or `SFMVIEW_RUNS`, `SFMVIEW_HOST` and
-`SFMVIEW_PORT` in a container. The page loads three.js from jsDelivr, so the
-browser needs the internet.
+`--runs`, `--host`, `--port` and `--broker`, or `SFMVIEW_RUNS`, `SFMVIEW_HOST`,
+`SFMVIEW_PORT` and `SFMVIEW_BROKER` in a container. The page loads three.js from
+jsDelivr, so the browser needs the internet.
+
+### Live progress
+
+sfmkit publishes its steps when `SFMKIT_BROKER` names a Redis server, and the
+viewer reads them when `--broker` names the same one:
+
+```bash
+docker run -d --rm --name redis -p 127.0.0.1:6379:6379 redis:7-alpine
+sfmview --runs runs --broker redis://localhost:6379 &
+SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config configs/valencia/9cameras.yaml
+```
+
+Neither knows the other: sfmkit writes to the broker and the viewer reads from
+it. The stream keeps a run's messages, so a page opened late, or reloaded,
+shows every step; a finished run's stream stays until the run is repeated, so
+its timeline can still be rewound. Without a broker sfmkit runs as before, and
+if the broker goes away mid-run it says so once and carries on.
+
+![A run followed live](figures/viewer_live.png)
 
 ## What it reads: the contract with sfmkit
 
@@ -40,6 +61,15 @@ reads, and only these:
 Poses are world to camera, `x_cam = R X + t`, in OpenCV's axes: x right, y down,
 z forward. A run missing some of these shows what it has.
 
+Live steps are the other half: a Redis stream per run,
+`sfmkit:steps:<project>/<config>`, one JSON message per entry in its `data`
+field. [`contracts/step.schema.json`](../contracts/step.schema.json) defines
+them: a `start` (the run's K and images; the stream is emptied first), a `step`
+after each camera registered and each global refinement (the cameras and the
+triangulated points as they stood, flat), and an `end`. Both packages test
+against the schema and its examples, with the checker in `contracts/check.py`,
+so a change on one side breaks a test on the other, not a run.
+
 ## One frame for two reconstructions
 
 Each reconstruction has its own origin, orientation and scale. The viewer
@@ -56,10 +86,11 @@ one place (`web/js/scene.js`).
 
 | Route | |
 |---|---|
-| `GET /api/health` | `{"status": "ok"}` |
+| `GET /api/health` | `{"status": "ok", "live": ...}`, and whether the broker answers |
 | `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics |
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
+| `WS /api/runs/{project}/{config}/live?after=<id>` | the run's stream: `{"id", "message"}`, history first, then as it comes |
 | `GET /docs` | the API, from FastAPI |
 
 Names are checked as single path components, and a run directory must lie
@@ -72,12 +103,15 @@ Ports and adapters, checked by import-linter (`packages/viewer/pyproject.toml`):
 ```
 src/sfmview/
 ├── domain/      values (RunId, Camera, Model, Scene) and frames.py; no I/O
-├── ports.py     RunStore, the one interface the API needs
-├── adapters/    runs_fs.py (RunStore over runs/), colmap_text.py, sfmkit_files.py
-├── api/         create_app(store), the routes, the JSON schemas
-├── web/         index.html, style.css, js/{main,api,ui,scene,geometry}.js
+├── ports.py     RunStore and StepSource, the interfaces the API needs
+├── adapters/    runs_fs.py (RunStore over runs/), colmap_text.py, sfmkit_files.py,
+│                redis_steps.py and memory_steps.py (StepSource)
+├── api/         create_app(store, steps), the routes, the WebSocket, the JSON schemas
+├── web/         index.html, style.css, js/{main,api,live,ui,scene,geometry}.js
 └── main.py      the composition root: settings, adapters, uvicorn
 ```
 
-The API sees `RunStore` and never an adapter, so its tests run on a store in
-memory; a new source of runs is a new adapter and nothing else.
+The API sees the ports and never an adapter, so its tests run on a store and
+a stream in memory; a new source of runs, or another broker, is a new adapter
+and nothing else. The two `StepSource`s pass one test suite, Redis's when a
+server is given (`SFMVIEW_TEST_REDIS`, as CI does).

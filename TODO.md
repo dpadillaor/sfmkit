@@ -107,73 +107,64 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 A web viewer of runs, live while `reconstruct` works. It is also the exercise in
 how two containers talk to each other, so the network is the point, not a cost.
-Done: `packages/viewer` (`sfmview`) draws finished runs, sfmkit's model, COLMAP's
-and the dense cloud in one frame; `docs/viewer.md` has the contract, the API
-and the architecture.
+Done: `packages/viewer` (`sfmview`) draws finished runs (sfmkit's model,
+COLMAP's and the dense cloud, in one frame) and follows a run live through Redis
+Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
+set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
+the contract, the API and the architecture.
 
-- [ ] **The contract for live steps**: `contracts/step.schema.json` at the root,
-  versioned (`"v": 1`), the source of truth; each package tests against it
-  (sfmkit that what it publishes validates, sfmview that what it expects does),
-  so a change on one side breaks a test, not a run. Same conventions as the
-  files (world to camera, OpenCV axes). A step, roughly: `{"v": 1, "run":
-  "valencia/9cameras", "step": 3, "image": "Img05", "n_registered": 5,
-  "rmse_before": 2.1, "rmse_after": 0.8, "cameras": {...}, "points": [...]}`,
-  ~50 KB with 1700 points.
-- [ ] **`on_step` carries numbers only.** `core.reconstruct` hands it a
-  `StageReport` (step, image, counts, RMSE before and after BA, BA seconds) but
-  no poses or points, so a live view cannot draw the model growing. Pass the
-  geometry after each step as well.
+- [ ] **Docker, the user's lesson**: the viewer's Dockerfile and the compose
+  services `viewer` and `redis`, one concept at a time, each with a fictitious
+  example first: compose's default network and DNS by service name; `ports`
+  (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
+  (container to container: `redis` needs none); `depends_on` with a
+  `healthcheck` (`/api/health`); the broker URL as an environment variable
+  (`SFMKIT_BROKER=redis://redis:6379` in `cli`, `SFMVIEW_BROKER` in `viewer`);
+  `runs/` mounted read-only in the viewer; what happens when a service dies
+  mid-run (sfmkit carries on; the viewer retries every 2 s). The build context
+  is the root, as sfmkit's. Inside a container the viewer listens on
+  `SFMVIEW_HOST=0.0.0.0`. The redis-py added to sfmkit's requirements means the
+  sfmkit image must be rebuilt.
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
   points and tracks; COLMAP's model has colours, ours none. The viewer draws
   each sparse model in one colour anyway, to tell them apart, but a "true
   colours" switch would need them: sample each point's colour from an image that
   observes it and save it as `colors` (the viewer already reads the key).
-- [ ] **Live progress through a broker: Redis Streams**, three services `cli`,
-  `redis`, `viewer`. sfmkit `XADD`s each step of `on_step` to
-  `run:<project>/<config>`; the viewer `XREAD`s from id `0` (the history, so a
-  viewer opened late or a reloaded page misses nothing) then blocks for new
-  steps and forwards them over WebSocket. Neither service knows the other, only
-  `redis`. Cap the stream with `MAXLEN`. In the viewer, a second port,
-  `StepSource`, with a Redis adapter and one in memory; both pass one test
-  suite, the Redis one skipped without a server. Why Redis: streams keep
-  history, no configuration, a 40 MB image, `redis-cli XRANGE` shows the
-  messages, widely known. Not NATS (history needs JetStream and its concepts),
-  RabbitMQ (exchanges, bindings and routing keys first; consumed messages are
-  gone; heavier; right for sharing COLMAP jobs among workers), Kafka (JVM,
-  ~1 GB, overkill for tens of messages), MQTT (keeps only the last message per
-  topic). Valkey is the open-source fork with the same protocol, if Redis's
-  licence matters.
-- [ ] **Publishing stays optional in sfmkit**: none without `SFMKIT_BROKER`
-  (e.g. `redis://redis:6379`); if the broker is down, warn and carry on. One
-  function `publish(step)` in `apps/cli`, hung on `on_step`; `core` knows
-  nothing. Adds `redis-py` to sfmkit's requirements; a test checks the message
-  against `contracts/step.schema.json`.
-- [ ] **A timeline in the page**: the stream keeps the history, so a slider can
-  rewind the reconstruction step by step. The showpiece for the portfolio.
-- [ ] **Docker, the user's lesson**: the viewer's Dockerfile and the compose
-  services `viewer` and `redis`, one concept at a time, each with a fictitious
-  example first: compose's default network and DNS by service name; `ports`
-  (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
-  (container to container); `depends_on` with a `healthcheck` (`/api/health`);
-  the broker URL as an environment variable; `runs/` mounted read-only; what
-  happens when a service dies mid-run. The build context is the root, as
-  sfmkit's. Inside a container the viewer listens on `SFMVIEW_HOST=0.0.0.0`.
+- [ ] **Streams never expire.** A run's stream stays in Redis until the run is
+  repeated (a `start` empties it), which is what lets a finished run be
+  rewound; with many runs, set an `EXPIRE` after the `end` (a week?).
+- [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
+  frame (the seed pair's first camera), not the reference camera's, as the
+  transform comes from the finished model. Harmless, as nothing else is drawn
+  then; the `start` message could carry the reference to fix it.
+- [ ] **The end of a watched run reloads the whole scene**, dense cloud included
+  (3.7 MB on Valencia), though only sfmkit's files changed.
+- [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
+  start and end too, so the page shows where a whole run is; the TUI could read
+  the same stream instead of parsing the CLI's output.
 - [ ] **three.js comes from jsDelivr** (pinned, 0.170.0, through an import map),
   so the page needs the internet. For offline use, fetch it at image build time
   into `web/vendor/` and point the import map there.
 - [ ] **The page's JavaScript has no tests.** `web/js/geometry.js` is pure (camera
   outlines, robust bounds) and could be tested with `node --test` if Node joins
-  the toolchain; for now the page is checked by screenshots (headless Chrome,
-  `--use-angle=swiftshader`).
+  the toolchain; for now the page is checked by screenshots from headless Chrome
+  driven over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
+  `--screenshot` does not wait for WebSockets).
+- [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
+  the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
+  one joins.
 - [ ] **pre-commit checks sfmkit's layering only.** Its hooks run in the current
   environment, and each package lives in its own; CI checks both.
 - [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
   the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
   httpx2 is stable, and drop the filter.
 - [ ] Alternatives weighed and set aside: sfmkit POSTing straight to the viewer
-  (simpler, a fine first step, but sfmkit must know the viewer and loses steps
-  when it is not up); a `progress.jsonl` the viewer tails (the TensorBoard way,
-  simplest of all, but no network to learn from).
+  (simpler, but sfmkit must know the viewer and loses steps when it is not up);
+  a `progress.jsonl` the viewer tails (the TensorBoard way, simplest of all, but
+  no network to learn from); NATS, RabbitMQ, Kafka or MQTT instead of Redis
+  (history needs JetStream; routing first and consumed messages gone; a JVM for
+  tens of messages; only the last message kept). Valkey is Redis's open-source
+  fork, same protocol, if the licence matters.
 
 ## README
 
@@ -198,7 +189,7 @@ and the architecture.
   - Which stages use the GPU: `match` (PyTorch), `colmap` (SIFT), `dense`
     (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
-- [ ] A GIF of the reconstruction growing, once live visualisation exists.
+- [ ] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
 - [ ] **Figures for the README**: `changes/overlay_Img00_on_Img02.png` (the old photo
   set into today's square, near-perfect alignment) is the strongest image the
   project makes; with the dense cloud, the two to lead with. Copy reduced

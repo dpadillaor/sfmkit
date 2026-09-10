@@ -41,6 +41,8 @@ points); on CPU it gives 1.574° with 8 cameras, as CPU matches differ.
   from the package's directory; the build context of every image is the root.
 - `packages/viewer/src/sfmview/`, the web viewer, in ports and adapters; it
   reads runs through the contract in `docs/viewer.md` and never imports sfmkit.
+- `contracts/` the messages the packages exchange (`step.schema.json`, live
+  progress through Redis), with examples and the checker both test suites load.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
   import-linter. `core` does no I/O and imports no torch, matplotlib, yaml, rich
   or textual.

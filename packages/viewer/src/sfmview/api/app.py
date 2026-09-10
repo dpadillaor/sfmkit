@@ -8,18 +8,22 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from sfmview.api import routes
+from sfmview.api import live, routes
 from sfmview.domain import RunNotFound
-from sfmview.ports import RunStore
+from sfmview.ports import RunStore, StepSource
 
 WEB = Path(__file__).resolve().parent.parent / "web"
 
 
-def create_app(store: RunStore, *, web_dir: Path = WEB) -> FastAPI:
-    """The API over ``store``, and the page at ``/``."""
+def create_app(store: RunStore, steps: StepSource | None = None, *,
+               web_dir: Path = WEB) -> FastAPI:
+    """The API over ``store``, live progress from ``steps`` if given, and the
+    page at ``/``."""
     app = FastAPI(title="sfmview", summary="A web viewer for sfmkit runs.")
     app.state.store = store
+    app.state.steps = steps
     app.include_router(routes.router)
+    app.include_router(live.router)
     app.add_exception_handler(RunNotFound, _not_found)
     # Last: the page takes every path the API does not.
     app.mount("/", StaticFiles(directory=web_dir, html=True), name="web")

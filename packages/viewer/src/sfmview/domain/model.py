@@ -84,3 +84,12 @@ class Scene:
     models: tuple[Model, ...]
     reference: str | None  # the camera whose frame is shared
     dense_to_common: np.ndarray | None = None  # the dense cloud's similarity, if there is one
+
+
+@dataclass(frozen=True)
+class LiveEvent:
+    """One message of a run's live progress, as ``contracts/step.schema.json``
+    has it, and where it sits in the run's stream, to resume after it."""
+
+    id: str
+    message: Mapping

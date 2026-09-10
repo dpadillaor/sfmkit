@@ -5,7 +5,10 @@ from pathlib import Path
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
+from contract import STEP_EXAMPLES
+from sfmview.adapters.memory_steps import MemoryStepSource
 from sfmview.adapters.runs_fs import FsRunStore
 from sfmview.api import create_app
 from sfmview.domain import Camera, Model, RunId, RunNotFound, RunSummary, Scene
@@ -44,7 +47,12 @@ def client():
 
 
 def test_health(client):
-    assert client.get("/api/health").json() == {"status": "ok"}
+    assert client.get("/api/health").json() == {"status": "ok", "live": False}
+
+
+def test_health_with_live_progress():
+    client = TestClient(create_app(MemoryStore(), MemoryStepSource()))
+    assert client.get("/api/health").json() == {"status": "ok", "live": True, "broker": "ok"}
 
 
 def test_runs(client):
@@ -98,3 +106,38 @@ def test_the_api_over_real_files(tmp_path):
     scene = client.get("/api/runs/city/full/scene").json()
     assert [m["source"] for m in scene["models"]] == ["sfmkit", "colmap"]
     assert client.get(scene["dense"]["url"]).status_code == 200
+
+
+def test_live_steps_come_as_history_then_as_they_happen():
+    steps = MemoryStepSource()
+    run = RunId("city", "full")
+    first, second, third = STEP_EXAMPLES
+    steps.publish(run, first)
+    steps.publish(run, second)
+    client = TestClient(create_app(MemoryStore(), steps))
+    with client.websocket_connect("/api/runs/city/full/live") as ws:
+        assert ws.receive_json() == {"id": "1-0", "message": first}
+        assert ws.receive_json() == {"id": "2-0", "message": second}
+        steps.publish(run, third)
+        assert ws.receive_json() == {"id": "3-0", "message": third}
+
+
+def test_live_steps_resume_after_the_last_seen():
+    steps = MemoryStepSource()
+    for message in STEP_EXAMPLES:
+        steps.publish(RunId("city", "full"), message)
+    client = TestClient(create_app(MemoryStore(), steps))
+    with client.websocket_connect("/api/runs/city/full/live?after=2-0") as ws:
+        assert ws.receive_json()["id"] == "3-0"
+
+
+@pytest.mark.parametrize(("steps", "path", "code"), [
+    (None, "/api/runs/city/full/live", 4503),
+    (MemoryStepSource(), "/api/runs/.hidden/full/live", 4404),
+    (MemoryStepSource(), "/api/runs/city/full/live?after=x", 4404),
+])
+def test_live_steps_refused(steps, path, code):
+    client = TestClient(create_app(MemoryStore(), steps))
+    with pytest.raises(WebSocketDisconnect) as closed, client.websocket_connect(path) as ws:
+        ws.receive_json()
+    assert closed.value.code == code

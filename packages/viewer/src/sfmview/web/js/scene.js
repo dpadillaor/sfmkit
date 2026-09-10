@@ -19,6 +19,12 @@ export const PALETTE = {
 
 const LABELS = { sfmkit: 'sfmkit', colmap: 'COLMAP' };
 
+// The reconstruction as it stood at a step of a live run, and the camera that
+// step added.
+const LIVE = { main: '#ffd166', added: '#ffffff' };
+
+const IDENTITY = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+
 const matrix4 = (rows) => new THREE.Matrix4().set(...rows.flat());
 
 export class SceneView {
@@ -29,6 +35,10 @@ export class SceneView {
   #world = new THREE.Group();
   #layers = new Map(); // id -> { label, color, count, object }
   #generation = 0; // bumped by show(), so a late dense cloud is not drawn into another run
+  #frames = new Map(); // model source -> its transform into the shared frame
+  #reference = null;
+  #live = null; // the group holding a live step, in sfmkit's frame
+  #liveDepth = 0;
 
   constructor(canvas) {
     this.#renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -65,7 +75,9 @@ export class SceneView {
   show(scene) {
     this.#generation += 1;
     this.#clear();
+    this.#reference = scene.reference;
     for (const model of scene.models) {
+      this.#frames.set(model.source, model.to_common);
       const frame = this.#frame(model.to_common);
       const { main, query } = PALETTE[model.source] ?? PALETTE.other;
       const label = LABELS[model.source] ?? model.source;
@@ -81,7 +93,40 @@ export class SceneView {
           frame, outlines(placed, depth, query));
       }
     }
-    this.#fit(scene);
+    this.fit();
+  }
+
+  // Draw the reconstruction as a live step left it, replacing the last step
+  // drawn. Its coordinates are sfmkit's, so it takes sfmkit's transform when
+  // the run's finished model is shown. ``K`` is the run's, from its start.
+  showStep(step, K) {
+    this.#live ??= this.#frame(this.#frames.get('sfmkit') ?? IDENTITY);
+    const visible = (id) => this.#layers.get(id)?.object.visible ?? true;
+    const shown = { points: visible('live-points'), cameras: visible('live-cameras') };
+    for (const child of [...this.#live.children]) {
+      child.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
+      this.#live.remove(child);
+    }
+
+    const size = K ? [Math.round(2 * K[0][2]), Math.round(2 * K[1][2])] : null;
+    const cameras = step.cameras.map((c) => ({ ...c, K, size }));
+    this.#liveDepth = Math.max(this.#liveDepth, frustumDepth(cameras));
+    const outline = new THREE.Group();
+    outline.add(outlines(cameras.filter((c) => c.name !== step.image), this.#liveDepth, LIVE.main));
+    outline.add(outlines(cameras.filter((c) => c.name === step.image), this.#liveDepth, LIVE.added));
+
+    const cloud = points(step.points, LIVE.main);
+    this.#add('live-points', `step ${step.step + 1} points`, LIVE.main, step.points.length / 3,
+      this.#live, cloud);
+    this.#add('live-cameras', `step ${step.step + 1} cameras`, LIVE.main, cameras.length,
+      this.#live, outline);
+    cloud.visible = shown.points;
+    outline.visible = shown.cameras;
+  }
+
+  // Frame the bulk of the points, from behind the reference camera if known.
+  fit() {
+    this.#fit(this.#reference);
   }
 
   // Load and draw the dense cloud; resolves to its point count, or null if
@@ -123,11 +168,14 @@ export class SceneView {
     });
     this.#world.clear();
     this.#layers.clear();
+    this.#frames.clear();
+    this.#live = null;
+    this.#liveDepth = 0;
   }
 
   // Look at the bulk of the sparse points from just behind the reference
   // camera, which sits at the origin of the shared frame: the view the photo had.
-  #fit(scene) {
+  #fit(reference) {
     this.#world.updateMatrixWorld(true);
     const flat = [];
     const v = new THREE.Vector3();
@@ -141,7 +189,8 @@ export class SceneView {
     }
     const { centre, radius } = robustSphere(flat);
     const target = new THREE.Vector3(...centre);
-    const eye = scene.reference ? new THREE.Vector3(0, 0, 0) : target.clone().add(new THREE.Vector3(0, 0, 2 * radius));
+    const eye = reference ? new THREE.Vector3(0, 0, 0)
+      : target.clone().add(new THREE.Vector3(0, 0, 2 * radius));
     const back = eye.clone().sub(target).normalize().multiplyScalar(0.5 * radius);
     this.#camera.position.copy(eye).add(back).add(new THREE.Vector3(0, 0.25 * radius, 0));
     this.#camera.near = radius / 1000;
