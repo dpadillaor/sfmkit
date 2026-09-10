@@ -18,6 +18,10 @@ Before any commit, from the root:
 ruff check . && (cd packages/sfmkit && lint-imports && pytest -q)
 ```
 
+The viewer has its own environment, `sfmview` (its requirements only, so an
+import of sfmkit would fail), checked the same way from `packages/viewer`, or
+`make check PKG=viewer`.
+
 The regression check for anything touching the pipeline starts from the saved
 example, whose matches came from a GPU:
 
@@ -35,6 +39,8 @@ points); on CPU it gives 1.574° with 8 cameras, as CPU matches differ.
 - `packages/<name>/` one installable package each, with its own `pyproject.toml`,
   requirements, `Dockerfile`, `src/` and `tests/`. Tests and the commands are run
   from the package's directory; the build context of every image is the root.
+- `packages/viewer/src/sfmview/`, the web viewer, in ports and adapters; it
+  reads runs through the contract in `docs/viewer.md` and never imports sfmkit.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
   import-linter. `core` does no I/O and imports no torch, matplotlib, yaml, rich
   or textual.

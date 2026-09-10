@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sfmview"
+version = "0.1.0"
+description = "A web viewer for sfmkit runs: the reconstructions, COLMAP's reference and the dense cloud, in 3D."
+requires-python = ">=3.11"
+# As in sfmkit: the environment is pinned in the requirements files and
+# installed with --no-deps. One list.
+
+[project.scripts]
+sfmview = "sfmview.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sfmview = ["web/*.html", "web/*.css", "web/js/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["redis: needs a Redis server at SFMVIEW_TEST_REDIS"]
+filterwarnings = [
+    # starlette's TestClient warning about its own dependencies, not about ours
+    "ignore:Using `httpx` with `starlette.testclient`",
+    "ignore:The anyio.abc.BlockingPortal alias:DeprecationWarning",
+]
+
+
+# Ports and adapters, checked. The domain and the ports know nothing of HTTP or
+# of the broker; the API sees the ports only, never an adapter; main.py, the
+# composition root, is the one place that picks the concrete adapters.
+[tool.importlinter]
+root_package = "sfmview"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Ports and adapters"
+type = "layers"
+layers = [
+    "sfmview.main",
+    "sfmview.api | sfmview.adapters",
+    "sfmview.ports",
+    "sfmview.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "The domain and the ports do no HTTP and talk to no broker"
+type = "forbidden"
+source_modules = ["sfmview.domain", "sfmview.ports"]
+forbidden_modules = ["fastapi", "starlette", "pydantic", "uvicorn", "redis"]
+
+[[tool.importlinter.contracts]]
+name = "Only the adapters talk to Redis"
+type = "forbidden"
+source_modules = ["sfmview.domain", "sfmview.ports", "sfmview.api"]
+forbidden_modules = ["redis"]
+
+[[tool.importlinter.contracts]]
+name = "The adapters do no HTTP"
+type = "forbidden"
+source_modules = ["sfmview.adapters"]
+forbidden_modules = ["fastapi", "starlette", "uvicorn"]

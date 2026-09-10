@@ -107,103 +107,73 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 A web viewer of runs, live while `reconstruct` works. It is also the exercise in
 how two containers talk to each other, so the network is the point, not a cost.
+Done: `packages/viewer` (`sfmview`) draws finished runs, sfmkit's model, COLMAP's
+and the dense cloud in one frame; `docs/viewer.md` has the contract, the API
+and the architecture.
 
-- [ ] **The viewer does not import sfmkit.** It would drag in sfmkit's
-  dependencies (`sfmkit.data.colmap` imports pycolmap on import) and tie the two
-  together. Finished results are read from `runs/`, mounted read-only; the files
-  it reads (`manifest.json`, `reconstruction.npz`, COLMAP's text model,
-  `fused.ply`: names, keys, units) are a contract written in `docs/`.
-- [ ] **Stack of `sfmview`**: FastAPI and uvicorn (HTTP and WebSocket, async,
-  pydantic validates messages); `redis.asyncio` (a blocking `XREAD` that does
-  not block the server); numpy to turn the npz into JSON. `fused.ply` is served
-  as is and parsed in the browser by three.js's `PLYLoader`. Frontend: three.js
-  in plain JS, ES modules and an import map, no build step; Vite and TypeScript
-  only if it grows (and then a multi-stage Docker build to learn). Tests: pytest
-  and FastAPI's `TestClient`, no fake Redis.
-- [ ] **Architecture: ports and adapters, lightly.**
-  ```
-  packages/viewer/src/sfmview/
-  ├── domain.py        dataclasses RunId, RunSummary, Scene, Step; no I/O
-  ├── ports.py         Protocols RunStore, StepSource
-  ├── adapters/        runs_fs.py (RunStore over runs/), redis.py (StepSource
-  │                    over Redis Streams), memory.py (StepSource for tests
-  │                    and for running without a broker)
-  ├── api/             app.py create_app(store, steps); routes.py knows ports only
-  ├── web/             index.html, api.js, scene.js, ui.js
-  └── main.py          composition root: environment, adapters, uvicorn
-  ```
-  import-linter: `domain` imports no fastapi, redis or numpy; only
-  `adapters/redis.py` imports redis; only `api` imports fastapi; `api` never
-  imports `adapters`. SOLID, as it applies: one reason to change per module; a
-  new broker is a new adapter and nothing else; the Redis and memory adapters
-  pass one test suite, parametrised (Redis's skipped when there is none); two
-  small ports, not a "Backend"; `api` depends on Protocols, `main.py` wires the
-  concrete ones by plain arguments, no DI framework. Two ports and three
-  adapters at most; no service layer until one is needed.
-- [ ] **API**: `GET /api/health` (ok and a Redis ping, for compose's
-  `healthcheck`); `GET /api/runs` (runs, stages done, metrics from the
-  manifests); `GET /api/runs/{project}/{config}/scene` (cameras with name, R, t,
-  K; sparse points; colours); `GET /api/runs/{project}/{config}/dense.ply`;
-  `WS /api/runs/{project}/{config}/live` (the stream's history, then live
-  steps); `GET /` the static page. Validate `project` and `config` against the
-  runs that exist (no `../`); `runs/` read-only; bind to `127.0.0.1`.
-- [ ] **The contract between sfmkit and sfmview**: `contracts/step.schema.json`
-  at the root, versioned (`"v": 1`), the source of truth; each package tests
-  against it (sfmkit that what it publishes validates, sfmview that what it
-  expects does), so a change on one side breaks a test, not a run. It states the
-  coordinate convention: sfmkit's R, t are world to camera, OpenCV axes (x right,
-  y down, z forward); three.js has y up and cameras looking down -z; the
-  frontend converts in one place, camera centre `C = -Rᵀt`. A step, roughly:
-  `{"v": 1, "run": "valencia/9cameras", "step": 3, "image": "Img05",
-  "n_registered": 5, "rmse_before": 2.1, "rmse_after": 0.8, "cameras": {...},
-  "points": [...], "colors": [...]}`, ~50 KB with 1700 points.
+- [ ] **The contract for live steps**: `contracts/step.schema.json` at the root,
+  versioned (`"v": 1`), the source of truth; each package tests against it
+  (sfmkit that what it publishes validates, sfmview that what it expects does),
+  so a change on one side breaks a test, not a run. Same conventions as the
+  files (world to camera, OpenCV axes). A step, roughly: `{"v": 1, "run":
+  "valencia/9cameras", "step": 3, "image": "Img05", "n_registered": 5,
+  "rmse_before": 2.1, "rmse_after": 0.8, "cameras": {...}, "points": [...]}`,
+  ~50 KB with 1700 points.
 - [ ] **`on_step` carries numbers only.** `core.reconstruct` hands it a
   `StageReport` (step, image, counts, RMSE before and after BA, BA seconds) but
   no poses or points, so a live view cannot draw the model growing. Pass the
   geometry after each step as well.
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
-  points and tracks; COLMAP's model has colours, ours none, so our cloud would be
-  grey. Sample each point's colour from an image that observes it and save it in
-  the npz (and in the step message).
-- [ ] **Frontend**: `api.js` (fetch, WebSocket), `scene.js` (cloud, cameras as
-  frustums, `OrbitControls`), `ui.js` (run list, step panel, a timeline). The
-  stream keeps the history, so the timeline can rewind the reconstruction step
-  by step: the showpiece for the portfolio.
+  points and tracks; COLMAP's model has colours, ours none. The viewer draws
+  each sparse model in one colour anyway, to tell them apart, but a "true
+  colours" switch would need them: sample each point's colour from an image that
+  observes it and save it as `colors` (the viewer already reads the key).
 - [ ] **Live progress through a broker: Redis Streams**, three services `cli`,
   `redis`, `viewer`. sfmkit `XADD`s each step of `on_step` to
   `run:<project>/<config>`; the viewer `XREAD`s from id `0` (the history, so a
   viewer opened late or a reloaded page misses nothing) then blocks for new
   steps and forwards them over WebSocket. Neither service knows the other, only
-  `redis`. Cap the stream with `MAXLEN`. Why Redis: streams keep history, no
-  configuration, a 40 MB image, `redis-cli XRANGE` shows the messages, widely
-  known. Not NATS (history needs JetStream and its concepts), RabbitMQ
-  (exchanges, bindings and routing keys first; consumed messages are gone;
-  heavier; right for sharing COLMAP jobs among workers), Kafka (JVM, ~1 GB,
-  overkill for tens of messages), MQTT (keeps only the last message per topic).
-  Valkey is the open-source fork with the same protocol, if Redis's licence
-  matters.
+  `redis`. Cap the stream with `MAXLEN`. In the viewer, a second port,
+  `StepSource`, with a Redis adapter and one in memory; both pass one test
+  suite, the Redis one skipped without a server. Why Redis: streams keep
+  history, no configuration, a 40 MB image, `redis-cli XRANGE` shows the
+  messages, widely known. Not NATS (history needs JetStream and its concepts),
+  RabbitMQ (exchanges, bindings and routing keys first; consumed messages are
+  gone; heavier; right for sharing COLMAP jobs among workers), Kafka (JVM,
+  ~1 GB, overkill for tens of messages), MQTT (keeps only the last message per
+  topic). Valkey is the open-source fork with the same protocol, if Redis's
+  licence matters.
 - [ ] **Publishing stays optional in sfmkit**: none without `SFMKIT_BROKER`
   (e.g. `redis://redis:6379`); if the broker is down, warn and carry on. One
   function `publish(step)` in `apps/cli`, hung on `on_step`; `core` knows
   nothing. Adds `redis-py` to sfmkit's requirements; a test checks the message
   against `contracts/step.schema.json`.
-- [ ] **Docker concepts, one at a time**, each with a fictitious example first:
-  compose's default network and DNS by service name; `ports` (host to container,
-  `127.0.0.1:8000:8000` for the browser) against no ports (container to
-  container); `depends_on` with a `healthcheck`; the broker URL as an
-  environment variable; what happens when a service dies mid-run. The user
-  writes the viewer's Dockerfile and the compose services.
-- [ ] **Order**: the `packages/` move; a fictitious producer and consumer with
-  Redis; the viewer listing runs and drawing one finished cloud (with point
-  colours in sfmkit); the contract and geometry in `on_step`; then live
-  progress and the timeline.
+- [ ] **A timeline in the page**: the stream keeps the history, so a slider can
+  rewind the reconstruction step by step. The showpiece for the portfolio.
+- [ ] **Docker, the user's lesson**: the viewer's Dockerfile and the compose
+  services `viewer` and `redis`, one concept at a time, each with a fictitious
+  example first: compose's default network and DNS by service name; `ports`
+  (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
+  (container to container); `depends_on` with a `healthcheck` (`/api/health`);
+  the broker URL as an environment variable; `runs/` mounted read-only; what
+  happens when a service dies mid-run. The build context is the root, as
+  sfmkit's. Inside a container the viewer listens on `SFMVIEW_HOST=0.0.0.0`.
+- [ ] **three.js comes from jsDelivr** (pinned, 0.170.0, through an import map),
+  so the page needs the internet. For offline use, fetch it at image build time
+  into `web/vendor/` and point the import map there.
+- [ ] **The page's JavaScript has no tests.** `web/js/geometry.js` is pure (camera
+  outlines, robust bounds) and could be tested with `node --test` if Node joins
+  the toolchain; for now the page is checked by screenshots (headless Chrome,
+  `--use-angle=swiftshader`).
+- [ ] **pre-commit checks sfmkit's layering only.** Its hooks run in the current
+  environment, and each package lives in its own; CI checks both.
+- [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
+  the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
+  httpx2 is stable, and drop the filter.
 - [ ] Alternatives weighed and set aside: sfmkit POSTing straight to the viewer
   (simpler, a fine first step, but sfmkit must know the viewer and loses steps
   when it is not up); a `progress.jsonl` the viewer tails (the TensorBoard way,
   simplest of all, but no network to learn from).
-- [ ] The dense cloud (137k points) is read from `fused.ply` at the end, never
-  sent through the broker. A throwaway three.js page embedding it already worked
-  (see Later).
 
 ## README
 
@@ -247,14 +217,11 @@ how two containers talk to each other, so the network is the point, not a cost.
   `Img02.png`).
 - [ ] **A figure of the dense cloud.** The `dense` stage writes `dense/fused.ply`
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
-  yet, and it would make the README's best picture. It could also feed the live
-  viewer and Gaussian splatting.
-- [ ] **Viewing the dense cloud.** `fused.ply` is points only, so mesh viewers
-  (3dviewer.net) refuse it: "no faces". A throwaway three.js page with the cloud
-  embedded (2.7 MB for 133k points, orbit controls) worked well: the seed of the
-  planned web viewer, and it could be a `figures` output. For mesh viewers,
-  COLMAP can mesh the cloud (`pycolmap.poisson_meshing`), as an option of the
-  dense stage.
+  yet, and it would make the README's best picture. The viewer draws it
+  (`docs/figures/viewer.png`); it could also feed Gaussian splatting.
+- [ ] **A mesh of the dense cloud.** `fused.ply` is points only, which the viewer
+  draws but mesh viewers (3dviewer.net) refuse: "no faces". COLMAP can mesh it
+  (`pycolmap.poisson_meshing`), as an option of the dense stage.
 - [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
   reconstruction written as a COLMAP model (see the exporter under Later).
 - [ ] **Speed up bundle adjustment: the method, not the hardware.** A full run

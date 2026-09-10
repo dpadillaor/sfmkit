@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>sfmview</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <aside id="sidebar">
+    <header>
+      <h1>sfmview</h1>
+      <p class="muted">Structure from Motion runs, in 3D</p>
+    </header>
+    <section>
+      <h2>Runs</h2>
+      <ul id="runs" class="runs"></ul>
+    </section>
+    <section>
+      <h2>Layers</h2>
+      <ul id="layers" class="layers"></ul>
+    </section>
+    <section>
+      <h2>Run</h2>
+      <dl id="info" class="info"></dl>
+    </section>
+  </aside>
+  <main id="stage">
+    <canvas id="view"></canvas>
+    <div id="status" class="status" hidden></div>
+    <p class="hint muted">drag to orbit · right-drag to pan · scroll to zoom</p>
+  </main>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

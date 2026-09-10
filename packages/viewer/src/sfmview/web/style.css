@@ -1,0 +1,94 @@
+:root {
+  --bg: #0f1115;
+  --panel: #161a21;
+  --line: #262c36;
+  --text: #e6e9ef;
+  --muted: #8a93a3;
+  --accent: #4db3ff;
+  --warn: #ff6b6b;
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 100vh;
+}
+
+#sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 18px 16px;
+}
+
+h1 { font-size: 20px; margin: 0; letter-spacing: 0.02em; }
+h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 22px 0 8px;
+}
+.muted { color: var(--muted); margin: 2px 0 0; }
+
+ul { list-style: none; margin: 0; padding: 0; }
+
+.runs li {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.runs li:hover { background: #1d222b; }
+.runs li[aria-selected="true"] { border-color: var(--accent); background: #1a2330; }
+.runs .name { font-weight: 600; }
+.runs .meta { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; margin-top: 3px; font-size: 12px; color: var(--muted); }
+.badge {
+  font-size: 10.5px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.metric { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+.layers li { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.layers label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; }
+.layers .count { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.swatch.rgb { background: conic-gradient(#e44, #ee4, #4e4, #4ee, #44e, #e4e, #e44); }
+
+.info { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 13px; }
+.info dt { color: var(--muted); }
+.info dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* The canvas fills the stage without sizing it, or its own size would feed back. */
+#stage { position: relative; min-width: 0; overflow: hidden; }
+#view { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+
+.status {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22, 26, 33, 0.92);
+  border: 1px solid var(--line);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.status.error { border-color: var(--warn); color: var(--warn); }
+
+.hint { position: absolute; bottom: 10px; right: 14px; font-size: 12px; pointer-events: none; }

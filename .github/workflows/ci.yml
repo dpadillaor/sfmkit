@@ -36,3 +36,32 @@ jobs:
       - name: Test
         working-directory: packages/sfmkit
         run: pytest -q --cov=sfmkit --cov-report=term-missing
+
+  viewer:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/viewer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: packages/viewer/requirements*.txt
+
+      - name: Install
+        # Its own environment: if the viewer imported sfmkit, this would fail.
+        run: |
+          pip install --no-deps -r requirements.txt -r requirements-dev.txt
+          pip install --no-deps -e .
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Check the layering
+        run: lint-imports
+
+      - name: Test
+        run: pytest -q
