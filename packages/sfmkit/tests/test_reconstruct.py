@@ -123,5 +123,20 @@ def test_each_step_is_reported_as_soon_as_it_is_done(scene):
     seen = []
     result = reconstruct(matches, scene.K, build_tracks(matches),
                          ReconstructionConfig(reference=scene.images[0]), on_step=seen.append)
-    assert seen == result.reports  # every step, in order, as it happened
-    assert [r.step for r in seen] == list(range(len(seen)))
+    assert [s.report for s in seen] == result.reports  # every step, in order, as it happened
+    assert [s.report.step for s in seen] == list(range(len(seen)))
+
+
+def test_each_step_shows_the_model_as_it_stood(scene):
+    """Cameras and points after the step, copies the reconstruction goes on without."""
+    pytest.importorskip("cv2")
+    matches = _verify(_all_pairs(scene))
+    seen = []
+    result = reconstruct(matches, scene.K, build_tracks(matches),
+                         ReconstructionConfig(reference=scene.images[0]), on_step=seen.append)
+    assert [len(s.poses) for s in seen] == [s.report.n_registered for s in seen]
+    assert all(len(s.points) == s.report.n_points for s in seen)
+    assert all(np.isfinite(s.points).all() for s in seen)
+    last = seen[-1]
+    assert set(last.poses) == set(result.reconstruction.poses)
+    assert len(seen[0].points) < len(last.points)  # the first step's copy did not grow

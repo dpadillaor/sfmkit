@@ -1,0 +1,18 @@
+[
+  {
+    "v": 1, "kind": "start", "run": "valencia/9cameras",
+    "K": [[3544.0, 0.0, 2016.0], [0.0, 3544.0, 1134.0], [0.0, 0.0, 1.0]],
+    "images": ["Img02", "Img12"]
+  },
+  {
+    "v": 1, "kind": "step", "run": "valencia/9cameras", "step": 0, "image": "Img12",
+    "n_registered": 2, "n_points": 2, "rmse_before": null, "rmse_after": 0.8,
+    "bundle_seconds": 1.5,
+    "cameras": [
+      {"name": "Img02", "R": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], "t": [0.0, 0.0, 0.0]},
+      {"name": "Img12", "R": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], "t": [-1.0, 0.0, 0.0]}
+    ],
+    "points": [0.1, 0.2, 5.0, -0.3, 0.1, 6.0]
+  },
+  {"v": 1, "kind": "end", "run": "valencia/9cameras", "n_cameras": 2, "n_points": 2}
+]

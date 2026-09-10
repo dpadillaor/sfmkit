@@ -8,7 +8,7 @@ from rich.spinner import Spinner
 from rich.table import Table
 
 from sfmkit.apps.cli._common import console, load_K, run_dir
-from sfmkit.data import io
+from sfmkit.data import io, live
 from sfmkit.data.config import load_config
 
 
@@ -48,7 +48,14 @@ def cmd_reconstruct(args) -> int:
         min_pnp_correspondences=s.min_pnp_correspondences,
     )
 
-    # Each step can take tens of seconds, so its row is shown as soon as it is done.
+    # Each step can take tens of seconds, so it is shown as soon as it is done,
+    # here and, when a broker is configured, to whoever watches the run.
+    run_name = f"{cfg.dataset}/{cfg.name}"
+    broker = live.publisher(run_name, on_error=lambda e: console.print(
+        f"[yellow]live progress off:[/yellow] the broker in ${live.BROKER_ENV} is unreachable "
+        f"({type(e).__name__}); the run goes on"))
+    broker.publish(live.start_message(run_name, K, s.images))
+
     table = Table(title="incremental reconstruction")
     for c, j in (("step", "right"), ("image", "left"), ("cams", "right"), ("points", "right"),
                  ("pnp", "right"), ("rmse before", "right"), ("rmse after", "right"),
@@ -56,16 +63,20 @@ def cmd_reconstruct(args) -> int:
         table.add_column(c, justify=j)
     if console.is_terminal:
         working = Spinner("dots", text="seed pair: triangulation and bundle adjustment")
-        with Live(Group(table, working), console=console, refresh_per_second=8) as live:
-            def on_step(r):
+        with Live(Group(table, working), console=console, refresh_per_second=8) as display:
+            def on_step(snapshot):
+                r = snapshot.report
+                broker.publish(live.step_message(run_name, snapshot))
                 _add_row(table, r)
                 working.update(text=f"{r.n_registered} cameras in; next step running "
                                     "(bundle adjustment takes tens of seconds)")
 
             result = reconstruct(matches, K, tracks, options, on_step=on_step)
-            live.update(table)
+            display.update(table)
     else:  # piped, as in the TUI's run tab: a line per step, then the table
-        def on_step(r):
+        def on_step(snapshot):
+            r = snapshot.report
+            broker.publish(live.step_message(run_name, snapshot))
             console.print(f"step {r.step}: {r.image}, {r.n_registered} cameras, {r.n_points} "
                           f"points, rmse {r.rmse_after:.3f}, BA {r.bundle_seconds:.1f} s")
 
@@ -87,6 +98,9 @@ def cmd_reconstruct(args) -> int:
         "n_cameras": len(result.reconstruction.poses),
         "n_points": result.reconstruction.n_points,
     })
+    # Last, so a viewer told the run is over finds its files written.
+    broker.publish(live.end_message(run_name, len(result.reconstruction.poses),
+                                    result.reconstruction.n_points))
     console.print(f"[green]registered[/green] {len(result.reconstruction.poses)} cameras, "
                   f"{result.reconstruction.n_points} points")
     return 0

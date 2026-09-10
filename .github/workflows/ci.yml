@@ -8,6 +8,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # A broker for the tests of live progress, which are skipped without one.
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      SFMKIT_TEST_REDIS: redis://localhost:6379/15
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +46,12 @@ jobs:
 
   viewer:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      SFMVIEW_TEST_REDIS: redis://localhost:6379/15
     defaults:
       run:
         working-directory: packages/viewer

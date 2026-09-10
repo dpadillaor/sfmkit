@@ -18,7 +18,10 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["slow: needs the real dataset or is long-running"]
+markers = [
+    "slow: needs the real dataset or is long-running",
+    "redis: needs a Redis server at SFMKIT_TEST_REDIS",
+]
 
 
 # The package is organised in layers, and the layering is checked rather than
@@ -72,4 +75,11 @@ type = "forbidden"
 source_modules = ["sfmkit.core", "sfmkit.render", "sfmkit.apps"]
 forbidden_modules = ["pycolmap"]
 # apps reaches pycolmap through data, as it should; only a direct import breaks this.
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Only the data layer talks to the broker"
+type = "forbidden"
+source_modules = ["sfmkit.core", "sfmkit.render", "sfmkit.apps"]
+forbidden_modules = ["redis"]
 allow_indirect_imports = true

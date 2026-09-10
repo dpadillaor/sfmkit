@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sfmkit/step/v1",
+  "title": "A live message from sfmkit's reconstruct stage",
+  "description": "Published by sfmkit to a Redis stream, key 'sfmkit:steps:<project>/<config>', field 'data', one message per entry; read by sfmview. 'start' opens a run (the stream is emptied first), a 'step' follows each camera registered and each global refinement, 'end' closes it. Poses are world to camera, x_cam = R X + t, OpenCV axes: x right, y down, z forward. Arrays of points are flat, x0 y0 z0 x1 ..., finite only; a number that is not finite is null.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v", "kind", "run", "K", "images"],
+      "properties": {
+        "v": {"const": 1},
+        "kind": {"const": "start"},
+        "run": {"type": "string", "description": "<project>/<config>"},
+        "K": {"$ref": "#/$defs/matrix3"},
+        "images": {"type": "array", "items": {"type": "string"}, "description": "the images the run will try to register"}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v", "kind", "run", "step", "image", "n_registered", "n_points",
+                   "rmse_before", "rmse_after", "bundle_seconds", "cameras", "points"],
+      "properties": {
+        "v": {"const": 1},
+        "kind": {"const": "step"},
+        "run": {"type": "string"},
+        "step": {"type": "integer"},
+        "image": {"type": "string", "description": "the camera added, or '<global refinement>'"},
+        "n_registered": {"type": "integer"},
+        "n_points": {"type": "integer"},
+        "rmse_before": {"type": ["number", "null"], "description": "reprojection RMSE in pixels before this step's bundle adjustment"},
+        "rmse_after": {"type": ["number", "null"]},
+        "bundle_seconds": {"type": "number"},
+        "cameras": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "R", "t"],
+            "properties": {
+              "name": {"type": "string"},
+              "R": {"$ref": "#/$defs/matrix3"},
+              "t": {"$ref": "#/$defs/vector3"}
+            }
+          }
+        },
+        "points": {"type": "array", "items": {"type": "number"}}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v", "kind", "run", "n_cameras", "n_points"],
+      "properties": {
+        "v": {"const": 1},
+        "kind": {"const": "end"},
+        "run": {"type": "string"},
+        "n_cameras": {"type": "integer"},
+        "n_points": {"type": "integer"}
+      }
+    }
+  ],
+  "$defs": {
+    "vector3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
+    "matrix3": {"type": "array", "items": {"$ref": "#/$defs/vector3"}, "minItems": 3, "maxItems": 3}
+  }
+}

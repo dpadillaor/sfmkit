@@ -74,6 +74,16 @@ class StageReport:
     n_filtered: int = 0
 
 
+@dataclass(frozen=True, eq=False)
+class Snapshot:
+    """The reconstruction as it stood when a step was done, copied for a caller
+    to show while the next step runs."""
+
+    report: StageReport
+    poses: dict[str, Pose]
+    points: np.ndarray  # (N, 3), the triangulated points only
+
+
 @dataclass
 class ReconstructionResult:
     """A finished reconstruction, plus how it got there.
@@ -275,12 +285,13 @@ def reconstruct(
     K: np.ndarray,
     tracks: list[Track],
     cfg: ReconstructionConfig | None = None,
-    on_step: Callable[[StageReport], None] | None = None,
+    on_step: Callable[[Snapshot], None] | None = None,
 ) -> ReconstructionResult:
     """Build a reconstruction from verified matches and precomputed tracks.
 
-    ``on_step`` is handed each step's report as soon as the step is done, so a
-    caller can show progress; the reports are also returned together.
+    ``on_step`` is handed a snapshot as soon as each step is done, so a caller
+    can show progress, or the model growing; the reports are also returned
+    together.
     """
     cfg = cfg or ReconstructionConfig()
     keypoints = _keypoints_by_image(matches)
@@ -293,7 +304,8 @@ def reconstruct(
     def done(report: StageReport) -> None:
         reports.append(report)
         if on_step is not None:
-            on_step(report)
+            triangulated = np.isfinite(rec.points).all(axis=1)
+            on_step(Snapshot(report, dict(rec.poses), rec.points[triangulated].copy()))
 
     # ---- seed the reconstruction from one pair ----------------------------
     seed_pair = _best_initial_pair(matches, rec.K, cfg)
