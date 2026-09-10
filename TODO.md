@@ -48,6 +48,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   cameras only, while `localize/query_pose.npz` is never checked against
   COLMAP's pose for Img00, which the model has. The project's own question goes
   unmeasured.
+  **First measurement (2026-09-10), by hand:** localize's Img00 differs by
+  ~14° in orientation from both COLMAP placements (13.6° from the new SIFT one,
+  13.9° from the course's), while the two COLMAPs agree within 0.8° despite
+  different features and procedures. localize is unstable too: across its 20
+  seeds the centre spreads 0.27 along one axis (0.02 along the others) and one
+  seed reaches 20 px. Hypothesis to test: DLT, which estimates the whole camera,
+  degenerates when the 3D points are nearly coplanar, and the old photo sees
+  mostly the facade.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
