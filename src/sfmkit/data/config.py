@@ -66,6 +66,7 @@ class LocalizeConfig:
 
 
 COLMAP_MATCHES = ("colmap", "sfmkit")
+COLMAP_CAMERAS = ("self", "fixed")
 
 
 @dataclass
@@ -74,11 +75,14 @@ class ColmapConfig:
 
     ``precomputed`` copies a model directory. Otherwise COLMAP runs, and
     ``matches`` says whose keypoints and matches it reconstructs from: its own
-    (``colmap``) or those of ``verify`` (``sfmkit``).
+    (``colmap``) or those of ``verify`` (``sfmkit``). ``camera`` says whether it
+    calibrates the camera itself (``self``) or takes the K from ``calibrate``
+    (``fixed``); the query always gets a camera of its own, calibrated by COLMAP.
     """
 
     precomputed: str = ""
     matches: str = ""
+    camera: str = "self"
 
     def __post_init__(self) -> None:
         if self.precomputed and self.matches:
@@ -86,6 +90,11 @@ class ColmapConfig:
         if self.matches and self.matches not in COLMAP_MATCHES:
             raise ValueError(
                 f"colmap.matches must be one of {COLMAP_MATCHES}, not {self.matches!r}")
+        if self.camera not in COLMAP_CAMERAS:
+            raise ValueError(
+                f"colmap.camera must be one of {COLMAP_CAMERAS}, not {self.camera!r}")
+        if self.precomputed and self.camera != "self":
+            raise ValueError("colmap.camera applies when COLMAP runs, not to a precomputed model")
 
 
 @dataclass

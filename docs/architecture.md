@@ -61,8 +61,10 @@ match        scene photos                 -> match/*.npz
 verify       match/                       -> verify/*.npz
 reconstruct  verify/ + calibrate/         -> reconstruct/reconstruction.npz
 localize     reconstruct/ + verify/       -> localize/query_pose.npz
-colmap       a COLMAP model               -> colmap/{cameras,images,points3D}.txt
-evaluate     reconstruct/ + colmap/       -> evaluate/evaluation.json
+colmap       a model, or COLMAP run on    -> colmap/{cameras,images,points3D}.txt, database.db
+             the photos or on verify/
+evaluate     reconstruct/ + localize/     -> evaluate/evaluation.json
+             + colmap/ + calibrate/
 changes      scene photos + verify/       -> changes/*.png
 figures      reconstruct/ + colmap/       -> figures/*.png
 ```

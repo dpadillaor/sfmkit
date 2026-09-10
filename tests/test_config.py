@@ -72,6 +72,14 @@ def test_colmap_is_either_precomputed_or_computed_never_both(tmp_path):
         assert c.colmap.matches == who
 
 
+def test_the_colmap_camera_is_checked(tmp_path):
+    assert load_config(_write(tmp_path, "dataset: city\n")).colmap.camera == "self"
+    with pytest.raises(ValueError, match="camera"):
+        load_config(_write(tmp_path, "dataset: city\ncolmap: {matches: colmap, camera: k}\n"))
+    with pytest.raises(ValueError, match="precomputed"):
+        load_config(_write(tmp_path, "dataset: city\ncolmap: {precomputed: m, camera: fixed}\n"))
+
+
 def test_the_run_is_named_after_the_dataset_and_the_config(tmp_path, monkeypatch):
     monkeypatch.setenv("SFMKIT_RUNS", str(tmp_path / "out"))
     c = load_config(_write(tmp_path, "dataset: city\n", name="night.yaml"))

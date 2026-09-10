@@ -25,4 +25,5 @@ localize:
   query: Img00
 
 colmap:
-  matches: colmap
+  matches: colmap   # colmap: COLMAP's own features | sfmkit: this run's verify/
+  camera: self      # self: COLMAP calibrates the phone | fixed: calibrate's K
