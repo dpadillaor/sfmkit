@@ -26,6 +26,9 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **`match` inside a container.** The image has no PyTorch. Options: CPU
   PyTorch in the current image (a few hundred MB), and/or a GPU image; one
   Dockerfile with multi-stage `cpu`/`gpu` targets.
+- [ ] **`match` without PyTorch fails with a bare `ModuleNotFoundError: No module
+  named 'torch'`.** It should say that `match` needs the `[match]` extra, and that
+  the image continues from a saved run with `--from verify`.
 - [ ] **LightGlue downloads its weights** from GitHub on the first `match`. An
   image that runs `match` should carry them.
 - [ ] **Publish the image** to a registry, so nobody has to build it.
