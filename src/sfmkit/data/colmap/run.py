@@ -48,7 +48,7 @@ def run_colmap(scene_dir, images: list[str], out_dir, *, query: str | None = Non
 
     ``K`` fixes the camera of ``images``; without it COLMAP calibrates it.
     """
-    work = _Workspace(scene_dir, images, query, out_dir)
+    work = _prepare(scene_dir, images, query, out_dir)
     pycolmap.extract_features(work.database, work.scene_dir, image_names=work.files(images),
                               camera_mode=pycolmap.CameraMode.SINGLE, reader_options=_reader(K))
     pycolmap.match_exhaustive(work.database)
@@ -68,7 +68,7 @@ def run_colmap_on_matches(scene_dir, images: list[str], matches: list[Matches], 
     COLMAP gets the input sfmkit's own reconstruction gets, so the two differ in
     the reconstruction alone. ``K`` fixes the camera of ``images``.
     """
-    work = _Workspace(scene_dir, images, query, out_dir)
+    work = _prepare(scene_dir, images, query, out_dir)
     keypoints = _keypoints(matches)
     ours = [m for m in matches if work.has(m)]
     with_query = [m for m in ours if query in (m.image0, m.image1)]
@@ -86,26 +86,42 @@ def run_colmap_on_matches(scene_dir, images: list[str], matches: list[Matches], 
     return _reconstruct(work, K, add_query if query else None)
 
 
+@dataclass(frozen=True)
 class _Workspace:
-    """One COLMAP run: its images under both their names and their files."""
+    """One COLMAP run: where it reads and writes, and its images' files."""
 
-    def __init__(self, scene_dir, images: list[str], query: str | None, out_dir) -> None:
-        pycolmap.logging.minloglevel = pycolmap.logging.ERROR  # ~100 lines of progress otherwise
-        self.scene_dir, self.out_dir = Path(scene_dir), Path(out_dir)
-        self.images, self.query = list(images), query
-        # COLMAP names an image by its file; sfmkit, without extension.
-        every = [*self.images, *([query] if query else [])]
-        self.file = {n: image_file(self.scene_dir, n).name for n in every}
-        self.name = {f: n for n, f in self.file.items()}
-        self.out_dir.mkdir(parents=True, exist_ok=True)
-        self.database = self.out_dir / "database.db"
-        self.database.unlink(missing_ok=True)
+    scene_dir: Path
+    out_dir: Path
+    images: tuple[str, ...]
+    query: str | None
+    file: dict[str, str]  # image name, without extension, to its file in scene_dir
 
-    def files(self, names: list[str]) -> list[str]:
+    @property
+    def database(self) -> Path:
+        return self.out_dir / "database.db"
+
+    @property
+    def name(self) -> dict[str, str]:
+        return {f: n for n, f in self.file.items()}
+
+    def files(self, names) -> list[str]:
         return [self.file[n] for n in names]
 
     def has(self, m: Matches) -> bool:
         return m.image0 in self.file and m.image1 in self.file
+
+
+def _prepare(scene_dir, images: list[str], query: str | None, out_dir) -> _Workspace:
+    """Find each image's file, and empty the ground for a new database."""
+    pycolmap.logging.minloglevel = pycolmap.logging.ERROR  # ~100 lines of progress otherwise
+    scene_dir, out_dir = Path(scene_dir), Path(out_dir)
+    # COLMAP names an image by its file; sfmkit, without extension.
+    every = [*images, *([query] if query else [])]
+    work = _Workspace(scene_dir, out_dir, tuple(images), query,
+                      {n: image_file(scene_dir, n).name for n in every})
+    out_dir.mkdir(parents=True, exist_ok=True)
+    work.database.unlink(missing_ok=True)
+    return work
 
 
 def _reconstruct(work: _Workspace, K: np.ndarray | None,
