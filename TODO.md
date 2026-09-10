@@ -37,13 +37,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Compare the intrinsics.** COLMAP self-calibrates (the course model: f =
   3047) while our K says 3544. Reporting both K side by side in `evaluate` would
   show how far apart the calibrations are, and whether it matters.
-- [ ] **The COLMAP reference is not independent.** The course built it with
-  `feature_importer` and `matches_importer` (`legacy/.../colcommands.txt`): COLMAP
-  was given the course pipeline's own SuperPoint + LightGlue matches, RANSAC
-  inliers, reference pairs only, and ran just `mapper`, self-calibrating
-  (f = 3047). So 0.981° compares our reconstruction with COLMAP's on similar
-  matches, not with an independent reference. A full COLMAP run (its own SIFT
-  features and matching) would be. Say so in the README until then.
+- [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
+  was fed the course's own matches, so 0.981° against it was not independent.
+  `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
+  and matching) scores the same GPU reconstruction at **1.041° mean, 2.680° max**,
+  with the same cameras worst (Img12, Img23, Img14). Still to do: repeat it to
+  see how much COLMAP's randomness moves the number; say it in the README.
 - [ ] **Review how the old photo (the query) is treated, stage by stage.** It is
   handled differently almost everywhere: `match` pairs it with the reference
   only, even when `exhaustive: true`; `reconstruct` leaves it out on purpose;
