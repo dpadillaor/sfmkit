@@ -1,0 +1,28 @@
+# 9cameras, scored against COLMAP run from scratch on the same nine photos: its
+# own features and matching, so an independent reference. Paths are relative to
+# data/valencia/.
+dataset: valencia
+seed: 0
+
+calibrate:
+  intrinsics: precomputed/K.txt   # until the chessboard photos are in calibration/
+
+sfm:
+  images: [Img02, Img12, Img13, Img14, Img15, Img23, Img24, Img25, Img28]
+  reference: Img02
+  exhaustive: true          # every pair, not just those touching the reference
+  max_keypoints: 2048
+  device: auto              # auto | cpu | cuda: CPU and GPU give slightly different matches
+  ransac_threshold: 4.0
+  ransac_iterations: 1000
+  min_inliers: 20
+  min_track_length: 2
+  min_triangulation_angle_deg: 2.0
+  max_reprojection_error: 12.0
+  pnp_threshold: 6.0
+
+localize:
+  query: Img00
+
+colmap:
+  matches: colmap
