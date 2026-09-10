@@ -22,6 +22,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   machine without libGL `import cv2` fails. The image avoids it with `--no-deps`.
   Options: depend on `opencv-python` in `pyproject.toml` (the image does not read
   those dependencies), or document a fix-up.
+- [ ] **`reconstruct` is silent for ~4 minutes**, printing nothing between the track
+  count and the final table, so it looks hung. It should report each step as it
+  happens (camera added, points, RMSE, bundle-adjustment time). The `on_step`
+  callback planned for live visualisation would give it for free.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
