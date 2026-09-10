@@ -46,6 +46,8 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   Magic Leap under terms that restrict use; check them before publishing the
   image to a registry.
 - [ ] **Publish the image** to a registry, so nobody has to build it.
+- [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
+  UID has no entry in the image's `/etc/passwd`. Permissions are unaffected.
 - [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
 - [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?
 
