@@ -118,9 +118,24 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 - [ ] Sections still to write: **Try it** (the image with the Valencia example),
   **Your own project**, **Development**. Write each once it works.
-- [ ] **Install section**: conda (`conda create -n sfmkit python=3.11`, then
-  `pip install --no-deps -r requirements-cpu.txt -r requirements.txt` and
-  `pip install --no-deps -e .`) and Docker are the only supported installs.
+- [ ] **Install section.** Conda and Docker are the only supported installs, each
+  in a CPU and a GPU flavour:
+  - Conda, CPU: `conda create -n sfmkit python=3.11`, then
+    `pip install --no-deps -r requirements-cpu.txt -r requirements.txt` and
+    `pip install --no-deps -e .`.
+  - Conda, GPU: the same with `requirements-gpu.txt` instead of
+    `requirements-cpu.txt`. Needs an NVIDIA driver for CUDA 12.1 or later (>= 530).
+  - Docker, CPU: `make image`, then `docker compose run --rm cli <stage> ...`.
+    On Linux, if your UID is not 1000, `make env` first, so the files written
+    to `runs/` are yours; a plain `docker run` needs
+    `--user "$(id -u):$(id -g)" -e HOME=/tmp` for the same reason.
+  - Docker, GPU: `make image DEVICE=gpu`, then `docker compose run --rm cli-gpu ...`.
+    The host needs, once: the NVIDIA driver, `nvidia-container-toolkit`
+    (from NVIDIA's repository), `sudo nvidia-ctk runtime configure --runtime=docker`
+    and a Docker restart. Without them the gpu image still runs, on the CPU,
+    and `dense` refuses.
+  - Which stages use the GPU: `match` (PyTorch), `colmap` (SIFT), `dense`
+    (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
 - [ ] A GIF of the reconstruction growing, once live visualisation exists.
 
