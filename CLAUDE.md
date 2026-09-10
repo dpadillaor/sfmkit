@@ -9,19 +9,23 @@ Tick or remove an item when it is done. Read it before starting.
 
 ## Checks
 
-The conda environment is `mgrcv-sfm`. Before any commit:
+The conda environment is `sfmkit`: Python 3.11, CPU only, built from the
+requirements files exactly as the README tells users to. Before any commit:
 
 ```bash
 ruff check . && lint-imports && pytest -q
 ```
 
-The regression check for anything touching the pipeline is a full run:
+The regression check for anything touching the pipeline starts from the saved
+example, whose matches came from a GPU:
 
 ```bash
-sfmkit run --config configs/valencia/9cameras.yaml   # mean rotation error 0.981°
+mkdir -p /tmp/check/valencia && cp -r examples/valencia/9cameras /tmp/check/valencia/
+SFMKIT_RUNS=/tmp/check sfmkit run --config configs/valencia/9cameras.yaml --from verify
+# mean rotation error 0.981°
 ```
 
-It needs a GPU for that exact number: CPU matches give a different result.
+A full run from scratch on CPU gives 1.574° with 8 cameras: CPU matches differ.
 
 ## Layout
 

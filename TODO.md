@@ -60,10 +60,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Docker
 
-- [ ] **The dev conda env is not the reference environment.** `mgrcv-sfm` is
-  Python 3.10 with CUDA PyTorch; the requirements are frozen for 3.11 (scipy
-  1.17 needs it). Recreate it from the requirements files, as the README will
-  tell everyone to, with a `requirements-gpu.txt` for the GPU.
+- [ ] **No GPU environment any more.** The old conda env `mgrcv-sfm` (Python
+  3.10, CUDA PyTorch) was replaced by `sfmkit`, built from the requirements, CPU
+  only. Its package list is in `~/conda-backups/`. Regenerating the GPU example
+  run from scratch needs `requirements-gpu.txt` first.
 - [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
   `.env` (`make env`); without compose, files written to a mounted `runs/` belong
   to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
