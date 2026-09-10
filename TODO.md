@@ -134,6 +134,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
     (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
 - [ ] A GIF of the reconstruction growing, once live visualisation exists.
+- [ ] **Figures for the README**: `changes/overlay_Img00_on_Img02.png` (the old photo
+  set into today's square, near-perfect alignment) is the strongest image the
+  project makes; with the dense cloud, the two to lead with. Copy reduced
+  versions into `docs/figures/` (the full PNGs are ~17 MB).
 
 ## Later
 
