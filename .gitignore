@@ -12,13 +12,17 @@ htmlcov/
 runs/
 .baseline/
 
-# Datasets are large; see README for how to obtain them.
+# Generated images and arrays. The dataset under data/ and the README figures
+# are the exceptions.
 *.jpg
 *.jpeg
 *.png
 *.npz
+!data/**
+!docs/figures/*.png
 !tests/**/*.npz
 
 .DS_Store
 .vscode/
 .idea/
+legacy/

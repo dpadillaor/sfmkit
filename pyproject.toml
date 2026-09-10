@@ -34,10 +34,10 @@ markers = ["slow: needs the real dataset or is long-running"]
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
-# CV/ is the original course code, kept for reference; repro/ holds verbatim
-# copies of it used to re-run and diff the baseline. Linting either would mean
-# editing them, which would defeat the point of keeping them.
-exclude = ["CV", "repro"]
+# legacy/ holds the original course code and the scripts that reproduced its
+# baseline, kept for reference until it is removed. Linting it would mean
+# editing it, which would defeat the point of keeping it.
+exclude = ["legacy"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
