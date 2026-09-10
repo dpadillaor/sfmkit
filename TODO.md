@@ -28,12 +28,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Img12 is fragile.** With CPU matches it fails to register (8 cameras,
   1.57°) where GPU matches give 9 cameras and 0.98°. Small differences in the
   matches should not lose a camera.
-- [ ] **Two OpenCVs after `pip install ".[match]"`.** LightGlue (now installed from
-  its GitHub archive, as it is not on PyPI) asks for `opencv-python`, the GUI
-  build, which lands beside `opencv-python-headless`. Fine on a desktop; on a
-  machine without libGL `import cv2` fails. The image avoids it with `--no-deps`.
-  Options: depend on `opencv-python` in `pyproject.toml` (the image does not read
-  those dependencies), or document a fix-up.
 - [ ] **`reconstruct` is silent for ~4 minutes**, printing nothing between the track
   count and the final table, so it looks hung. It should report each step as it
   happens (camera added, points, RMSE, bundle-adjustment time). The `on_step`
@@ -43,21 +37,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Docker
 
-- [ ] **Dependency setup, designed on paper (2026-09-10), not yet applied.**
-  Supported installs: a fresh conda env (Python 3.11) and Docker, both from the
-  same frozen files, all installed with `pip install --no-deps -r` (which keeps
-  LightGlue's `opencv-python` out everywhere):
-  - `requirements.txt`: everything common, pinned, kornia and lightglue included
-  - `requirements-cpu.txt`: torch + torchvision CPU (`--extra-index-url`), pycolmap
-  - `requirements-gpu.txt`: torch CUDA + pycolmap-cuda12 (later)
-  - `requirements-dev.txt`: pytest, ruff, import-linter, for development and CI
-  `ARG DEVICE=cpu|gpu` picks the file. Replaces requirements-torch-cpu.txt and
-  requirements-match.txt. `pyproject.toml` loses `dependencies` and every extra,
-  so there is one list only; it keeps the package definition, the `sfmkit`
-  entry point and tool settings. CI installs from the requirements files too. Loose end meanwhile: the Dockerfile reads
-  `ARG DEVICE`, while compose and the Makefile still pass `TORCH` (harmless:
-  DEVICE defaults to cpu). The dev conda env `mgrcv-sfm` is Python 3.10, so it
-  is not the reference environment.
+- [ ] **The dev conda env is not the reference environment.** `mgrcv-sfm` is
+  Python 3.10 with CUDA PyTorch; the requirements are frozen for 3.11 (scipy
+  1.17 needs it). Recreate it from the requirements files, as the README will
+  tell everyone to, with a `requirements-gpu.txt` for the GPU.
 - [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
   `.env` (`make env`); without compose, files written to a mounted `runs/` belong
   to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
@@ -73,9 +56,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **The `cpu` image cannot reproduce 0.981° from scratch**: its CPU matches
   give 8 cameras and 1.574°, as CPU matches do outside Docker. The saved example
   run (`--from verify`) does give 0.981°. See the Img12 item.
-- [ ] **`match` without PyTorch fails with a bare `ModuleNotFoundError: No module
-  named 'torch'`.** It should say that `match` needs the `[match]` extra, and that
-  the image continues from a saved run with `--from verify`.
 - [ ] **Licence of the SuperPoint weights** baked into the image. They come from
   Magic Leap under terms that restrict use; check them before publishing the
   image to a registry.
@@ -107,6 +87,9 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 - [ ] Sections still to write: **Try it** (the image with the Valencia example),
   **Your own project**, **Development**. Write each once it works.
+- [ ] **Install section**: conda (`conda create -n sfmkit python=3.11`, then
+  `pip install --no-deps -r requirements-cpu.txt -r requirements.txt` and
+  `pip install --no-deps -e .`) and Docker are the only supported installs.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
 - [ ] A GIF of the reconstruction growing, once live visualisation exists.
 

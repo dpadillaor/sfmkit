@@ -1,0 +1,6 @@
+# What differs between the cpu and gpu environments: PyTorch without CUDA, from
+# PyTorch's own index, and COLMAP's CPU build. Install with requirements.txt.
+--extra-index-url https://download.pytorch.org/whl/cpu
+pycolmap==4.2.0
+torch==2.4.1+cpu
+torchvision==0.19.1+cpu

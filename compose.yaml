@@ -4,8 +4,8 @@ services:
       context: .
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
-        TORCH: ${TORCH:-cpu}
-    image: sfmkit:${TORCH:-cpu}
+        DEVICE: ${DEVICE:-cpu}
+    image: sfmkit:${DEVICE:-cpu}
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       HOME: /tmp

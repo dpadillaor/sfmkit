@@ -1,7 +1,0 @@
-# The matching stage's libraries besides PyTorch, the same for every image.
-# Installed with --no-deps: LightGlue asks for opencv-python, the GUI build,
-# which would sit beside opencv-python-headless and need a libGL the image does
-# not have. Everything else it needs is already installed.
-kornia==0.8.2
-kornia_rs==0.1.14
-lightglue @ https://github.com/cvg/LightGlue/archive/eb42fee2d71449efb0aa5c10549752b5d75384d8.zip#sha256=1f3abf7d82b1b2ff96c330e0d17a7c0d5e6e757de9214df3f206825afe82f02f
