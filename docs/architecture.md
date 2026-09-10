@@ -40,7 +40,8 @@ import-linter contracts, run by `lint-imports` in pre-commit and in CI:
 | Layered architecture | any import pointing upwards |
 | The core does no I/O and draws nothing | `core` importing matplotlib, torch, yaml, rich, textual |
 | Only the render layer imports matplotlib | `core` or `data` importing matplotlib |
-| Only the data layer imports torch | `core` or `render` importing torch |
+| Only the data layer imports torch | `core`, `render` or `apps` importing torch directly |
+| Only the data layer imports pycolmap | `core`, `render` or `apps` importing pycolmap directly |
 
 Without enforcement the rule holds only for as long as everyone remembers it,
 and one `import matplotlib` in `core/geometry.py` silently ends the library's
