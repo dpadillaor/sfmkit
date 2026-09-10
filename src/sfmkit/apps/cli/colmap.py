@@ -44,12 +44,17 @@ def _precomputed(cfg: Config, out: Path) -> dict:
 
 
 def _colmap_matches(cfg: Config, out: Path) -> dict:
-    images = cfg.sfm.images
+    images, query = cfg.sfm.images, cfg.localize.query
     with console.status(f"COLMAP on {len(images)} images: features, matching, mapping"):
-        s = run_colmap(cfg.scene_dir, images, out)
+        s = run_colmap(cfg.scene_dir, images, out, query=query)
     console.print(f"registered [bold]{len(s.registered)}/{len(images)}[/bold] images, "
                   f"{s.n_points} points, {s.reprojection_error:.2f} px")
     if s.missing:
         console.print(f"[yellow]not registered:[/yellow] {', '.join(s.missing)}")
+    if query:
+        console.print(f"{query}: placed from {s.query_points} points" if s.query_registered
+                      else f"[yellow]{query}: not placed[/yellow]")
     return {"source": "colmap", "registered": s.registered, "missing": s.missing,
-            "n_points": s.n_points, "reprojection_error": s.reprojection_error}
+            "n_points": s.n_points, "reprojection_error": s.reprojection_error,
+            "query": query, "query_registered": s.query_registered,
+            "query_points": s.query_points}

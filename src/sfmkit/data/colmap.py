@@ -28,6 +28,8 @@ class ColmapSummary:
     missing: list[str]  # asked for, but not registered
     n_points: int
     reprojection_error: float  # mean, in pixels
+    query_registered: bool = False
+    query_points: int = 0  # 3D points the query sees, if registered
 
 
 def _quaternion_to_rotation(q: np.ndarray) -> np.ndarray:
@@ -99,39 +101,71 @@ def read_model(directory) -> dict:
     }
 
 
-def run_colmap(scene_dir, images: list[str], out_dir) -> ColmapSummary:
+def run_colmap(scene_dir, images: list[str], out_dir, query: str | None = None) -> ColmapSummary:
     """COLMAP on its own: SIFT features, exhaustive matching, incremental mapping.
 
     Reconstructs ``images`` from ``scene_dir`` with one self-calibrated camera
     for all of them, and writes the largest model as text into ``out_dir``,
     beside COLMAP's database. The model names images as sfmkit does, without
     extension.
+
+    A ``query`` is added in a second pass, with its own camera and the other
+    cameras held fixed: placed in the model without shaping it, as sfmkit's
+    localize does.
     """
     pycolmap.logging.minloglevel = pycolmap.logging.ERROR  # ~100 lines of progress otherwise
     scene_dir, out_dir = Path(scene_dir), Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     # COLMAP names an image by its file; sfmkit, without extension.
-    names = {image_file(scene_dir, n).name: n for n in images}
+    names = {image_file(scene_dir, n).name: n for n in [*images, *([query] if query else [])]}
+    files = {n: f for f, n in names.items()}
     database = out_dir / "database.db"
     database.unlink(missing_ok=True)
 
-    pycolmap.extract_features(database, scene_dir, image_names=list(names),
+    pycolmap.extract_features(database, scene_dir, image_names=[files[n] for n in images],
                               camera_mode=pycolmap.CameraMode.SINGLE)
     pycolmap.match_exhaustive(database)
-    with tempfile.TemporaryDirectory() as sparse:
-        models = pycolmap.incremental_mapping(database, scene_dir, sparse)
-    if not models:
-        raise RuntimeError(f"COLMAP registered none of the {len(images)} images")
-    rec = max(models.values(), key=lambda r: r.num_reg_images())
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        rec = _largest(pycolmap.incremental_mapping(database, scene_dir, tmp / "sparse"))
+        if query:
+            rec = _add_query(rec, database, scene_dir, files[query], tmp)
 
     for image in rec.images.values():
         image.name = names[image.name]
     rec.write_text(out_dir)
 
-    registered = sorted(image.name for image in rec.images.values() if image.has_pose)
+    posed = {image.name: image for image in rec.images.values() if image.has_pose}
+    registered = sorted(n for n in posed if n != query)
     return ColmapSummary(
         registered=registered,
         missing=sorted(set(images) - set(registered)),
         n_points=rec.num_points3D(),
         reprojection_error=rec.compute_mean_reprojection_error(),
+        query_registered=query in posed,
+        query_points=posed[query].num_points3D if query in posed else 0,
     )
+
+
+def _largest(models: dict):
+    if not models:
+        raise RuntimeError("COLMAP registered no images")
+    return max(models.values(), key=lambda r: r.num_reg_images())
+
+
+def _add_query(rec, database: Path, scene_dir: Path, query_file: str, tmp: Path):
+    """The model with the query registered in it, every other camera held fixed."""
+    model = tmp / "without_query"
+    model.mkdir()
+    rec.write(model)
+    pycolmap.extract_features(database, scene_dir, image_names=[query_file],
+                              camera_mode=pycolmap.CameraMode.PER_IMAGE)
+    pycolmap.match_exhaustive(database)
+    options = pycolmap.IncrementalPipelineOptions(fix_existing_frames=True)
+    # An old photograph shares few SIFT matches with modern ones (32 at best on
+    # Valencia): with COLMAP's default of 30 inliers it would never be placed.
+    options.mapper.abs_pose_min_num_inliers = 15
+    options.mapper.abs_pose_min_inlier_ratio = 0.1
+    models = pycolmap.incremental_mapping(database, scene_dir, tmp / "with_query",
+                                          input_path=model, options=options)
+    return _largest(models) if models else rec
