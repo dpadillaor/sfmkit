@@ -54,6 +54,17 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   atan(160 / 647) = 13.9°, against the 13.6° disagreement. Fixing the principal
   point at the image centre (estimating focal and pose only) is the obvious
   experiment.
+  **Seen in the viewer (2026-09-11):** looking through Img00, both placements
+  lay the dense cloud over the old photo about as well; to the eye, sfmkit's a
+  little better. The 11.5° is then no misplacement but a trade between K and R:
+  on a nearly planar facade a tilt and a shifted principal point project almost
+  alike, and each side resolves it its own way. sfmkit's DLT frees the principal
+  point (241, 323 in a 557x418 image); COLMAP pins it at the centre (278.5, 209),
+  which an old print, perhaps cropped, need not have. So the error against
+  COLMAP does not say which is right. Experiments to settle it: localize with
+  the principal point fixed at the centre (does it meet COLMAP's R?); COLMAP's
+  query pass refining the principal point (does it meet ours?); and both
+  poses' reprojection error on one neutral set of 2D-3D matches.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
