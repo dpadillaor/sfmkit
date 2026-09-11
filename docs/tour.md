@@ -6,7 +6,7 @@ works on synthetic scenes whose answer is known by construction, so you can
 always check what the library gives you against what it should give you.
 
 ```bash
-conda activate mgrcv-sfm     # or: pip install -e ".[dev]"
+conda activate sfmkit        # the environment the README builds
 python
 ```
 

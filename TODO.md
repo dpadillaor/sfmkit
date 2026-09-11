@@ -163,6 +163,16 @@ the contract, the API and the architecture.
   each sparse model in one colour anyway, to tell them apart, but a "true
   colours" switch would need them: sample each point's colour from an image that
   observes it and save it as `colors` (the viewer already reads the key).
+- [ ] **The run list does not say which runs are running.** Only an open run
+  knows, from its stream (a `start` with no `end` or `failed` after it). The
+  server could look at the last message of every `sfmkit:steps:*` stream and
+  add `running` to `/api/runs`, for a mark in the list. Caveat for both: a
+  sfmkit killed outright (SIGKILL, a container removed) never publishes
+  `failed`, so its run would look running forever. A timeout from `start` or
+  from the last step would have to guess how long a step can take. Better, a
+  heartbeat through a key that expires: while it works, sfmkit sets
+  `sfmkit:alive:<run>` with a 30 s TTL and renews it every 10 s; killed, it
+  stops renewing and Redis drops the key. Running = the key exists.
 - [ ] **Streams never expire.** A run's stream stays in Redis until the run is
   repeated (a `start` empties it), which is what lets a finished run be
   rewound; with many runs, set an `EXPIRE` after the `end` (a week?).

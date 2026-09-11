@@ -1,7 +1,9 @@
+name: sfmkit
+
 services:
   cli:
     build:
-      context: .  # the root, so the image can take the Valencia example
+      context: .
       dockerfile: packages/sfmkit/Dockerfile
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
@@ -10,13 +12,13 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       HOME: /tmp
+      SFMKIT_BROKER: redis://redis:6379
     volumes:
       - ./data:/app/data:ro
       - ./configs:/app/configs:ro
       - ./runs:/app/runs
 
-  # The same, built with CUDA PyTorch and COLMAP and given the GPU. The host needs
-  # the NVIDIA driver and nvidia-container-toolkit.
+  # The host needs the NVIDIA driver and nvidia-container-toolkit.
   cli-gpu:
     extends: cli
     build:
@@ -25,15 +27,18 @@ services:
     image: sfmkit:gpu
     gpus: all
 
-  # The web viewer: it only reads runs/ and data/. The port is published on the
-  # host's loopback only; from another machine, through an SSH tunnel.
   viewer:
     build:
       context: .
       dockerfile: packages/viewer/Dockerfile
     image: sfmview
+    environment:
+      SFMVIEW_BROKER: redis://redis:6379
     volumes:
       - ./data:/app/data:ro
       - ./runs:/app/runs:ro
     ports:
       - "127.0.0.1:8000:8000"
+
+  redis:
+    image: redis:7-alpine
