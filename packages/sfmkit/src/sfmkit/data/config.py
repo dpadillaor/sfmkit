@@ -18,11 +18,22 @@ __all__ = [
 
 @dataclass
 class CalibrateConfig:
-    """Where the intrinsics come from: chessboard photos, or a precomputed K."""
+    """Where the intrinsics come from: chessboard photos, a precomputed K, or
+    the scene photos' EXIF. One of them."""
 
     images: str = ""  # glob of chessboard photos
     pattern: list[int] = field(default_factory=lambda: [9, 6])  # inner corners
     intrinsics: str = ""  # precomputed 3x3 K, used when there are no photos
+    exif: bool = False  # K from the scene photos' 35 mm equivalent focal length
+    sensor_aspect: list[int] = field(default_factory=lambda: [4, 3])  # of the whole sensor
+
+    def __post_init__(self) -> None:
+        sources = [n for n, v in (("images", self.images), ("intrinsics", self.intrinsics),
+                                  ("exif", self.exif)) if v]
+        if len(sources) > 1:
+            raise ValueError(f"calibrate takes one source, not {' and '.join(sources)}")
+        if len(self.sensor_aspect) != 2 or min(self.sensor_aspect) <= 0:
+            raise ValueError("calibrate.sensor_aspect is two positive numbers, e.g. [4, 3]")
 
 
 @dataclass

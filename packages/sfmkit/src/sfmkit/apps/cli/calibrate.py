@@ -10,10 +10,11 @@ import numpy as np
 from sfmkit.apps.cli._common import console, load_K, run_dir
 from sfmkit.data import io
 from sfmkit.data.config import load_config
+from sfmkit.data.io import image_file
 
 
 def cmd_calibrate(args) -> int:
-    """Intrinsics for the run: from chessboard photos, or a precomputed K."""
+    """Intrinsics for the run: from chessboard photos, a precomputed K, or EXIF."""
     cfg = load_config(args.config)
     run = run_dir(cfg, args.out)
     out = run / "calibrate"
@@ -42,8 +43,13 @@ def cmd_calibrate(args) -> int:
         shutil.copyfile(c.intrinsics, out / "K.txt")
         extra = {"source": "precomputed"}
         console.print(f"using precomputed intrinsics from {c.intrinsics}")
+    elif c.exif:
+        extra = _from_exif(cfg, out)
+        if extra is None:
+            return 1
     else:
-        console.print("[red]set `calibrate.images` or `calibrate.intrinsics`[/red]")
+        console.print("[red]set `calibrate.images`, `calibrate.intrinsics` or "
+                      "`calibrate.exif`[/red]")
         return 1
 
     K = load_K(out / "K.txt")
@@ -52,3 +58,25 @@ def cmd_calibrate(args) -> int:
     console.print(f"[green]f[/green] {K[0, 0]:.1f}, {K[1, 1]:.1f}  "
                   f"[green]c[/green] {K[0, 2]:.1f}, {K[1, 2]:.1f}")
     return 0
+
+
+def _from_exif(cfg, out: Path) -> dict | None:
+    """K from the scene photos' EXIF, which must agree on one camera setting."""
+    from sfmkit.core.calibration import intrinsics_from_focal_35mm
+    from sfmkit.data.exif import read_camera
+
+    shots = {n: read_camera(image_file(cfg.scene_dir, n)) for n in cfg.sfm.images}
+    settings = {(s.focal_35mm, s.size) for s in shots.values()}
+    if len(settings) != 1:
+        found = ", ".join(f"{n}: {s.focal_35mm:g} mm, {s.size[0]}x{s.size[1]}"
+                          for n, s in shots.items())
+        console.print(f"[red]the photos do not share one camera setting[/red] ({found})")
+        return None
+    shot = next(iter(shots.values()))
+    w, h = cfg.calibrate.sensor_aspect
+    K = intrinsics_from_focal_35mm(shot.focal_35mm, *shot.size, sensor_aspect=w / h)
+    np.savetxt(out / "K.txt", K)
+    console.print(f"K from EXIF: {shot.model or 'unknown camera'}, "
+                  f"{shot.focal_35mm:g} mm equivalent, {shot.size[0]}x{shot.size[1]}")
+    return {"source": "exif", "camera": shot.model, "focal_mm": shot.focal_mm,
+            "focal_35mm": shot.focal_35mm, "sensor_aspect": [w, h]}

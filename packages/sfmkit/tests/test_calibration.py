@@ -60,3 +60,24 @@ def test_too_few_boards_is_an_error():
     blank = np.full((480, 640), 255, np.uint8)
     with pytest.raises(ValueError, match="need 3"):
         calibrate_chessboard([blank] * 4, PATTERN)
+
+
+def test_k_from_the_35mm_equivalent_focal_length():
+    """The Galaxy S21 photos: 26 mm equivalent, a 16:9 cut of a 4:3 sensor."""
+    from sfmkit.core.calibration import intrinsics_from_focal_35mm
+
+    K = intrinsics_from_focal_35mm(26, 4032, 2268)
+    # 26 mm across 43.27 mm of diagonal is 26/43.27 of the 5040 px diagonal of
+    # the whole 4032 x 3024 sensor.
+    assert K[0, 0] == K[1, 1] == pytest.approx(3028.7, abs=0.1)
+    assert (K[0, 2], K[1, 2]) == (2015.5, 1133.5)
+    portrait = intrinsics_from_focal_35mm(26, 2268, 4032)
+    assert portrait[0, 0] == pytest.approx(K[0, 0])  # the long side counts, however held
+
+
+def test_a_wider_sensor_aspect_means_a_shorter_diagonal():
+    from sfmkit.core.calibration import intrinsics_from_focal_35mm
+
+    f_43 = intrinsics_from_focal_35mm(26, 4032, 2268, sensor_aspect=4 / 3)[0, 0]
+    f_169 = intrinsics_from_focal_35mm(26, 4032, 2268, sensor_aspect=16 / 9)[0, 0]
+    assert f_169 < f_43

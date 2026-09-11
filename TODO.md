@@ -21,8 +21,10 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   improves 13.7 -> 11.7° (its own problem, see the query item).
   To do: (1) recalibrate with the chessboard, photos taken in the same mode as
   the scene (main lens 1x, 16:9, 4032x2268), kept in data/valencia/calibration/;
-  (2) meanwhile, a `calibrate` source that reads K from EXIF, and use it in the
-  configs; (3) regenerate the example run and the README numbers.
+  (2) done: `calibrate.exif: true` takes K from the photos' EXIF (f = 3028.7),
+  used by `configs/valencia/9cameras-exif.yaml`; the other configs still use the
+  chessboard K, to compare; (3) regenerate the example run and the README
+  numbers, from the EXIF K or the new chessboard one.
 - [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
   was fed the course's own matches, so 0.981° against it was not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT

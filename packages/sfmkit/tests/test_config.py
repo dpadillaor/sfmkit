@@ -109,3 +109,18 @@ def test_the_shipped_configs_point_at_real_files(monkeypatch):
         if c.colmap.precomputed:
             model = Path(c.colmap.precomputed)
             assert (model / "images.txt").is_file(), f"{cfg}: {model}"
+
+
+def test_calibrate_takes_one_source():
+    from sfmkit.data.config import CalibrateConfig
+
+    assert CalibrateConfig(exif=True).exif
+    with pytest.raises(ValueError, match="one source"):
+        CalibrateConfig(intrinsics="K.txt", exif=True)
+    with pytest.raises(ValueError, match="sensor_aspect"):
+        CalibrateConfig(exif=True, sensor_aspect=[4])
+
+
+def test_the_exif_config_loads():
+    cfg = load_config(REPO / "configs" / "valencia" / "9cameras-exif.yaml")
+    assert cfg.calibrate.exif and cfg.dense.enabled and not cfg.calibrate.intrinsics
