@@ -31,7 +31,6 @@ export class SceneView {
   #frames = new Map(); // model source -> its transform into the shared frame
   #reference = null;
   #live = null; // the group holding a live step, in sfmkit's frame
-  #liveDepth = 0;
   #shots = new Map(); // camera key -> { key, name, source, query, camera, frame, depth, layer }
   #photos; // looking through a camera, its photo in front
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
@@ -167,16 +166,17 @@ export class SceneView {
 
     const size = K ? [Math.round(2 * K[0][2]), Math.round(2 * K[1][2])] : null;
     const cameras = step.cameras.map((c) => ({ ...c, K, size }));
-    this.#liveDepth = Math.max(this.#liveDepth, frustumDepth(cameras));
+    // Sized to this step's cameras, so a step replayed looks as it did live.
+    const depth = frustumDepth(cameras);
     for (const key of [...this.#shots.keys()].filter((k) => k.startsWith('live:'))) {
       this.#shots.delete(key);
     }
     for (const camera of cameras) {
-      this.#addShot('live', camera, this.#live, this.#liveDepth, 'live-cameras');
+      this.#addShot('live', camera, this.#live, depth, 'live-cameras');
     }
     const outline = new THREE.Group();
-    outline.add(outlines(cameras.filter((c) => c.name !== step.image), this.#liveDepth, LIVE.main));
-    outline.add(outlines(cameras.filter((c) => c.name === step.image), this.#liveDepth, LIVE.added));
+    outline.add(outlines(cameras.filter((c) => c.name !== step.image), depth, LIVE.main));
+    outline.add(outlines(cameras.filter((c) => c.name === step.image), depth, LIVE.added));
 
     const cloud = points(step.points, LIVE.main);
     this.#add('live-points', `step ${step.step + 1} points`, LIVE.main, step.points.length / 3,
@@ -249,7 +249,6 @@ export class SceneView {
     this.#layers.clear();
     this.#frames.clear();
     this.#live = null;
-    this.#liveDepth = 0;
   }
 
   // Look at the bulk of the sparse points from just behind the reference
