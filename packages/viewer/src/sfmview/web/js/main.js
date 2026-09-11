@@ -171,6 +171,13 @@ canvas.addEventListener('pointerup', (e) => {
 });
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && view.looking()) closePhoto();
+  // Step through the timeline, as a sequencer's arrows do.
+  const move = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+  if (move && session.steps.length && !(e.target instanceof HTMLInputElement)) {
+    session.index = Math.min(Math.max(session.index + move, 0), session.steps.length - 1);
+    drawStep();
+    e.preventDefault();
+  }
 });
 
 // The run list again, and the open run's results if its files changed.

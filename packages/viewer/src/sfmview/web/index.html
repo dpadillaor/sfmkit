@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>sfmview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
     {
@@ -16,43 +19,48 @@
 </head>
 <body>
   <aside id="sidebar">
-    <header>
-      <h1>sfmview</h1>
-      <p class="muted">Structure from Motion runs, in 3D</p>
+    <header class="brand">
+      <span class="wordmark">SFMVIEW</span>
+      <span class="tagline">structure from motion</span>
     </header>
-    <section>
-      <h2>Runs</h2>
-      <ul id="runs" class="runs"></ul>
-    </section>
-    <section>
-      <h2>Layers</h2>
-      <ul id="layers" class="layers"></ul>
-    </section>
-    <section>
-      <h2>Cameras</h2>
-      <p class="muted small">look through one: click it here or in the view</p>
-      <ul id="cameras" class="cameras"></ul>
-    </section>
-    <section>
-      <h2>Run</h2>
+    <details class="panel" open>
+      <summary><span class="num">01</span>Runs</summary>
+      <ul id="runs" class="rows runs"></ul>
+    </details>
+    <details class="panel" open>
+      <summary><span class="num">02</span>Layers</summary>
+      <ul id="layers" class="rows layers"></ul>
+    </details>
+    <details class="panel" open>
+      <summary><span class="num">03</span>Cameras</summary>
+      <ul id="cameras" class="rows cameras"></ul>
+    </details>
+    <details class="panel" open>
+      <summary><span class="num">04</span>Run</summary>
       <dl id="info" class="info"></dl>
-    </section>
+    </details>
   </aside>
   <main id="stage">
     <canvas id="view"></canvas>
-    <div id="status" class="status" hidden></div>
-    <div id="photo-bar" class="photo-bar" hidden>
+    <div id="photo-bar" class="overlay photo-bar" hidden>
       <span id="photo-name" class="photo-name"></span>
-      <label class="muted">photo <input id="photo-opacity" type="range" min="0" max="1" step="0.05"></label>
-      <button id="photo-back" type="button">back to the camera</button>
-      <button id="photo-close" type="button" title="close (Esc)">✕</button>
+      <label class="field">opacity <input id="photo-opacity" type="range" min="0" max="1" step="0.05"></label>
+      <button id="photo-back" type="button" class="key">back to camera</button>
+      <button id="photo-close" type="button" class="key" title="close (Esc)">esc</button>
     </div>
-    <div id="timeline" class="timeline" hidden>
-      <span id="live-badge" class="live-badge" hidden>live</span>
-      <input id="scrub" type="range" min="0" max="0" value="0" aria-label="step">
+    <div id="timeline" class="overlay timeline" hidden>
+      <span id="live-badge" class="live" hidden>live</span>
+      <span id="step-count" class="step-count"></span>
+      <div id="steps" class="steps" role="group" aria-label="steps"></div>
       <span id="step-label" class="step-label"></span>
     </div>
-    <p class="hint muted">drag to orbit · right-drag to pan · scroll to zoom · click a camera to look through it</p>
+    <footer class="statusbar">
+      <span id="status" class="status"></span>
+      <span class="hints">
+        <kbd>drag</kbd> orbit <kbd>right-drag</kbd> pan <kbd>wheel</kbd> zoom
+        <kbd>click</kbd> camera: look through <kbd>←</kbd><kbd>→</kbd> step
+      </span>
+    </footer>
   </main>
   <script type="module" src="js/main.js"></script>
 </body>

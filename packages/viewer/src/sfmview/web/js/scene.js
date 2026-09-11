@@ -5,24 +5,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 import { cameraCentre, frustumDepth, frustumSegments, robustSphere } from './geometry.js';
+import { colours, PALETTE, SIGNAL } from './palette.js';
 import { PhotoView } from './pov.js';
 
 // sfmkit and COLMAP use OpenCV's axes (x right, y down, z forward); three.js has
 // y up and cameras looking down -z. This is the one place that converts.
 const OPENCV_TO_THREE = new THREE.Matrix4().makeScale(1, -1, -1);
 
-// Each model in its colour; its placement of the old photo in a tint apart.
-export const PALETTE = {
-  sfmkit: { main: '#ff9a3c', query: '#ff4f8b' },
-  colmap: { main: '#4db3ff', query: '#b18cff' },
-  other: { main: '#cccccc', query: '#ffffff' },
-};
-
-const LABELS = { sfmkit: 'sfmkit', colmap: 'COLMAP' };
-
 // The reconstruction as it stood at a step of a live run, and the camera that
-// step added.
-const LIVE = { main: '#ffd166', added: '#ffffff' };
+// step added, in the signal colour.
+const LIVE = { main: PALETTE.live.main, added: SIGNAL };
 
 const IDENTITY = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
 
@@ -50,7 +42,7 @@ export class SceneView {
     this.#onLeave = onLeave;
     this.#renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.#renderer.setPixelRatio(window.devicePixelRatio);
-    this.#scene.background = new THREE.Color('#0f1115');
+    this.#scene.background = new THREE.Color('#161616');
     this.#world.matrixAutoUpdate = false;
     this.#world.matrix.copy(OPENCV_TO_THREE);
     this.#scene.add(this.#world);
@@ -139,8 +131,7 @@ export class SceneView {
     for (const model of scene.models) {
       this.#frames.set(model.source, model.to_common);
       const frame = this.#frame(model.to_common);
-      const { main, query } = PALETTE[model.source] ?? PALETTE.other;
-      const label = LABELS[model.source] ?? model.source;
+      const { main, query, label } = colours(model.source);
       const reconstructed = model.cameras.filter((c) => !c.query);
       const placed = model.cameras.filter((c) => c.query);
       const depth = frustumDepth(reconstructed);
