@@ -144,17 +144,10 @@ Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
 set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
-- [ ] **Docker, the user's lesson**, what is left. Done: the viewer's
-  Dockerfile (`SFMVIEW_HOST=0.0.0.0`), the services `viewer` (ports, read-only
-  mounts, SSH tunnel) and `redis` (no ports, found by name), the broker URLs in
-  `environment`, `depends_on` with healthchecks (only the viewer depends on
-  Redis: the live view needs a viewer to be seen, and sfmkit alone should not
-  start a Redis nobody asked for), and a service killed mid-run (sfmkit carries
-  on; the viewer retries every 2 s; the heartbeat came of it). Left: stop the
-  dev Redis (`sfmview-dev-redis`) and the dev viewer on 8765; rewrite the live
-  section of `docs/viewer.md` for compose. Put off: a named volume for Redis,
-  since `docker compose down` loses the streams kept in its anonymous one;
-  small loss for now, 240 KB a run (see "Streams never expire").
+- [ ] **A named volume for Redis** (`redis-data:/data`), as `docker compose
+  down` loses the streams kept in its anonymous one and so every finished run's
+  timeline. Put off: a small loss for now, 240 KB a run (see "Streams never
+  expire").
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
   points and tracks; COLMAP's model has colours, ours none. The viewer draws
   each sparse model in one colour anyway, to tell them apart, but a "true

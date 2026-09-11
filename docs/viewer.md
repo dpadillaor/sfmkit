@@ -44,13 +44,22 @@ container (the image has Python, not curl); in a container, set the port with
 ### Live progress
 
 sfmkit publishes its steps when `SFMKIT_BROKER` names a Redis server, and the
-viewer reads them when `--broker` names the same one:
+viewer reads them when `--broker` names the same one. Compose sets both to its
+`redis` service, so from the root:
 
 ```bash
-docker run -d --rm --name redis -p 127.0.0.1:6379:6379 redis:7-alpine
-sfmview --runs runs --broker redis://localhost:6379 &
-SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config configs/valencia/9cameras.yaml
+docker compose up -d viewer         # Redis first, then the viewer once Redis is healthy
+docker compose run --rm cli reconstruct --config configs/valencia/9cameras.yaml
+docker compose down                 # when done: stops both
 ```
+
+`cli-gpu` works the same. Redis publishes no port: the containers find it by
+name, `redis`, on compose's network, and nothing outside reaches it. Only the
+viewer depends on it, so `docker compose run cli` alone starts no Redis and
+publishes nothing. `down` removes Redis's container, and the next `up` starts
+it on a new, empty volume, so the streams are lost; `stop` keeps them. Without Docker, run a Redis yourself and point both at it:
+`sfmview --broker redis://localhost:6379` and
+`SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct ...`.
 
 Neither knows the other: sfmkit writes to the broker and the viewer reads from
 it. The stream keeps a run's messages, so a page opened late, or reloaded,
