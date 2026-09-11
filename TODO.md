@@ -130,8 +130,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 - [ ] **Three mounts per project** (`data/`, `configs/`, `runs/`). Easy to get one
   wrong; a project-first layout was floated, not decided.
 - [ ] **A project template**: the folder shape and a starting config.
-- [ ] **A second example run?** A CPU run of 9cameras beside the GPU one would show
-  `compare` working as soon as a newcomer opens the TUI.
 
 ## TUI
 
