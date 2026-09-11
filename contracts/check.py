@@ -11,6 +11,7 @@ joins.
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -20,7 +21,9 @@ _TYPES = {
     "array": lambda v: isinstance(v, list),
     "string": lambda v: isinstance(v, str),
     "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
-    "number": lambda v: isinstance(v, int | float) and not isinstance(v, bool),
+    # JSON has no NaN or infinity, though Python's json writes them: refuse them.
+    "number": lambda v: (isinstance(v, int | float) and not isinstance(v, bool)
+                         and math.isfinite(v)),
     "null": lambda v: v is None,
 }
 

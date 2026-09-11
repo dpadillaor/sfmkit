@@ -11,64 +11,75 @@ const view = new SceneView(document.getElementById('view'));
 let runs = [];
 let liveOn = false;
 
-// The open run: its finished scene, and the steps of its live stream.
+// The open run: its finished scene, and the steps of its live stream. Every
+// open() takes a new token; work begun for an older one drops its results.
 const session = {
-  id: null, feed: null, scene: null, loadedAt: 0,
+  token: 0, id: null, feed: null, scene: null, updated: null, connectedAt: Infinity,
   K: null, steps: [], index: -1, running: false, hidFinished: false, fitted: false,
 };
 
 const showLayers = () => ui.renderLayers(view.layers(), (id, on) => view.setVisible(id, on));
 const runOf = (id) => runs.find((r) => r.id === id);
+const say = (token, text, error = false) => {
+  if (token === session.token) ui.status(text, error);
+};
 
-async function open(id) {
+function open(id) {
   if (!runOf(id)) return;
+  const token = ++session.token;
   session.feed?.stop();
   Object.assign(session, {
-    id, feed: null, scene: null, K: null, steps: [], index: -1, running: false,
+    id, feed: null, scene: null, updated: runOf(id).updated, connectedAt: Infinity,
+    K: null, steps: [], index: -1, running: false,
   });
   ui.selectRun(id);
   ui.renderTimeline([], -1);
-  await showScene(id);
-  if (liveOn && session.id === id) {
-    session.feed = new LiveFeed(liveUrl(id), (event) => onLive(id, event)).start();
+  // The feed starts at once: the timeline need not wait for a dense cloud.
+  if (liveOn) {
+    session.feed = new LiveFeed(liveUrl(id), (event) => onLive(token, event),
+      (now) => { if (token === session.token) session.connectedAt = now; }).start();
   }
+  showScene(token);
 }
 
 // The run's finished results, if it has any yet, with its current step on top.
-async function showScene(id) {
-  ui.status(`Loading ${id}…`);
+async function showScene(token) {
+  const id = session.id;
+  say(token, `Loading ${id}…`);
   let scene = null;
   try {
     scene = await getScene(id);
   } catch (error) {
     if (error.status !== 404) {
-      ui.status(`Could not load ${id}: ${error.message}`, true);
+      say(token, `Could not load ${id}: ${error.message}`, true);
       return;
     }
   }
-  if (session.id !== id) return; // another run was opened meanwhile
-  Object.assign(session, { scene, loadedAt: Date.now(), hidFinished: false, fitted: false });
+  if (token !== session.token) return;
+  Object.assign(session, { scene, hidFinished: false, fitted: false });
   view.show(scene ?? { models: [], reference: null });
   drawStep();
   showLayers();
   ui.renderInfo(runOf(id), scene);
-  ui.status(scene ? '' : 'No results yet: waiting for the run.');
+  say(token, scene ? '' : 'No results yet: waiting for the run.');
 
   if (scene?.dense) {
     try {
       const n = await view.loadDense(scene.dense,
-        (f) => ui.status(`Loading the dense cloud… ${Math.round(100 * f)}%`));
-      if (n === null || session.id !== id) return;
+        (f) => say(token, `Loading the dense cloud… ${Math.round(100 * f)}%`));
+      if (n === null || token !== session.token) return;
       showLayers();
-      ui.status('');
+      say(token, '');
     } catch (error) {
-      ui.status(`Could not load the dense cloud: ${error.message}`, true);
+      say(token, `Could not load the dense cloud: ${error.message}`, true);
     }
   }
 }
 
-function onLive(id, { id: entry, message }) {
-  if (session.id !== id) return;
+function onLive(token, { id: entry, message }) {
+  if (token !== session.token) return;
+  // Written after the page connected: news, not history.
+  const news = writtenAt(entry) >= session.connectedAt;
   if (message.kind === 'start') {
     Object.assign(session, { K: message.K, steps: [], index: -1, running: true });
   } else if (message.kind === 'step') {
@@ -77,8 +88,10 @@ function onLive(id, { id: entry, message }) {
     if (following) session.index = session.steps.length - 1;
   } else if (message.kind === 'end') {
     session.running = false;
-    // Finished while the page watched: its files are newer than those drawn.
-    if (writtenAt(entry) > session.loadedAt) refresh();
+    if (news) refresh(); // its files are newer than those drawn
+  } else if (message.kind === 'failed') {
+    session.running = false;
+    if (news) say(token, `The run stopped: ${message.error}`, true);
   }
   scheduleDraw();
 }
@@ -115,15 +128,25 @@ function drawStep() {
   showLayers();
 }
 
+// The run list again, and the open run's results if its files changed.
 async function refresh() {
   try {
     runs = await listRuns();
   } catch {
-    return; // keep the list there is
+    return; // the server may be restarting; keep what there is
   }
   ui.renderRuns(runs, (id) => { location.hash = id; });
   ui.selectRun(session.id);
-  if (session.id) await showScene(session.id);
+  const run = runOf(session.id);
+  if (!session.id && runs.length) {
+    // The page came up before any run, or before the server: start now.
+    ui.status('');
+    liveOn = await health().then((h) => h.live, () => liveOn);
+    go(initial());
+  } else if (run && run.updated !== session.updated) {
+    session.updated = run.updated;
+    showScene(session.token);
+  }
 }
 
 // The run in the hash, or else the one with the most to draw.
@@ -135,6 +158,8 @@ function initial() {
 }
 
 async function start() {
+  window.addEventListener('hashchange', () => open(decodeURIComponent(location.hash.slice(1))));
+  setInterval(refresh, 15000); // new runs, and new results, without a reload
   try {
     [runs, { live: liveOn }] = await Promise.all([listRuns(), health()]);
   } catch (error) {
@@ -146,16 +171,11 @@ async function start() {
     return;
   }
   ui.renderRuns(runs, (id) => { location.hash = id; });
-  window.addEventListener('hashchange', () => open(decodeURIComponent(location.hash.slice(1))));
-  // New runs appear in the list without a reload.
-  setInterval(async () => {
-    try {
-      runs = await listRuns();
-      ui.renderRuns(runs, (id) => { location.hash = id; });
-      ui.selectRun(session.id);
-    } catch { /* the server may be restarting */ }
-  }, 15000);
-  const id = initial();
+  go(initial());
+}
+
+// Open a run through the hash, so the address names it.
+function go(id) {
   if (location.hash.slice(1) === id) open(id);
   else location.hash = id;
 }

@@ -34,8 +34,9 @@ def shared_frame(ours: Model, theirs: Model, reference: str,
     frame, at our scale.
 
     ``scale_image`` names the camera whose distance from the reference fixes
-    the scale; by default the one farthest from it in ``theirs``, as sfmkit's
-    evaluate picks it. With no second camera in common the scale stays 1.
+    the scale; by default, or when it is not in both, the one farthest from it
+    in ``theirs``, as sfmkit's evaluate picks it. With no second camera in
+    common the scale stays 1.
     """
     a, b = ours.camera(reference), theirs.camera(reference)
     if a is None or b is None:
@@ -44,11 +45,12 @@ def shared_frame(ours: Model, theirs: Model, reference: str,
 
     shared = [c.name for c in ours.cameras
               if not c.query and c.name != reference and theirs.camera(c.name) is not None]
+    if scale_image not in shared:
+        scale_image = None  # named, but not in both: pick as evaluate would
     if scale_image is None and shared:
         scale_image = max(shared, key=lambda n: np.linalg.norm(
             _apply(T_theirs, theirs.camera(n).center)))
-    if scale_image is None or ours.camera(scale_image) is None \
-            or theirs.camera(scale_image) is None:
+    if scale_image is None:
         return T_ours, T_theirs
 
     d_ours = np.linalg.norm(_apply(T_ours, ours.camera(scale_image).center))

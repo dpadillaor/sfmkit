@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -6,7 +7,7 @@ import pytest
 
 from sfmview.adapters.runs_fs import FsRunStore
 from sfmview.domain import RunId, RunNotFound
-from synthetic import make_run
+from synthetic import make_run, write_manifest
 
 EXAMPLES = Path(__file__).resolve().parents[3] / "examples"
 
@@ -46,6 +47,26 @@ def test_the_scene_aligns_sfmkit_onto_colmap(tmp_path):
     assert np.allclose(apply(ours.to_common, ours.points), apply(theirs.to_common, theirs.points))
     assert scene.dense_to_common is theirs.to_common
     assert ours.cameras[0].size == (640, 480)  # COLMAP's, which records it
+
+
+def test_outputs_older_than_the_reconstruction_are_left_out(tmp_path):
+    """Reconstruct ran again: localize's pose and evaluate's choices describe the
+    reconstruction before, until they run again too."""
+    t0, t1 = "2026-01-01T00:00:00+00:00", "2026-02-01T00:00:00+00:00"
+    run = make_run(tmp_path, "city", "full", timestamp=t0, query="Img00")
+    (run / "localize").mkdir()
+    np.savez(run / "localize" / "query_pose.npz", R=np.eye(3), t=np.zeros(3))
+    write_manifest(run, "localize", t0)
+    (run / "evaluate" / "evaluation.json").write_text(
+        json.dumps({"reference": "Img13", "scale_image": "Img14"}))
+    store = FsRunStore(tmp_path)
+    before = store.scene(RunId("city", "full"))
+    assert before.reference == "Img13" and before.models[0].camera("Img00") is not None
+
+    write_manifest(run, "reconstruct", t1)
+    after = store.scene(RunId("city", "full"))
+    assert after.reference == "Img02"  # the config's, not the stale evaluation's "Img13"
+    assert after.models[0].camera("Img00") is None
 
 
 def test_a_run_with_colmap_only_is_drawn(tmp_path):

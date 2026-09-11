@@ -81,7 +81,7 @@ def test_the_examples_keep_to_the_contract():
 async def test_history_first_then_what_comes(source):
     steps, publish = source
     run = a_run()
-    first, second, third = STEP_EXAMPLES
+    first, second, third = STEP_EXAMPLES[:3]
     publish(run, first)
     publish(run, second)
     events = steps.events(run)
@@ -94,11 +94,11 @@ async def test_history_first_then_what_comes(source):
 async def test_reading_resumes_after_an_id(source):
     steps, publish = source
     run = a_run()
-    for m in STEP_EXAMPLES:
+    for m in STEP_EXAMPLES[:3]:
         publish(run, m)
     first, *_ = await take(steps.events(run), 1)
     rest = await take(steps.events(run, after=first.id), 2)
-    assert [e.message for e in rest] == STEP_EXAMPLES[1:]
+    assert [e.message for e in rest] == STEP_EXAMPLES[1:3]
 
 
 @pytest.mark.anyio

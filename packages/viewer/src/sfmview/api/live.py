@@ -1,13 +1,17 @@
 """A run's live progress, over a WebSocket.
 
-The server sends ``{"id": ..., "message": {...}}``, one per message of the run's
-stream: the history first, then each new one. A client that reconnects passes
-the last id it saw as ``?after=`` and misses nothing.
+The server first sends ``{"now": <milliseconds>}``, its clock, then
+``{"id": ..., "message": {...}}``, one per message of the run's stream: the
+history first, then each new one. An id starts with the milliseconds it was
+written at, so a client can tell what happened after it connected, on one
+clock. A client that reconnects passes the last id it saw as ``?after=`` and
+misses nothing.
 """
 
 from __future__ import annotations
 
 import re
+import time
 
 import anyio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -30,6 +34,9 @@ async def live(websocket: WebSocket, project: str, config: str, after: str = "0"
         run = RunId(project, config)
     except ValueError:
         run = None
+    # Accepted before any refusal: a close before the handshake reaches a
+    # browser as a bare HTTP 403, without the code saying why.
+    await websocket.accept()
     if run is None or not _ID.fullmatch(after):
         await websocket.close(code=NOT_A_RUN)
         return
@@ -37,7 +44,7 @@ async def live(websocket: WebSocket, project: str, config: str, after: str = "0"
         await websocket.close(code=LIVE_OFF)
         return
 
-    await websocket.accept()
+    await websocket.send_json({"now": round(time.time() * 1000)})
     async with anyio.create_task_group() as tasks:
 
         async def forward() -> None:

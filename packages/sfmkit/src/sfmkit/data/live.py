@@ -1,7 +1,7 @@
 """Live progress, published to a broker for whoever is watching: the viewer.
 
 The messages follow ``contracts/step.schema.json``: a ``start``, a ``step`` after
-each camera registered or refinement, an ``end``. They go to a Redis stream,
+each camera registered or refinement, an ``end``, or ``failed``. They go to a Redis stream,
 one per run, which keeps them, so a viewer that arrives late still sees every
 step. Publishing never stops a run: when the broker cannot be reached, the
 publisher says so once and drops what follows.
@@ -53,6 +53,12 @@ def end_message(run: str, n_cameras: int, n_points: int) -> dict:
             "n_points": int(n_points)}
 
 
+def failed_message(run: str, error: BaseException) -> dict:
+    """The run stopped short: an error, or the user interrupting it."""
+    reason = f"{type(error).__name__}: {error}" if str(error) else type(error).__name__
+    return {"v": VERSION, "kind": "failed", "run": run, "error": reason}
+
+
 class Publisher(Protocol):
     def publish(self, message: dict) -> None: ...
 
@@ -88,7 +94,8 @@ class RedisPublisher:
         try:
             if message["kind"] == "start":
                 self.client.delete(self.key)
-            self.client.xadd(self.key, {"data": json.dumps(message)},
+            # allow_nan=False: a NaN would break every reader's JSON.
+            self.client.xadd(self.key, {"data": json.dumps(message, allow_nan=False)},
                              maxlen=self.maxlen, approximate=True)
         except Exception as e:  # the broker's trouble is never the run's
             self.failed = True

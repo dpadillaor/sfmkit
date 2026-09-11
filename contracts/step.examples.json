@@ -14,5 +14,6 @@
     ],
     "points": [0.1, 0.2, 5.0, -0.3, 0.1, 6.0]
   },
-  {"v": 1, "kind": "end", "run": "valencia/9cameras", "n_cameras": 2, "n_points": 2}
+  {"v": 1, "kind": "end", "run": "valencia/9cameras", "n_cameras": 2, "n_points": 2},
+  {"v": 1, "kind": "failed", "run": "valencia/9cameras", "error": "KeyboardInterrupt"}
 ]

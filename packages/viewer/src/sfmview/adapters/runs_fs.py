@@ -42,13 +42,15 @@ class FsRunStore:
             raise RunNotFound(str(run))
         config = next(iter(manifests.values())).get("config", {})
         query = (config.get("localize") or {}).get("query")
-        evaluation = _json(d / "evaluate" / "evaluation.json") or {}
+        evaluation = {}
+        if _current(manifests, "evaluate"):
+            evaluation = _json(d / "evaluate" / "evaluation.json") or {}
+        query_pose = d / "localize" / "query_pose.npz" if _current(manifests, "localize") else None
 
         theirs = read_colmap(d / "colmap", query) if _has_colmap(d) else None
         ours = None
         if (d / "reconstruct" / "reconstruction.npz").is_file():
-            ours = read_reconstruction(d / "reconstruct" / "reconstruction.npz",
-                                       d / "localize" / "query_pose.npz", query)
+            ours = read_reconstruction(d / "reconstruct" / "reconstruction.npz", query_pose, query)
             if theirs is not None:
                 ours = _sizes_from(ours, theirs)
         if ours is None and theirs is None:
@@ -98,6 +100,16 @@ def _manifests(run_dir: Path) -> dict[str, dict]:
         if m is not None:
             out[m.get("stage", path.parent.name)] = m
     return out
+
+
+def _current(manifests: dict[str, dict], stage: str) -> bool:
+    """Whether ``stage`` ran on the reconstruction there is now.
+
+    localize and evaluate work on a reconstruction: after reconstruct runs
+    again, and until they do, their outputs describe the one before.
+    """
+    built = manifests.get("reconstruct", {}).get("timestamp", "")
+    return stage in manifests and manifests[stage].get("timestamp", "") >= built
 
 
 def _json(path: Path) -> dict | None:

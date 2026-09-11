@@ -32,7 +32,9 @@ def test_our_messages_keep_to_the_contract(snapshot):
     K = np.array([[3544.0, 0, 2016], [0, 3544, 1134], [0, 0, 1]])
     for message in (live.start_message(RUN, K, ["Img02", "Img12"]),
                     live.step_message(RUN, snapshot),
-                    live.end_message(RUN, 2, 2)):
+                    live.end_message(RUN, 2, 2),
+                    live.failed_message(RUN, KeyboardInterrupt()),
+                    live.failed_message(RUN, RuntimeError("could not estimate F"))):
         assert step_errors(message) == [], message["kind"]
 
 
@@ -44,13 +46,26 @@ def test_a_step_carries_the_model_as_it_stood(snapshot):
     assert m["cameras"][1]["t"] == [-1.0, 0.0, 0.0]
 
 
+def test_a_failure_says_why():
+    assert live.failed_message(RUN, KeyboardInterrupt())["error"] == "KeyboardInterrupt"
+    assert live.failed_message(RUN, RuntimeError("no F"))["error"] == "RuntimeError: no F"
+
+
 def test_the_contract_catches_what_is_wrong(snapshot):
     m = live.step_message(RUN, snapshot)
+    assert step_errors({**m, "bundle_seconds": float("nan")})  # JSON has no NaN
     assert step_errors({**m, "v": 2})
     assert step_errors({k: v for k, v in m.items() if k != "points"})
     assert step_errors({**m, "extra": 1})
     bad = {**m, "cameras": [{"name": "Img02", "R": [[1, 0], [0, 1]], "t": [0, 0, 0]}]}
     assert step_errors(bad)
+
+
+def test_a_message_that_is_not_json_is_refused_not_sent(snapshot):
+    client, errors = FakeRedis(), []
+    publisher = live.RedisPublisher(client, RUN, on_error=errors.append)
+    publisher.publish({**live.step_message(RUN, snapshot), "bundle_seconds": float("nan")})
+    assert client.calls == [] and isinstance(errors[0], ValueError)
 
 
 class FakeRedis:

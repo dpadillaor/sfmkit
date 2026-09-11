@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "sfmkit/step/v1",
   "title": "A live message from sfmkit's reconstruct stage",
-  "description": "Published by sfmkit to a Redis stream, key 'sfmkit:steps:<project>/<config>', field 'data', one message per entry; read by sfmview. 'start' opens a run (the stream is emptied first), a 'step' follows each camera registered and each global refinement, 'end' closes it. Poses are world to camera, x_cam = R X + t, OpenCV axes: x right, y down, z forward. Arrays of points are flat, x0 y0 z0 x1 ..., finite only; a number that is not finite is null.",
+  "description": "Published by sfmkit to a Redis stream, key 'sfmkit:steps:<project>/<config>', field 'data', one message per entry; read by sfmview. 'start' opens a run (the stream is emptied first), a 'step' follows each camera registered and each global refinement, 'end' closes it, or 'failed' when it stops short. Poses are world to camera, x_cam = R X + t, OpenCV axes: x right, y down, z forward. Arrays of points are flat, x0 y0 z0 x1 ..., finite only; every number is finite, one that is not is sent as null where the schema allows it.",
   "oneOf": [
     {
       "type": "object",
@@ -58,6 +58,17 @@
         "run": {"type": "string"},
         "n_cameras": {"type": "integer"},
         "n_points": {"type": "integer"}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["v", "kind", "run", "error"],
+      "properties": {
+        "v": {"const": 1},
+        "kind": {"const": "failed"},
+        "run": {"type": "string"},
+        "error": {"type": "string", "description": "why the run stopped, interrupted included"}
       }
     }
   ],

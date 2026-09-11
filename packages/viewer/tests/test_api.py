@@ -111,11 +111,12 @@ def test_the_api_over_real_files(tmp_path):
 def test_live_steps_come_as_history_then_as_they_happen():
     steps = MemoryStepSource()
     run = RunId("city", "full")
-    first, second, third = STEP_EXAMPLES
+    first, second, third = STEP_EXAMPLES[:3]
     steps.publish(run, first)
     steps.publish(run, second)
     client = TestClient(create_app(MemoryStore(), steps))
     with client.websocket_connect("/api/runs/city/full/live") as ws:
+        assert isinstance(ws.receive_json()["now"], int)  # the server's clock first
         assert ws.receive_json() == {"id": "1-0", "message": first}
         assert ws.receive_json() == {"id": "2-0", "message": second}
         steps.publish(run, third)
@@ -124,10 +125,11 @@ def test_live_steps_come_as_history_then_as_they_happen():
 
 def test_live_steps_resume_after_the_last_seen():
     steps = MemoryStepSource()
-    for message in STEP_EXAMPLES:
+    for message in STEP_EXAMPLES[:3]:
         steps.publish(RunId("city", "full"), message)
     client = TestClient(create_app(MemoryStore(), steps))
     with client.websocket_connect("/api/runs/city/full/live?after=2-0") as ws:
+        ws.receive_json()
         assert ws.receive_json()["id"] == "3-0"
 
 

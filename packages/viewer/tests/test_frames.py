@@ -48,6 +48,13 @@ def test_any_shared_camera_can_fix_the_scale(pair):
         assert np.allclose(apply(T_ours, ours.points), apply(T_theirs, theirs.points))
 
 
+def test_a_scale_image_missing_from_a_model_falls_back_to_the_default(pair):
+    """As when evaluate's output names a camera the new reconstruction lacks."""
+    ours, theirs = pair
+    T_ours, T_theirs = shared_frame(ours, theirs, "Img02", scale_image="Img99")
+    assert np.allclose(apply(T_ours, ours.points), apply(T_theirs, theirs.points))
+
+
 def test_the_query_does_not_fix_the_scale():
     cameras, points = world()
     ours = model("sfmkit", cameras[:1] + [("Img00", *cameras[1][1:])], points, query="Img00")

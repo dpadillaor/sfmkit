@@ -86,27 +86,29 @@ def write_manifest(run_dir, stage: str, timestamp: str, config: dict | None = No
 
 def make_run(root, project: str = "city", config: str = "full", *, sfmkit: bool = True,
              colmap: bool = True, dense: bool = False, evaluate: bool = True,
-             timestamp: str = "2026-09-10T10:00:00+00:00", s: float = 0.5):
+             timestamp: str = "2026-09-10T10:00:00+00:00", s: float = 0.5,
+             query: str | None = None):
     """A run with sfmkit's model a similarity away from COLMAP's; its directory."""
     run = Path(root) / project / config
+    settings = {"sfm": {"reference": NAMES[0]}, "localize": {"query": query}}
     theirs, points = world()
     ours, our_points = moved(theirs, points, s, rotation([1, 2, 3], 30), np.array([1.0, -2, 3]))
-    write_manifest(run, "calibrate", timestamp)
+    write_manifest(run, "calibrate", timestamp, settings)
     if sfmkit:
         write_reconstruction(run / "reconstruct" / "reconstruction.npz", ours, our_points)
-        write_manifest(run, "reconstruct", timestamp)
+        write_manifest(run, "reconstruct", timestamp, settings)
     if colmap:
         write_colmap(run / "colmap", theirs, points)
-        write_manifest(run, "colmap", timestamp)
+        write_manifest(run, "colmap", timestamp, settings)
     if dense:
         (run / "dense").mkdir(parents=True)
         (run / "dense" / "fused.ply").write_bytes(b"ply\nformat binary_little_endian 1.0\n")
-        write_manifest(run, "dense", timestamp)
+        write_manifest(run, "dense", timestamp, settings)
     if evaluate and sfmkit and colmap:
         (run / "evaluate").mkdir(parents=True, exist_ok=True)
         (run / "evaluate" / "evaluation.json").write_text(json.dumps(
             {"reference": NAMES[0], "scale_image": NAMES[-1], "scale": s}))
-        write_manifest(run, "evaluate", timestamp, mean_rotation_error_deg=0.5,
+        write_manifest(run, "evaluate", timestamp, settings, mean_rotation_error_deg=0.5,
                        max_rotation_error_deg=1.0, n_cameras=len(NAMES),
                        query_rotation_error_deg=None)
     return run

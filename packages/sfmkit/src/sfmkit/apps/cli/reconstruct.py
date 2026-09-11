@@ -14,7 +14,7 @@ from sfmkit.data.config import load_config
 
 def cmd_reconstruct(args) -> int:
     """Build tracks and run incremental SfM with bundle adjustment."""
-    from sfmkit.core.reconstruct import ReconstructionConfig, reconstruct
+    from sfmkit.core.reconstruct import ReconstructionConfig
     from sfmkit.core.tracks import build_tracks, track_statistics
 
     cfg = load_config(args.config)
@@ -50,7 +50,8 @@ def cmd_reconstruct(args) -> int:
 
     # Each step can take tens of seconds, so it is shown as soon as it is done,
     # here and, when a broker is configured, to whoever watches the run.
-    run_name = f"{cfg.dataset}/{cfg.name}"
+    # Named as the viewer names runs: the run directory's parent and its own name.
+    run_name = f"{run.parent.name}/{run.name}"
     broker = live.publisher(run_name, on_error=lambda e: console.print(
         f"[yellow]live progress off:[/yellow] the broker in ${live.BROKER_ENV} is unreachable "
         f"({type(e).__name__}); the run goes on"))
@@ -71,7 +72,7 @@ def cmd_reconstruct(args) -> int:
                 working.update(text=f"{r.n_registered} cameras in; next step running "
                                     "(bundle adjustment takes tens of seconds)")
 
-            result = reconstruct(matches, K, tracks, options, on_step=on_step)
+            result = _reconstruct(broker, run_name, matches, K, tracks, options, on_step)
             display.update(table)
     else:  # piped, as in the TUI's run tab: a line per step, then the table
         def on_step(snapshot):
@@ -80,7 +81,7 @@ def cmd_reconstruct(args) -> int:
             console.print(f"step {r.step}: {r.image}, {r.n_registered} cameras, {r.n_points} "
                           f"points, rmse {r.rmse_after:.3f}, BA {r.bundle_seconds:.1f} s")
 
-        result = reconstruct(matches, K, tracks, options, on_step=on_step)
+        result = _reconstruct(broker, run_name, matches, K, tracks, options, on_step)
         for r in result.reports:
             _add_row(table, r)
         console.print(table)
@@ -104,6 +105,17 @@ def cmd_reconstruct(args) -> int:
     console.print(f"[green]registered[/green] {len(result.reconstruction.poses)} cameras, "
                   f"{result.reconstruction.n_points} points")
     return 0
+
+
+def _reconstruct(broker, run_name, *args):
+    """``reconstruct``, telling whoever watches when it stops short."""
+    from sfmkit.core.reconstruct import reconstruct
+
+    try:
+        return reconstruct(*args)
+    except BaseException as e:  # Ctrl-C included: a watcher would wait forever
+        broker.publish(live.failed_message(run_name, e))
+        raise
 
 
 def _add_row(table: Table, r) -> None:

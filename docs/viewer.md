@@ -66,7 +66,10 @@ Live steps are the other half: a Redis stream per run,
 field. [`contracts/step.schema.json`](../contracts/step.schema.json) defines
 them: a `start` (the run's K and images; the stream is emptied first), a `step`
 after each camera registered and each global refinement (the cameras and the
-triangulated points as they stood, flat), and an `end`. Both packages test
+triangulated points as they stood, flat), and an `end`, or `failed` with the
+reason when the run stops short, Ctrl-C included. The stream is named after the
+run's directory, as the viewer names runs, so `--out` does not write into
+another run's stream. Both packages test
 against the schema and its examples, with the checker in `contracts/check.py`,
 so a change on one side breaks a test on the other, not a run.
 
@@ -90,11 +93,19 @@ one place (`web/js/scene.js`).
 | `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics |
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
-| `WS /api/runs/{project}/{config}/live?after=<id>` | the run's stream: `{"id", "message"}`, history first, then as it comes |
+| `WS /api/runs/{project}/{config}/live?after=<id>` | `{"now"}`, the server's clock, then the run's stream as `{"id", "message"}`: history first, then as it comes |
 | `GET /docs` | the API, from FastAPI |
 
 Names are checked as single path components, and a run directory must lie
-inside the runs root, symlinks included.
+inside the runs root, symlinks included. A refused WebSocket is accepted and
+then closed with a code (4404 not a run, 4503 live progress off), as a refusal
+before the handshake reaches a browser as a bare HTTP 403.
+
+A stream id starts with the milliseconds Redis wrote it at; with the server's
+clock from the first frame, the page tells what happened after it connected
+(an `end` that means new files) from history (an `end` it only replays),
+without trusting the browser's clock. localize's and evaluate's outputs older
+than the reconstruction are ignored: they describe the one before.
 
 ## Inside
 
