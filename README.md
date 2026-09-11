@@ -31,7 +31,7 @@ order.
 | `match` | Finds distinctive points in each photo and pairs them up between photos. Runs on a GPU if there is one, about 10× faster; `sfm.device` in the config chooses | 91 photo pairs |
 | `verify` | Throws away pairings that do not fit the geometry of two views | `Img02`–`Img13`: 597 of 769 kept |
 | `reconstruct` | Builds the 3D model: starts from two photos and adds the rest one at a time | 14 cameras, 2850 points |
-| `localize` | Places the old photo in the model | located to within 1.9 px |
+| `localize` | Places the old photo in the model | located to within 2 px |
 | `colmap` | Gets COLMAP's model of the same photos, to compare against | 14 cameras and the old photo |
 | `dense` | Optional, needs an NVIDIA GPU: a dense point cloud of the scene from COLMAP's model | 219 202 points |
 | `evaluate` | Measures how far each camera is from COLMAP's | 0.35° mean error |

@@ -1,8 +1,8 @@
 {
   "stage": "localize",
   "config_path": "configs/valencia/cpu.yaml",
-  "timestamp": "2026-09-11T22:15:38.805352+00:00",
-  "git_commit": "cd71762277ee854ced01f6b616477b5b18914793",
+  "timestamp": "2026-09-11T23:15:18.158034+00:00",
+  "git_commit": "75e5adbf6940cf3f1d90a4221d90df926f2f27f9",
   "config": {
     "dataset": "valencia",
     "name": "cpu",
@@ -52,7 +52,8 @@
       "bundle_solver": "schur"
     },
     "localize": {
-      "query": "Img00"
+      "query": "Img00",
+      "refine": "camera"
     },
     "colmap": {
       "precomputed": "",
@@ -73,6 +74,7 @@
   },
   "query": "Img00",
   "trials": 20,
-  "rmse_median": 14.082991692135138,
-  "centre_spread": 0.23499538884410587
+  "refine": "camera",
+  "rmse_median": 1.9896059092464813,
+  "centre_spread": 0.030883137670070615
 }

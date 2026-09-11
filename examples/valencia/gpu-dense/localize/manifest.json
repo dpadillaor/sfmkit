@@ -1,8 +1,8 @@
 {
   "stage": "localize",
   "config_path": "configs/valencia/gpu-dense.yaml",
-  "timestamp": "2026-09-11T22:42:25.229023+00:00",
-  "git_commit": "f72fde49f8a393659ec0e79b28bb2eff5b02c421",
+  "timestamp": "2026-09-11T23:15:38.746196+00:00",
+  "git_commit": "75e5adbf6940cf3f1d90a4221d90df926f2f27f9",
   "config": {
     "dataset": "valencia",
     "name": "gpu-dense",
@@ -52,7 +52,8 @@
       "bundle_solver": "schur"
     },
     "localize": {
-      "query": "Img00"
+      "query": "Img00",
+      "refine": "camera"
     },
     "colmap": {
       "precomputed": "",
@@ -73,6 +74,7 @@
   },
   "query": "Img00",
   "trials": 20,
-  "rmse_median": 13.890431233818916,
-  "centre_spread": 0.22498918720887431
+  "refine": "camera",
+  "rmse_median": 1.9808819166380012,
+  "centre_spread": 0.03012654423485212
 }
