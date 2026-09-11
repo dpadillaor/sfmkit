@@ -1,5 +1,5 @@
 # Developer shortcuts. The pipeline itself lives in the CLI: `sfmkit run`.
-CONFIG ?= configs/valencia/9cameras.yaml
+CONFIG ?= configs/valencia/cpu.yaml
 DEVICE ?= cpu
 # The package that test, lint and check work on, in its own environment.
 PKG    ?= sfmkit

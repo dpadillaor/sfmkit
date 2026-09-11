@@ -1,6 +1,7 @@
-# 9cameras, scored against COLMAP run from scratch on the same nine photos: its
-# own features and matching, so an independent reference. Paths are relative to
-# data/valencia/.
+# The whole pipeline on the CPU alone, so any machine reproduces it: the saved
+# example. Scored against COLMAP run from scratch on the same photos, its own
+# features and matching: a reference that shares nothing with sfmkit but the
+# photos. No dense cloud: it needs CUDA. Paths are relative to data/valencia/.
 dataset: valencia
 seed: 0
 
@@ -13,7 +14,7 @@ sfm:
   reference: Img02
   exhaustive: true          # every pair, not just those touching the reference
   max_keypoints: 2048
-  device: auto              # auto | cpu | cuda: CPU and GPU give slightly different matches
+  device: cpu               # auto | cpu | cuda: CPU and GPU give slightly different matches
   ransac_threshold: 4.0
   ransac_iterations: 1000
   min_inliers: 20
@@ -31,4 +32,3 @@ colmap:
 
 dense:
   enabled: false    # COLMAP's dense point cloud of the scene; needs CUDA
-  max_image_size: 2000

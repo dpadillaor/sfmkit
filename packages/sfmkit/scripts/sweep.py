@@ -19,8 +19,8 @@ from sfmkit.data import io
 from sfmkit.data.colmap import read_model
 from sfmkit.data.config import load_config
 
-cfg = load_config("configs/valencia/9cameras.yaml")
-run = Path("runs/valencia/9cameras")
+cfg = load_config("configs/valencia/cpu.yaml")
+run = Path("runs/valencia/cpu")
 files = sorted((run / "verify").glob("*.npz"))
 matches = [io.load_matches(f) for f in files]
 matches = [m for m in matches if cfg.localize.query not in (m.image0, m.image1)]

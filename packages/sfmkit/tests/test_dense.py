@@ -21,7 +21,7 @@ class _Args:
 
 
 def _config(tmp_path, enabled: bool) -> Path:
-    body = (REPO / "configs" / "valencia" / "9cameras.yaml").read_text()
+    body = (REPO / "configs" / "valencia" / "cpu.yaml").read_text().split("\ndense:")[0]
     path = tmp_path / "exp.yaml"
     path.write_text(body + f"\ndense:\n  enabled: {str(enabled).lower()}\n")
     return path

@@ -7,7 +7,7 @@ it. It is its own package, `packages/viewer/`, with its own dependencies and
 image, and it does not import sfmkit: the two share files and a message
 format, described below, and nothing else.
 
-![The viewer on valencia/9cameras-dense](figures/viewer.png)
+![The viewer on Valencia, with the dense cloud](figures/viewer.png)
 
 ## Running it
 
@@ -49,7 +49,7 @@ viewer reads them when `--broker` names the same one. Compose sets both to its
 
 ```bash
 docker compose up -d viewer         # Redis first, then the viewer once Redis is healthy
-docker compose run --rm cli reconstruct --config configs/valencia/9cameras.yaml
+docker compose run --rm cli reconstruct --config configs/valencia/cpu.yaml
 docker compose down                 # when done: stops both
 ```
 

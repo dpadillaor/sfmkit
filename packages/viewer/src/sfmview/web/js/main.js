@@ -1,6 +1,6 @@
 // Wires the page: the API's runs into the sidebar, the chosen run into the view,
 // and its live progress, if the server has a broker, into the timeline.
-// The URL's hash names the run (#valencia/9cameras), so a view can be linked.
+// The URL's hash names the run (#valencia/cpu), so a view can be linked.
 
 import { getScene, health, listRuns, liveUrl } from './api.js';
 import { LiveFeed, writtenAt } from './live.js';

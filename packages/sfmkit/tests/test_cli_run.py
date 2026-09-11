@@ -6,7 +6,7 @@ import pytest
 
 from sfmkit.apps.cli.run import STAGES, cmd_run
 
-CONFIG = Path(__file__).resolve().parents[3] / "configs" / "valencia" / "9cameras.yaml"
+CONFIG = Path(__file__).resolve().parents[3] / "configs" / "valencia" / "cpu.yaml"
 
 
 class _Args:

@@ -122,7 +122,7 @@ class CompareView(DataTable):
             if n_runs < 2:
                 self.add_row("", "", "")
                 self.add_row(f"[yellow]only {n_runs} run available[/]",
-                             "sfmkit run --config configs/valencia/star.yaml", "")
+                             "sfmkit run --config configs/valencia/gpu-dense.yaml", "")
             return
         self.add_row("[bold]run[/]", f"[bold]{a.name}[/]", f"[bold]{b.name}[/]")
         for field, va, vb in compare(a, b):

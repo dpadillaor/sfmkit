@@ -1,6 +1,8 @@
-# Everything, for a machine with an NVIDIA GPU: 9cameras against an independent
-# COLMAP, and COLMAP's dense point cloud of the scene. Paths are relative to
-# data/valencia/.
+# The whole pipeline on a machine with an NVIDIA GPU: matching and COLMAP on
+# the GPU, and COLMAP's dense point cloud of the scene. Scored against COLMAP
+# run from scratch on the same photos, its own features and matching: a
+# reference that shares nothing with sfmkit but the photos. Paths are relative
+# to data/valencia/.
 dataset: valencia
 seed: 0
 
@@ -13,7 +15,7 @@ sfm:
   reference: Img02
   exhaustive: true          # every pair, not just those touching the reference
   max_keypoints: 2048
-  device: auto              # auto | cpu | cuda: CPU and GPU give slightly different matches
+  device: cuda              # auto | cpu | cuda: CPU and GPU give slightly different matches
   ransac_threshold: 4.0
   ransac_iterations: 1000
   min_inliers: 20
