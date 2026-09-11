@@ -15,10 +15,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   Img11 and Img17-Img20, named by capture time. Seven more of that session, at
   64 MP (9248x5204, 5.9 mm, 27 mm equivalent: another of the phone's cameras,
   f ~7214 px), and one more zoomed 1.17x, were left out: they need a K each.
-- [ ] **A K a camera**, for photos of several settings: per-image K from each
-  photo's EXIF (zoom, lens) through reconstruct, the bundle (K fixed per
-  camera), localize and evaluate; COLMAP with a camera a setting rather than
-  `CameraMode.SINGLE`. It would take back Img28 and the 64 MP photos.
 - [ ] **Check the K with a chessboard.** K comes from the photos' EXIF
   (SM-G996B, 26 mm equivalent: f = 3029 px, principal point at the centre),
   and COLMAP's self-calibration (~3020) agrees. The course's chessboard K,
@@ -26,13 +22,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `calibrate` still takes chessboard photos (tested on synthetic boards) or a
   K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
   `data/valencia/calibration/` would check the EXIF K.
-- [ ] **Independent reference: 0.323°.** The course's COLMAP model was fed the
-  course's own matches, so a score against it is not independent.
-  `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
-  and matching) scores the reconstruction at **0.323° mean, 1.808° max** (EXIF K,
-  Schur solver; 1.041° with the chessboard K and scipy's), against 0.379° for
-  the course's model. COLMAP varies between runs, but negligibly on the scene's
-  cameras (±0.002° on that mean, measured over 3 runs). Say it in the README.
+- [ ] **Say in the README what the error is measured against.** Both configs
+  score the reconstruction against COLMAP run from scratch on the same photos,
+  its own features and matching: the two share the photographs and nothing
+  else, which is what makes 0.35° (cpu) and 0.29° (gpu-dense) worth quoting.
+  Scored instead against the course's model, which was fed matches like ours,
+  the same reconstruction read 0.379°. COLMAP varies between runs, but
+  negligibly on the scene's cameras (±0.002°, over 3 runs); its placement of
+  the old photo does not (see below).
 - [ ] **COLMAP's placement of the old photo is unstable between runs**: the query
   error of the same config against a fresh COLMAP was 1.20°, then 0.97°
   (`9cameras-colmap`) and 3.84° (`9cameras-dense`, the same sparse settings),
@@ -225,6 +222,13 @@ the contract, the API and the architecture.
 - [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
   the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
   httpx2 is stable, and drop the filter.
+- [ ] **A K a camera: weighed and set aside** (2026-09-12). Photos of another
+  setting (Img28, zoomed 1.17x; the seven 64 MP ones, another of the phone's
+  cameras) would need their own K through reconstruct, the bundle, localize and
+  evaluate, and COLMAP with a camera a setting rather than `CameraMode.SINGLE`.
+  One camera for the lot is the honest model of this dataset: `calibrate`
+  refuses photos whose settings differ, so the mistake cannot come back
+  quietly.
 - [ ] Alternatives weighed and set aside: sfmkit POSTing straight to the viewer
   (simpler, but sfmkit must know the viewer and loses steps when it is not up);
   a `progress.jsonl` the viewer tails (the TensorBoard way, simplest of all, but
