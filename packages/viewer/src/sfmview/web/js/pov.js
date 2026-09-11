@@ -8,7 +8,18 @@
 
 import * as THREE from 'three';
 
-import { cameraAxes, imageCorners, imageFrustum } from './geometry.js';
+import { cameraAxes, imageCorners, imageFrustum, intrinsics } from './geometry.js';
+
+// The photo's texture coordinates at its corners, top left first, clockwise,
+// for each EXIF orientation a browser turns a photo by to show it (a mirrored
+// one is drawn as it comes). The camera saw the pixels as stored: these turn
+// them back.
+const UNTURN = {
+  1: [0, 1, 1, 1, 1, 0, 0, 0],
+  3: [1, 0, 0, 0, 0, 1, 1, 1],
+  6: [1, 1, 1, 0, 0, 0, 0, 1], // held upright: stored turned a quarter anticlockwise
+  8: [0, 0, 0, 1, 1, 1, 1, 0],
+};
 
 export class PhotoView {
   #camera;
@@ -37,8 +48,10 @@ export class PhotoView {
     if (!url) return false;
     const load = ++this.#loads;
     let texture;
+    let orientation;
     try {
-      texture = await new THREE.TextureLoader().loadAsync(url);
+      [texture, orientation] = await Promise.all([
+        new THREE.TextureLoader().loadAsync(url), orientationOf(url)]);
     } catch {
       return false;
     }
@@ -47,7 +60,12 @@ export class PhotoView {
       return true;
     }
     texture.colorSpace = THREE.SRGBColorSpace;
-    this.#photo = photoMesh(shot.camera, shot.depth, texture, this.#opacity);
+    // A quarter turn shows in the photo's shape: taken as turned only if it did.
+    const { w, h } = intrinsics(shot.camera);
+    const { width, height } = texture.image;
+    if ((orientation === 6 || orientation === 8) && (width > height) === (w > h)) orientation = 1;
+    this.#photo = photoMesh(shot.camera, shot.depth, texture, this.#opacity,
+      UNTURN[orientation] ?? UNTURN[1]);
     shot.frame.add(this.#photo);
     return true;
   }
@@ -126,11 +144,45 @@ export class PhotoView {
 
 // The photo stretched over the image's rectangle at ``depth``: seen from the
 // camera, it covers the view exactly.
-function photoMesh(camera, depth, texture, opacity) {
+// A JPEG's EXIF orientation, 1 to 8, from the first bytes of the file at
+// ``url``; 1 when it has none, or they cannot be read.
+async function orientationOf(url) {
+  try {
+    const response = await fetch(url, { headers: { Range: 'bytes=0-131071' } });
+    return exifOrientation(await response.arrayBuffer());
+  } catch {
+    return 1;
+  }
+}
+
+// The orientation tag (0x0112) of a JPEG's EXIF, from its bytes; 1 if absent.
+export function exifOrientation(buffer) {
+  const v = new DataView(buffer);
+  if (v.byteLength < 4 || v.getUint16(0) !== 0xffd8) return 1;
+  for (let o = 2; o + 10 <= v.byteLength;) {
+    const marker = v.getUint16(o);
+    if ((marker & 0xff00) !== 0xff00) return 1;
+    if (marker === 0xffe1 && v.getUint32(o + 4) === 0x45786966) { // APP1, "Exif"
+      const tiff = o + 10;
+      const little = v.getUint16(tiff) === 0x4949;
+      const ifd = tiff + v.getUint32(tiff + 4, little);
+      const n = ifd + 2 <= v.byteLength ? v.getUint16(ifd, little) : 0;
+      for (let i = 0; i < n && ifd + 14 + 12 * i <= v.byteLength; i += 1) {
+        const entry = ifd + 2 + 12 * i;
+        if (v.getUint16(entry, little) === 0x0112) return v.getUint16(entry + 8, little);
+      }
+      return 1;
+    }
+    o += 2 + v.getUint16(o + 2);
+  }
+  return 1;
+}
+
+function photoMesh(camera, depth, texture, opacity, uv) {
   const [a, b, c, d] = imageCorners(camera, depth);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c, ...d], 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   geometry.setIndex([0, 1, 2, 0, 2, 3]);
   const material = new THREE.MeshBasicMaterial({
     map: texture, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false,
