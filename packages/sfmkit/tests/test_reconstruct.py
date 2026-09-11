@@ -40,11 +40,13 @@ def _star_pairs(scene, **kw):
 
 
 class TestNoiselessReconstruction:
-    def test_recovers_the_scene_exactly(self, scene):
+    @pytest.mark.parametrize("solver", ["scipy", "schur"])
+    def test_recovers_the_scene_exactly(self, scene, solver):
         pytest.importorskip("cv2")
         matches = _verify(_all_pairs(scene))
         tracks = build_tracks(matches)
-        result = reconstruct(matches, scene.K, tracks, ReconstructionConfig(seed=0))
+        result = reconstruct(matches, scene.K, tracks,
+                             ReconstructionConfig(seed=0, bundle_solver=solver))
 
         rec = result.reconstruction
         assert len(rec.poses) == len(scene.images), "every camera should register"

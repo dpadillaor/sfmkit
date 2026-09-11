@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from sfmkit.core.reconstruct import BUNDLE_SOLVERS
 from sfmkit.data.features import DEVICES
 
 __all__ = [
@@ -63,10 +64,14 @@ class SfmConfig:
     max_reprojection_error: float = 8.0
     pnp_threshold: float = 8.0
     min_pnp_correspondences: int = 12
+    bundle_solver: str = "scipy"  # scipy | schur: our own, same problem, faster
 
     def __post_init__(self) -> None:
         if self.device not in DEVICES:
             raise ValueError(f"sfm.device must be one of {DEVICES}, not {self.device!r}")
+        if self.bundle_solver not in BUNDLE_SOLVERS:
+            raise ValueError(f"sfm.bundle_solver must be one of {tuple(BUNDLE_SOLVERS)}, "
+                             f"not {self.bundle_solver!r}")
 
 
 @dataclass

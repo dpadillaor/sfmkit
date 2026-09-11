@@ -46,6 +46,7 @@ def cmd_reconstruct(args) -> int:
         min_triangulation_angle_deg=s.min_triangulation_angle_deg,
         max_reprojection_error=s.max_reprojection_error,
         min_pnp_correspondences=s.min_pnp_correspondences,
+        bundle_solver=s.bundle_solver,
     )
 
     # Each step can take tens of seconds, so it is shown as soon as it is done,

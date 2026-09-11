@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from sfmkit.core.bundle import solve_bundle
+from sfmkit.core.bundle_schur import solve_bundle_schur
 from sfmkit.core.geometry import (
     fundamental_to_essential,
     project,
@@ -18,7 +19,11 @@ from sfmkit.core.geometry import (
 from sfmkit.core.robust import ransac_fundamental, ransac_pnp
 from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
-__all__ = ["ReconstructionConfig", "StageReport", "reconstruct"]
+__all__ = ["BUNDLE_SOLVERS", "ReconstructionConfig", "StageReport", "reconstruct"]
+
+# The same bundle adjustment, two solvers: scipy's generic least squares, or our
+# Levenberg-Marquardt with an analytic Jacobian and the Schur complement.
+BUNDLE_SOLVERS = {"scipy": solve_bundle, "schur": solve_bundle_schur}
 
 
 @dataclass
@@ -50,8 +55,14 @@ class ReconstructionConfig:
     min_pnp_correspondences: int = 30
     min_pnp_inliers: int = 20
     bundle_every_camera: bool = True
+    bundle_solver: str = "scipy"
     final_refinements: int = 3
     max_cameras: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.bundle_solver not in BUNDLE_SOLVERS:
+            raise ValueError(f"bundle_solver must be one of {tuple(BUNDLE_SOLVERS)}, "
+                             f"not {self.bundle_solver!r}")
 
 
 @dataclass
@@ -213,7 +224,8 @@ def _observations_array(rec: Reconstruction, keypoints, images: list[str]) -> np
     return np.asarray(rows, dtype=float) if rows else np.zeros((0, 4))
 
 
-def _run_bundle(rec: Reconstruction, keypoints, images: list[str], report: StageReport) -> None:
+def _run_bundle(rec: Reconstruction, keypoints, images: list[str], report: StageReport,
+                cfg: ReconstructionConfig) -> None:
     """Optimise every registered camera and every triangulated point together."""
     obs = _observations_array(rec, keypoints, images)
     if len(obs) < 20 or len(images) < 2:
@@ -223,7 +235,8 @@ def _run_bundle(rec: Reconstruction, keypoints, images: list[str], report: Stage
     obs_local = obs.copy()
     obs_local[:, 0] = [remap[int(t)] for t in obs[:, 0]]
 
-    result = solve_bundle(rec.K, images, rec.poses, rec.points[used], obs_local)
+    solve = BUNDLE_SOLVERS[cfg.bundle_solver]
+    result = solve(rec.K, images, rec.poses, rec.points[used], obs_local)
     rec.poses.update(result.poses)
     rec.points[used] = result.points
     report.rmse_before = result.rmse_before
@@ -329,7 +342,7 @@ def reconstruct(
     images = [seed_pair.image0, seed_pair.image1]
     _triangulate_tracks(rec, keypoints, cfg)
     r = StageReport(0, seed_pair.image1, 2, rec.n_points, len(x0))
-    _run_bundle(rec, keypoints, images, r)
+    _run_bundle(rec, keypoints, images, r, cfg)
     r.n_filtered = _filter_observations(rec, keypoints, cfg)
     _triangulate_tracks(rec, keypoints, cfg)
     r.n_points = rec.n_points
@@ -370,7 +383,7 @@ def reconstruct(
         _triangulate_tracks(rec, keypoints, cfg)
         rep = StageReport(step, name, len(rec.poses), rec.n_points, int(pnp.n_inliers))
         if cfg.bundle_every_camera:
-            _run_bundle(rec, keypoints, images, rep)
+            _run_bundle(rec, keypoints, images, rep, cfg)
             rep.n_filtered = _filter_observations(rec, keypoints, cfg)
             _triangulate_tracks(rec, keypoints, cfg)
             rep.n_points = rec.n_points
@@ -392,7 +405,7 @@ def reconstruct(
         before = rec.n_points
         _triangulate_tracks(rec, keypoints, cfg)
         rep = StageReport(step + i, "<global refinement>", len(rec.poses), rec.n_points, 0)
-        _run_bundle(rec, keypoints, images, rep)
+        _run_bundle(rec, keypoints, images, rep, cfg)
         rep.n_filtered = _filter_observations(rec, keypoints, cfg)
         _triangulate_tracks(rec, keypoints, cfg)
         rep.n_points = rec.n_points
