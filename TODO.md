@@ -65,6 +65,19 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the principal point fixed at the centre (does it meet COLMAP's R?); COLMAP's
   query pass refining the principal point (does it meet ours?); and both
   poses' reprojection error on one neutral set of 2D-3D matches.
+  **Measured the same day, and it points to sfmkit being right:** the vertical
+  taken as the direction orthogonal to the nine phones' x axes (held level:
+  orthogonal within 0.6°), the phones look up 10-14°, as people photograph a
+  facade; sfmkit's Img00 is level (pitch 0.2°, roll 1.5°); COLMAP's looks up
+  11.2°. The 11.5° between them is nearly all pitch (axis 0.95 along the
+  camera's x). A level camera with the principal point well below the centre is
+  how architecture was photographed with view cameras: the rising front shifts
+  the lens up to take in a tall facade while keeping verticals parallel (a
+  cropped print would do the same). Still a pinhole, only off-centre. COLMAP,
+  its principal point pinned at the centre, has to tilt the camera up instead.
+  So the query's "error against COLMAP" is COLMAP's, for this photo. To do:
+  refine the query's principal point in `data/colmap/run.py`'s query pass
+  (`ba_refine_principal_point`), and see whether COLMAP then comes level too.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
