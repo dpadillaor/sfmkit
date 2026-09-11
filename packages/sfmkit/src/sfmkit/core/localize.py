@@ -5,12 +5,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+from scipy.optimize import least_squares
 
-from sfmkit.core.geometry import decompose_projection, reprojection_errors
+from sfmkit.core.geometry import decompose_projection, reprojection_errors, rodrigues
 from sfmkit.core.robust import ransac_dlt, ransac_pnp
 from sfmkit.core.types import Matches, Pose, Reconstruction
 
-__all__ = ["LocalizationResult", "localize_image"]
+__all__ = ["REFINEMENTS", "LocalizationResult", "localize_image", "refine_camera"]
+
+# What ``localize_image`` may move after RANSAC: nothing, the pose alone (the
+# course's way, with K fixed), or the camera entire when its K was estimated.
+REFINEMENTS = ("none", "pose", "camera")
 
 
 @dataclass(eq=False)
@@ -27,6 +32,56 @@ class LocalizationResult:
     rmse: float
     seed: int
     K: np.ndarray | None = None  # estimated when the query's intrinsics are unknown
+
+
+def refine_camera(X, uv, K, pose: Pose, *, focal: bool = False, principal: bool = False,
+                  f_scale: float = 4.0) -> tuple[Pose, np.ndarray]:
+    """The camera that fits the correspondences best, from ``pose`` and ``K``.
+
+RANSAC leaves a linear fit over its inliers, which minimises an algebraic
+    error; this minimises the reprojection error itself, in pixels, under a
+    Huber loss so that a wrong correspondence among them does not drag the
+    camera. The rotation moves in its tangent, ``R <- exp(w) R``; ``focal`` and
+    ``principal`` say whether K's may move too, which only makes sense when K
+    was estimated rather than given.
+
+    Returns the refined pose and K; the ones passed in, if the solve fails.
+    """
+    X, uv, K = np.asarray(X, float), np.asarray(uv, float), np.asarray(K, float)
+    parts = [np.zeros(3), np.asarray(pose.t, float)]
+    if focal:
+        parts.append([K[0, 0], K[1, 1]])
+    if principal:
+        parts.append([K[0, 2], K[1, 2]])
+    x0 = np.concatenate([np.asarray(p, float).ravel() for p in parts])
+    if len(X) < len(x0) // 2:
+        return pose, K
+
+    def unpack(p):
+        moved = Pose(rodrigues(p[0:3]) @ pose.R, p[3:6])
+        camera = K.copy()
+        at = 6
+        if focal:
+            camera[0, 0], camera[1, 1] = p[at], p[at + 1]
+            at += 2
+        if principal:
+            camera[0, 2], camera[1, 2] = p[at], p[at + 1]
+        return moved, camera
+
+    def residual(p):
+        moved, camera = unpack(p)
+        Xc = X @ moved.R.T + moved.t
+        # A point behind the camera must cost, not be skipped: turned around, a
+        # camera projects every point as it did, and free of charge it would.
+        z = np.maximum(Xc[:, 2], 1e-6)
+        out = uv - Xc @ camera[:2].T / z[:, None]
+        return np.nan_to_num(out.ravel(), nan=0.0, posinf=1e9, neginf=-1e9)
+
+    try:
+        found = least_squares(residual, x0, method="trf", loss="huber", f_scale=f_scale)
+    except (ValueError, np.linalg.LinAlgError):
+        return pose, K
+    return unpack(found.x)
 
 
 def _query_to_map_correspondences(
@@ -83,6 +138,7 @@ def localize_image(
     K: np.ndarray | None = None,
     threshold: float = 8.0,
     seed: int = 0,
+    refine: str = "camera",
 ) -> LocalizationResult | None:
     """Estimate the query camera's pose against a reconstruction.
 
@@ -98,6 +154,9 @@ def localize_image(
         estimated and decomposed, recovering the focal length instead of
         assuming it. Assuming the map's intrinsics for a differently sized
         image misplaces the camera badly.
+    refine
+        What to move after RANSAC, over its inliers: ``none``, the ``pose``, or
+        the whole ``camera``, K included when K was estimated here.
 
     Returns
     -------
@@ -123,6 +182,13 @@ def localize_image(
             K_est, pose = decompose_projection(res.model)
         except np.linalg.LinAlgError:
             return None
+
+    if refine not in REFINEMENTS:
+        raise ValueError(f"refine must be one of {REFINEMENTS}, not {refine!r}")
+    if refine != "none":
+        free = refine == "camera" and K is None  # a K that was given is not ours to move
+        pose, K_est = refine_camera(X[res.inliers], uv[res.inliers], K_est, pose,
+                                    focal=free, principal=free)
 
     errs = reprojection_errors(X[res.inliers], uv[res.inliers], K_est, pose)
     errs = errs[np.isfinite(errs)]

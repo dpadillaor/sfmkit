@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from sfmkit.core.localize import REFINEMENTS
 from sfmkit.core.reconstruct import BUNDLE_SOLVERS
 from sfmkit.data.features import DEVICES
 
@@ -79,6 +80,12 @@ class LocalizeConfig:
     """The image to localise, kept out of the reconstruction itself."""
 
     query: str | None = None
+    refine: str = "camera"  # after RANSAC: none | pose | camera (K too, if estimated)
+
+    def __post_init__(self) -> None:
+        if self.refine not in REFINEMENTS:
+            raise ValueError(f"localize.refine must be one of {REFINEMENTS}, "
+                             f"not {self.refine!r}")
 
 
 COLMAP_MATCHES = ("colmap", "sfmkit")

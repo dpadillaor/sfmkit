@@ -32,7 +32,8 @@ def cmd_localize(args) -> int:
     with progress() as p:
         task = p.add_task(f"localising {query}", total=len(seeds))
         for s in seeds:
-            r = localize_image(rec, [io.load_matches(f) for f in q_files], query, seed=s)
+            r = localize_image(rec, [io.load_matches(f) for f in q_files], query, seed=s,
+                               refine=cfg.localize.refine)
             if r is not None:
                 results.append(r)
             p.advance(task)
@@ -63,7 +64,7 @@ def cmd_localize(args) -> int:
              centres=centres, rmse=np.array([r.rmse for r in results]),
              inliers=np.array([r.n_inliers for r in results]))
     io.write_manifest(run, "localize", cfg, config_path=args.config, extra={
-        "query": query, "trials": len(results),
+        "query": query, "trials": len(results), "refine": cfg.localize.refine,
         "rmse_median": float(np.median([r.rmse for r in results])),
         "centre_spread": float(np.linalg.norm(centres.max(0) - centres.min(0))),
     })
