@@ -18,7 +18,7 @@ pytestmark = pytest.mark.slow
 
 REPO = Path(__file__).resolve().parents[3]
 SCENE = REPO / "data" / "valencia" / "scene"
-EXAMPLE = REPO / "examples" / "valencia" / "9cameras"
+EXAMPLE = REPO / "examples" / "valencia" / "cpu"
 IMAGES = ["Img02", "Img25", "Img13", "Img14"]  # the four the old photo matches best
 K = np.loadtxt(EXAMPLE / "calibrate" / "K.txt")
 

@@ -22,18 +22,18 @@ The viewer has its own environment, `sfmview` (its requirements only, so an
 import of sfmkit would fail), checked the same way from `packages/viewer`, or
 `make check PKG=viewer`.
 
-The regression check for anything touching the pipeline starts from the saved
-example, whose matches came from a GPU:
+The regression check for anything touching the pipeline reruns our stages on
+the saved example, whose matches and COLMAP model came from a CPU:
 
 ```bash
 mkdir -p /tmp/check/valencia && cp -r examples/valencia/9cameras /tmp/check/valencia/
 SFMKIT_RUNS=/tmp/check sfmkit run --config configs/valencia/9cameras.yaml --from verify
-# mean rotation error 0.379°
+# 14 cameras, 2850 points, mean rotation error 0.348°
 ```
 
-A full run from scratch in `sfmkit-gpu` reproduces the example (9 cameras, 1868
-points); on CPU, whose matches differ, it gives 9 cameras, 1857 points and
-0.379° too.
+A full run from scratch on a GPU (`configs/valencia/gpu-dense.yaml`), whose
+matches differ, gives 14 cameras, 2830 points and 0.296°; it also runs COLMAP
+again, which varies a little between runs.
 
 ## Layout
 

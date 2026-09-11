@@ -112,22 +112,24 @@ def test_a_symlink_out_of_the_root_is_not_followed(tmp_path):
         store.dense_file(RunId("city", "link"))
 
 
-@pytest.mark.skipif(not (EXAMPLES / "valencia" / "9cameras").is_dir(), reason="no example run")
+@pytest.mark.skipif(not (EXAMPLES / "valencia" / "cpu").is_dir(), reason="no example run")
 def test_the_valencia_example():
-    """The saved run: sfmkit and the course's COLMAP model, the old photo in both."""
-    scene = FsRunStore(EXAMPLES).scene(RunId("valencia", "9cameras"))
+    """The saved run: sfmkit and an independent COLMAP model, the old photo in both."""
+    scene = FsRunStore(EXAMPLES).scene(RunId("valencia", "cpu"))
     ours, theirs = scene.models
     assert scene.reference == "Img02"
-    assert len([c for c in ours.cameras if not c.query]) == 9
+    assert len([c for c in ours.cameras if not c.query]) == 14
     assert [c.name for c in ours.cameras if c.query] == ["Img00"]
     assert [c.name for c in theirs.cameras if c.query] == ["Img00"]
-    # evaluate scales by Img12's distance from the reference: in the shared frame
-    # the two Img12 sit at the same distance, and the rest close by.
+    # evaluate scales by the farthest camera's distance from the reference: in
+    # the shared frame the two sit at the same distance, and the rest close by.
     def centre(model, name):
         return apply(model.to_common, model.camera(name).center)
 
-    ours_12, theirs_12 = centre(ours, "Img12"), centre(theirs, "Img12")
-    assert np.isclose(np.linalg.norm(ours_12), np.linalg.norm(theirs_12))
+    scale_image = json.loads(
+        (EXAMPLES / "valencia" / "cpu" / "evaluate" / "evaluation.json").read_text())["scale_image"]
+    ours_far, theirs_far = centre(ours, scale_image), centre(theirs, scale_image)
+    assert np.isclose(np.linalg.norm(ours_far), np.linalg.norm(theirs_far))
     gaps = [np.linalg.norm(centre(ours, c.name) - centre(theirs, c.name))
             for c in ours.cameras if not c.query]
     assert max(gaps) < 0.3

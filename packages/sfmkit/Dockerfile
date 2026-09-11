@@ -24,7 +24,7 @@ RUN python -c "from lightglue import LightGlue, SuperPoint; SuperPoint(); LightG
 # Valencia example: photos, configs and a saved run
 COPY data/valencia data/valencia
 COPY configs/valencia configs/valencia
-COPY examples/valencia/9cameras runs/valencia/9cameras
+COPY examples/valencia/cpu runs/valencia/cpu
 
 # Copying and Installing sfmkit library
 COPY packages/sfmkit/pyproject.toml .

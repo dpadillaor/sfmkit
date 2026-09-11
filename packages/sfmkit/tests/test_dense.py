@@ -9,7 +9,7 @@ from sfmkit.apps.cli import run as run_cmd
 from sfmkit.data.colmap import dense_available, run_dense
 
 REPO = Path(__file__).resolve().parents[3]
-EXAMPLE = REPO / "examples" / "valencia" / "9cameras"
+EXAMPLE = REPO / "examples" / "valencia" / "cpu"
 
 
 class _Args:
