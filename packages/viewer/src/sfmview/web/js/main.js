@@ -26,8 +26,9 @@ const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
 });
 const showCameras = () => ui.renderCameras(view.cameras(), view.looking()?.key, lookThrough,
   session.steps[session.index]?.step ?? null);
-const showPhotoBar = () => ui.renderPhotoBar(view.looking(), {
+const showPhotoBar = () => ui.renderPhotoBar(view.looking(), view.cone(), {
   onOpacity: (opacity) => view.setPhotoOpacity(opacity),
+  onCone: (settings) => view.setCone(settings),
   onBack: () => { view.lookAgain(); showPhotoBar(); },
   onClose: closePhoto,
 });

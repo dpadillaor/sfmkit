@@ -47,6 +47,7 @@ export class SceneView {
   #photos; // looking through a camera, its photo in front
   #hovered = null; // { key, object }: the camera under the pointer, outlined
   #reach = new Map(); // camera key -> its view drawn out to the scene
+  #cone = { show: 0.5, far: 1 }; // how strongly a view is drawn, and how far out
   #pointsOf = new Map(); // model source -> its sparse points, flat, in its own frame
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
@@ -158,6 +159,19 @@ export class SceneView {
 
   closePhoto() {
     this.#photos.clear();
+    this.#updateReach();
+  }
+
+  // How a camera's view is drawn: ``show`` 0 to 1, its strength, and ``far``,
+  // what the depth of what it sees is multiplied by.
+  cone() { return { ...this.#cone }; }
+
+  setCone(settings) {
+    Object.assign(this.#cone, settings);
+    for (const [key, object] of this.#reach) {  // the drawn ones, again
+      dispose(object);
+      this.#reach.delete(key);
+    }
     this.#updateReach();
   }
 
@@ -330,7 +344,7 @@ export class SceneView {
       if (this.#reach.has(key) || !shot || !this.#layers.get(shot.layer)?.object.visible) continue;
       shot.reach ??= viewDepth(shot.camera, this.#pointsOf.get(shot.source) ?? []);
       if (!shot.reach) continue;
-      const object = cone(shot.camera, shot.reach, HOVER);
+      const object = cone(shot.camera, shot.reach * this.#cone.far, HOVER, this.#cone.show);
       shot.frame.add(object);
       this.#reach.set(key, object);
     }
@@ -408,7 +422,7 @@ function points(flat, color) {
 
 // A camera's view out to ``depth``: its four edges and its sides, faint, drawn
 // over the scene.
-function cone(camera, depth, color) {
+function cone(camera, depth, color, show) {
   const C = cameraCentre(camera);
   const corners = imageCorners(camera, depth);
   const next = (i) => corners[(i + 1) % 4];
@@ -418,10 +432,10 @@ function cone(camera, depth, color) {
     return g;
   };
   const sides = new THREE.Mesh(geometry(corners.flatMap((a, i) => [C, a, next(i)]).flat()),
-    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.07, side: THREE.DoubleSide,
-      depthWrite: false }));
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.14 * show,
+      side: THREE.DoubleSide, depthWrite: false }));
   const edges = new THREE.LineSegments(geometry(corners.flatMap((a, i) => [C, a, a, next(i)]).flat()),
-    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5, depthWrite: false }));
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: show, depthWrite: false }));
   const group = new THREE.Group();
   group.add(sides, edges);
   return group;

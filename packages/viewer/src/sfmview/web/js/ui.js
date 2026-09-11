@@ -149,7 +149,7 @@ export function renderTimeline(steps, index, running, onStep) {
 
 // The camera looked through, if any: its name, the photo's opacity, a way back
 // to it once the view has moved, and a way out.
-export function renderPhotoBar(looking, { onOpacity, onBack, onClose }) {
+export function renderPhotoBar(looking, cone, { onOpacity, onCone, onBack, onClose }) {
   const bar = $('photo-bar');
   bar.hidden = !looking;
   if (!looking) return;
@@ -157,6 +157,11 @@ export function renderPhotoBar(looking, { onOpacity, onBack, onClose }) {
   const slider = $('photo-opacity');
   slider.value = String(looking.opacity);
   slider.oninput = () => onOpacity(Number(slider.value));
+  for (const [id, key] of [['cone-show', 'show'], ['cone-far', 'far']]) {
+    const range = $(id);
+    range.value = String(cone[key]);
+    range.oninput = () => onCone({ [key]: Number(range.value) });
+  }
   $('photo-back').hidden = looking.active;
   $('photo-back').onclick = onBack;
   $('photo-close').onclick = onClose;
