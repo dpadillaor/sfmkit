@@ -7,7 +7,9 @@ from pathlib import Path
 
 import numpy as np
 
+from sfmkit.core.orientation import to_stored, upright
 from sfmkit.core.types import Matches
+from sfmkit.data.exif import read_orientation
 from sfmkit.data.io import image_file, read_image, save_matches
 
 __all__ = ["DEVICES", "match_pairs", "pick_device", "resolve_device"]
@@ -64,24 +66,29 @@ def match_pairs(
     out_dir.mkdir(parents=True, exist_ok=True)
     images_dir = Path(images_dir)
 
-    cache: dict[str, dict] = {}
+    cache: dict[str, tuple] = {}
 
-    def features(name: str) -> dict:
+    def features(name: str) -> tuple:
+        """An image's features, found upright; and how to put them back as stored."""
         if name not in cache:
-            rgb = read_image(image_file(images_dir, name))[..., ::-1].copy()
-            cache[name] = extractor.extract(numpy_image_to_torch(rgb).to(dev))
+            path = image_file(images_dir, name)
+            stored = read_image(path)
+            turn = read_orientation(path)
+            rgb = np.ascontiguousarray(upright(stored, turn)[..., ::-1])
+            size = (stored.shape[1], stored.shape[0])
+            cache[name] = (extractor.extract(numpy_image_to_torch(rgb).to(dev)), turn, size)
         return cache[name]
 
     written: list[Path] = []
     for a, b in pairs:
-        f0, f1 = features(a), features(b)
+        (f0, turn0, size0), (f1, turn1, size1) = features(a), features(b)
         m01 = matcher({"image0": f0, "image1": f1})
         r0, r1, rm = (rbd(x) for x in (f0, f1, m01))
         matches = Matches(
             image0=a,
             image1=b,
-            keypoints0=r0["keypoints"].cpu().numpy(),
-            keypoints1=r1["keypoints"].cpu().numpy(),
+            keypoints0=to_stored(r0["keypoints"].cpu().numpy(), turn0, size0),
+            keypoints1=to_stored(r1["keypoints"].cpu().numpy(), turn1, size1),
             pairs=rm["matches"].cpu().numpy().astype(np.intp),
             scores=rm["scores"].cpu().numpy(),
         )

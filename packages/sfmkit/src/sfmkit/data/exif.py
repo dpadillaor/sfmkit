@@ -7,13 +7,14 @@ from pathlib import Path
 
 from PIL import Image
 
-__all__ = ["CameraExif", "read_camera"]
+__all__ = ["CameraExif", "read_camera", "read_orientation"]
 
 _EXIF_IFD = 0x8769
 _MODEL = 0x0110
 _FOCAL_MM = 0x920A
 _FOCAL_35MM = 0xA405
 _DIGITAL_ZOOM = 0xA404
+_ORIENTATION = 0x0112
 
 
 @dataclass(frozen=True)
@@ -48,3 +49,11 @@ def read_camera(path) -> CameraExif:
                       focal_mm=float(focal) if focal else None,
                       focal_35mm=float(focal_35mm), size=size,
                       zoom=float(zoom) if zoom else 1.0)
+
+
+def read_orientation(path) -> int:
+    """How ``path``'s EXIF says to turn it for showing, 1 to 8; 1, as stored,
+    when it does not say."""
+    with Image.open(path) as im:
+        value = im.getexif().get(_ORIENTATION)
+    return int(value) if value in range(1, 9) else 1
