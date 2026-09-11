@@ -66,17 +66,18 @@ def _from_exif(cfg, out: Path) -> dict | None:
     from sfmkit.data.exif import read_camera
 
     shots = {n: read_camera(image_file(cfg.scene_dir, n)) for n in cfg.sfm.images}
-    settings = {(s.focal_35mm, s.size) for s in shots.values()}
+    # Digital zoom is a crop: a photo zoomed 1.17x is a camera 17% longer.
+    settings = {(round(s.effective_35mm, 2), s.size) for s in shots.values()}
     if len(settings) != 1:
-        found = ", ".join(f"{n}: {s.focal_35mm:g} mm, {s.size[0]}x{s.size[1]}"
+        found = ", ".join(f"{n}: {s.focal_35mm:g} mm x{s.zoom:g} zoom, {s.size[0]}x{s.size[1]}"
                           for n, s in shots.items())
         console.print(f"[red]the photos do not share one camera setting[/red] ({found})")
         return None
     shot = next(iter(shots.values()))
     w, h = cfg.calibrate.sensor_aspect
-    K = intrinsics_from_focal_35mm(shot.focal_35mm, *shot.size, sensor_aspect=w / h)
+    K = intrinsics_from_focal_35mm(shot.effective_35mm, *shot.size, sensor_aspect=w / h)
     np.savetxt(out / "K.txt", K)
     console.print(f"K from EXIF: {shot.model or 'unknown camera'}, "
-                  f"{shot.focal_35mm:g} mm equivalent, {shot.size[0]}x{shot.size[1]}")
+                  f"{shot.effective_35mm:g} mm equivalent, {shot.size[0]}x{shot.size[1]}")
     return {"source": "exif", "camera": shot.model, "focal_mm": shot.focal_mm,
-            "focal_35mm": shot.focal_35mm, "sensor_aspect": [w, h]}
+            "focal_35mm": shot.focal_35mm, "zoom": shot.zoom, "sensor_aspect": [w, h]}

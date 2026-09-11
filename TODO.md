@@ -4,6 +4,21 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Pipeline
 
+- [x] **Img28 was shot with 1.17x digital zoom** (EXIF `DigitalZoomRatio`),
+  which a phone leaves out of the 35 mm equivalent focal length: its K was 17%
+  short, f 3544 against the others' 3029, and it was the worst camera of every
+  run (1.4-1.8°, the rest 0.02-0.42°). 3029 x 1.17 = 3543.5, the course's
+  chessboard K to 0.1 px: the chessboard was photographed zoomed, and was
+  right for zoomed photos. `calibrate.exif` now reads the zoom and refuses
+  photos whose zoomed focal lengths differ. Img28 is gone from the scene; Img16
+  (unused before) and five photos of the same session, same setting, are in:
+  Img11 and Img17-Img20, named by capture time. Seven more of that session, at
+  64 MP (9248x5204, 5.9 mm, 27 mm equivalent: another of the phone's cameras,
+  f ~7214 px), and one more zoomed 1.17x, were left out: they need a K each.
+- [ ] **A K a camera**, for photos of several settings: per-image K from each
+  photo's EXIF (zoom, lens) through reconstruct, the bundle (K fixed per
+  camera), localize and evaluate; COLMAP with a camera a setting rather than
+  `CameraMode.SINGLE`. It would take back Img28 and the 64 MP photos.
 - [ ] **Check the K with a chessboard.** K comes from the photos' EXIF
   (SM-G996B, 26 mm equivalent: f = 3029 px, principal point at the centre),
   and COLMAP's self-calibration (~3020) agrees. The course's chessboard K,
@@ -268,14 +283,6 @@ the contract, the API and the architecture.
   (`pycolmap.poisson_meshing`), as an option of the dense stage.
 - [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
   reconstruction written as a COLMAP model (see the exporter under Later).
-- [ ] **Img28 worsens with the Schur solver and the EXIF K**: 0.692° -> 1.805°,
-  position error ten times the other cameras', while the other seven scored
-  improve (mean 0.312 -> 0.322°, median ~0.19 -> ~0.11°). It is the worst camera
-  of every run since, 1.42-1.81° against 0.02-0.42° for the rest; Img12, the
-  fragile one before, is 0.14-0.42° and now registers from CPU matches too. Hypothesis, untested:
-  wrong matches came in when Img28 was registered (step 4), and a bundle that
-  reaches its minimum fits them where scipy's, stopped short, did not. Look at
-  Img28's residuals after the final bundle, and at its PnP inliers.
 - [ ] **Redo the threshold grid search** (`scripts/sweep.py`, optimizations.md
   1.6) with the Schur solver and the EXIF K, the defaults now: its thresholds
   were searched with scipy's solver, which stopped short of every minimum, and
