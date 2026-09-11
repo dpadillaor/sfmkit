@@ -10,12 +10,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
+from sfmkit.core.geometry import rodrigues  # noqa: E402
 from sfmkit.core.metrics import align_to_reference, scale_between  # noqa: E402
 from sfmkit.core.types import Pose, Reconstruction  # noqa: E402
 
 __all__ = [
     "plot_comparison", "plot_camera_layout", "plot_track_lengths",
-    "plot_matches", "plot_epipolar", "plot_residuals",
+    "plot_matches", "plot_epipolar", "plot_residuals", "plot_dense", "render_points", "orbit",
 ]
 
 OURS, THEIRS = "#2e7d32", "#1565c0"
@@ -259,3 +260,69 @@ def plot_residuals(image, observed, projected, out_path, title="", scale: float 
     fig.savefig(out_path, dpi=110)
     plt.close(fig)
     return out_path
+
+
+def render_points(points, colours, K, pose: Pose, size, *, spread: int = 2,
+                  background=(16, 16, 16)) -> np.ndarray:
+    """The cloud as the camera at ``pose`` sees it: an image, ``(h, w, 3)`` uint8.
+
+    A point covers ``spread`` pixels a side, and the nearest one wins them: a
+    cloud has no surfaces to hide behind, so without that the back of the
+    facade shows through the front.
+    """
+    w, h = int(size[0]), int(size[1])
+    points = np.asarray(points, dtype=float)
+    colours = np.asarray(colours, dtype=np.uint8)
+    camera = points @ np.asarray(pose.R, dtype=float).T + np.asarray(pose.t, dtype=float)
+    z = camera[:, 2]
+    ahead = z > 1e-6
+    uv = (camera[ahead] @ np.asarray(K, dtype=float)[:2].T) / z[ahead, None]
+    x, y, depth, rgb = uv[:, 0], uv[:, 1], z[ahead], colours[ahead]
+
+    image = np.tile(np.asarray(background, dtype=np.uint8), (h, w, 1))
+    for dx in range(spread):
+        for dy in range(spread):
+            px = np.floor(x).astype(int) + dx
+            py = np.floor(y).astype(int) + dy
+            on = (px >= 0) & (px < w) & (py >= 0) & (py < h)
+            # Painted back to front, so the nearest point ends up on top.
+            order = np.argsort(-depth[on])
+            image.reshape(-1, 3)[(py[on] * w + px[on])[order]] = rgb[on][order]
+    return image
+
+
+def plot_dense(points, colours, K, pose: Pose, size, out_path, *, title: str = "",
+               spread: int = 2):
+    """Write ``render_points``'s image, titled, as a figure."""
+    image = render_points(points, colours, K, pose, size, spread=spread)
+    fig, ax = plt.subplots(figsize=(image.shape[1] / 110, image.shape[0] / 110))
+    ax.imshow(image)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    if title:
+        ax.set_title(title, fontsize=10)
+    fig.tight_layout(pad=0.2)
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=110)
+    plt.close(fig)
+    return Path(out_path)
+
+
+def orbit(pose: Pose, points, degrees: float) -> Pose:
+    """``pose`` swung ``degrees`` around the cloud, about the camera's own up, still looking at it.
+
+    A second view of a cloud, from a camera that took one of the photos: enough
+    to tell a facade from a flat picture of one.
+    """
+    points = np.asarray(points, dtype=float)
+    target = np.median(points, axis=0)
+    centre = np.asarray(pose.center, dtype=float)
+    up = -np.asarray(pose.R, dtype=float)[1]
+    swung = target + rodrigues(up * np.radians(degrees)) @ (centre - target)
+
+    forward = target - swung
+    forward /= np.linalg.norm(forward) or 1.0
+    right = np.cross(forward, up)
+    right /= np.linalg.norm(right) or 1.0
+    R = np.stack([right, np.cross(forward, right), forward])
+    return Pose(R, -R @ swung)

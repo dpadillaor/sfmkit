@@ -29,9 +29,9 @@ K = np.loadtxt(run / "calibrate" / "K.txt").reshape(3, 3)
 gt = read_model(run / "colmap")["poses"]
 
 grid = {
-    "pnp_threshold": [3.0, 6.0, 12.0],
-    "min_triangulation_angle_deg": [0.5, 2.0, 4.0],
-    "max_reprojection_error": [3.0, 6.0, 12.0],
+    "pnp_threshold": [3.0, 6.0, 9.0, 12.0],
+    "min_triangulation_angle_deg": [0.5, 1.0, 2.0, 4.0],
+    "max_reprojection_error": [3.0, 6.0, 9.0, 12.0],
 }
 keys = list(grid)
 rows = []

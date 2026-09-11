@@ -7,16 +7,34 @@ from sfmkit.data import io
 from sfmkit.data.config import load_config
 
 
+def _view(camera: dict, *, width: int):
+    """A COLMAP camera's K and image size, scaled to ``width`` pixels across.
+
+    Drawn at the photo's own size a cloud is mostly gaps; smaller, its points
+    meet.
+    """
+    import numpy as np
+
+    from sfmkit.data.colmap import intrinsics
+
+    k = intrinsics(camera)
+    s = width / camera["width"]
+    K = np.array([[k["fx"] * s, 0, k["cx"] * s], [0, k["fy"] * s, k["cy"] * s], [0, 0, 1]])
+    return K, (width, round(camera["height"] * s))
+
+
 def cmd_figures(args) -> int:
     """Render the figures for a finished run: comparison, matches, residuals."""
     import cv2
 
     from sfmkit.core.geometry import eight_point, project
     from sfmkit.core.tracks import build_tracks, track_statistics
-    from sfmkit.data.colmap import read_model
+    from sfmkit.data.colmap import read_fused, read_model
     from sfmkit.render.viz import (
+        orbit,
         plot_camera_layout,
         plot_comparison,
+        plot_dense,
         plot_epipolar,
         plot_matches,
         plot_residuals,
@@ -42,6 +60,21 @@ def cmd_figures(args) -> int:
         model = read_model(run / "colmap")
         written += [plot_comparison(rec, model, ref, out / "comparison.png"),
                     plot_camera_layout(rec, model, ref, out / "cameras.png")]
+
+    # The dense cloud, seen from the reference photo and from beside it: the two
+    # together tell a facade from a picture of one. It is COLMAP's cloud, in
+    # COLMAP's frame, so COLMAP's camera looks at it.
+    dense = run / "dense" / "fused.ply"
+    if dense.is_file() and (run / "colmap" / "images.txt").is_file():
+        model = read_model(run / "colmap")
+        if ref in model["poses"]:
+            points, colours = read_fused(dense)
+            camera = model["cameras"][model["image_cameras"][ref]]
+            K, size = _view(camera, width=1600)
+            for name, pose in (("dense", model["poses"][ref]),
+                               ("dense_around", orbit(model["poses"][ref], points, 35))):
+                written.append(plot_dense(points, colours, K, pose, size, out / f"{name}.png",
+                                          title=f"{len(points):,} points, {ref}'s camera"))
 
     verified = sorted((run / "verify").glob("*.npz"))
     all_m = [io.load_matches(f) for f in verified]

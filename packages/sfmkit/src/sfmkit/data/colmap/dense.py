@@ -6,12 +6,13 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import pycolmap
 
 from sfmkit.data.colmap.run import colmap_device
 from sfmkit.data.io import image_file
 
-__all__ = ["NO_CUDA", "DenseSummary", "dense_available", "run_dense"]
+__all__ = ["NO_CUDA", "DenseSummary", "dense_available", "read_fused", "run_dense"]
 
 NO_CUDA = ("the dense reconstruction needs an NVIDIA GPU and COLMAP built for it: "
            "requirements-gpu.txt or the gpu image, with the GPU visible "
@@ -65,3 +66,40 @@ def run_dense(model_dir, scene_dir, images: list[str], out_dir, *,
         pycolmap.patch_match_stereo(workspace)
         fused = pycolmap.stereo_fusion(out_dir / "fused.ply", workspace, output_type="PLY")
     return DenseSummary(n_images=rec.num_reg_images(), n_points=fused.num_points3D())
+
+
+def read_fused(path) -> tuple[np.ndarray, np.ndarray]:
+    """The points and colours of a dense cloud, ``(N, 3)`` each, from COLMAP's PLY.
+
+    COLMAP writes a binary little-endian PLY of x, y, z, a normal and a colour
+    per point; only the points and the colours are read. Anything else is
+    refused rather than guessed at.
+    """
+    path = Path(path)
+    with path.open("rb") as f:
+        header, fields = [], []
+        while True:
+            line = f.readline().decode("ascii", "replace").strip()
+            if not line:
+                raise ValueError(f"{path.name}: no end of header")
+            header.append(line)
+            if line.startswith("property "):
+                fields.append(line.split()[1:])
+            if line == "end_header":
+                break
+            if line.startswith("element vertex "):
+                count = int(line.split()[2])
+        if "format binary_little_endian 1.0" not in header:
+            raise ValueError(f"{path.name}: only a binary little-endian PLY is read")
+        types = {"float": "<f4", "float32": "<f4", "double": "<f8", "uchar": "u1", "uint8": "u1"}
+        try:
+            dtype = np.dtype([(name, types[kind]) for kind, name in fields])
+        except KeyError as unknown:
+            raise ValueError(f"{path.name}: property type {unknown} is not read") from None
+        rows = np.frombuffer(f.read(count * dtype.itemsize), dtype=dtype, count=count)
+    missing = {"x", "y", "z", "red", "green", "blue"} - set(rows.dtype.names)
+    if missing:
+        raise ValueError(f"{path.name}: no {', '.join(sorted(missing))}")
+    points = np.stack([rows["x"], rows["y"], rows["z"]], axis=1).astype(float)
+    colours = np.stack([rows["red"], rows["green"], rows["blue"]], axis=1).astype(np.uint8)
+    return points, colours
