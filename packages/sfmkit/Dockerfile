@@ -21,10 +21,12 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 ENV TORCH_HOME=/opt/torch
 RUN python -c "from lightglue import LightGlue, SuperPoint; SuperPoint(); LightGlue(features='superpoint')"
 
-# Valencia example: photos, configs and a saved run
+# Valencia example: photos, configs and a saved run, the one this image can
+# reproduce: the CPU one, or the GPU one with its dense cloud.
+ARG EXAMPLE=cpu
 COPY data/valencia data/valencia
 COPY configs/valencia configs/valencia
-COPY examples/valencia/cpu runs/valencia/cpu
+COPY examples/valencia/${EXAMPLE} runs/valencia/${EXAMPLE}
 
 # Copying and Installing sfmkit library
 COPY packages/sfmkit/pyproject.toml .

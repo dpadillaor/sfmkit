@@ -1,0 +1,813 @@
+{
+  "stage": "verify",
+  "config_path": "configs/valencia/gpu-dense.yaml",
+  "timestamp": "2026-09-11T22:40:39.098795+00:00",
+  "git_commit": "f72fde49f8a393659ec0e79b28bb2eff5b02c421",
+  "config": {
+    "dataset": "valencia",
+    "name": "gpu-dense",
+    "seed": 0,
+    "calibrate": {
+      "images": "",
+      "pattern": [
+        9,
+        6
+      ],
+      "intrinsics": "",
+      "exif": true,
+      "sensor_aspect": [
+        4,
+        3
+      ]
+    },
+    "sfm": {
+      "images": [
+        "Img02",
+        "Img11",
+        "Img12",
+        "Img13",
+        "Img14",
+        "Img15",
+        "Img16",
+        "Img17",
+        "Img18",
+        "Img19",
+        "Img20",
+        "Img23",
+        "Img24",
+        "Img25"
+      ],
+      "reference": "Img02",
+      "max_keypoints": 2048,
+      "exhaustive": true,
+      "device": "cuda",
+      "ransac_threshold": 4.0,
+      "ransac_iterations": 1000,
+      "min_inliers": 20,
+      "min_track_length": 2,
+      "min_triangulation_angle_deg": 2.0,
+      "max_reprojection_error": 12.0,
+      "pnp_threshold": 6.0,
+      "min_pnp_correspondences": 12,
+      "bundle_solver": "schur"
+    },
+    "localize": {
+      "query": "Img00"
+    },
+    "colmap": {
+      "precomputed": "",
+      "matches": "colmap",
+      "camera": "self"
+    },
+    "dense": {
+      "enabled": true,
+      "max_image_size": 2000
+    },
+    "dataset_dir": "data/valencia"
+  },
+  "versions": {
+    "sfmkit": "0.1.0",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "python": "3.11.16"
+  },
+  "pairs": [
+    {
+      "pair": "Img02-Img00",
+      "matches": 516,
+      "inliers": 494,
+      "ratio": 0.957,
+      "iterations": 15,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img11",
+      "matches": 381,
+      "inliers": 274,
+      "ratio": 0.719,
+      "iterations": 158,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img12",
+      "matches": 299,
+      "inliers": 176,
+      "ratio": 0.589,
+      "iterations": 762,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img13",
+      "matches": 772,
+      "inliers": 627,
+      "ratio": 0.812,
+      "iterations": 55,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img14",
+      "matches": 638,
+      "inliers": 465,
+      "ratio": 0.729,
+      "iterations": 192,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img15",
+      "matches": 459,
+      "inliers": 311,
+      "ratio": 0.678,
+      "iterations": 267,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img16",
+      "matches": 130,
+      "inliers": 66,
+      "ratio": 0.508,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img17",
+      "matches": 48,
+      "inliers": 11,
+      "ratio": 0.229,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img02-Img18",
+      "matches": 137,
+      "inliers": 40,
+      "ratio": 0.292,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img19",
+      "matches": 186,
+      "inliers": 122,
+      "ratio": 0.656,
+      "iterations": 243,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img20",
+      "matches": 172,
+      "inliers": 94,
+      "ratio": 0.547,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img23",
+      "matches": 485,
+      "inliers": 318,
+      "ratio": 0.656,
+      "iterations": 266,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img24",
+      "matches": 533,
+      "inliers": 405,
+      "ratio": 0.76,
+      "iterations": 112,
+      "kept": true
+    },
+    {
+      "pair": "Img02-Img25",
+      "matches": 798,
+      "inliers": 581,
+      "ratio": 0.728,
+      "iterations": 220,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img12",
+      "matches": 777,
+      "inliers": 558,
+      "ratio": 0.718,
+      "iterations": 136,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img13",
+      "matches": 454,
+      "inliers": 318,
+      "ratio": 0.7,
+      "iterations": 287,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img14",
+      "matches": 547,
+      "inliers": 383,
+      "ratio": 0.7,
+      "iterations": 232,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img15",
+      "matches": 647,
+      "inliers": 498,
+      "ratio": 0.77,
+      "iterations": 115,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img16",
+      "matches": 469,
+      "inliers": 322,
+      "ratio": 0.687,
+      "iterations": 187,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img17",
+      "matches": 348,
+      "inliers": 214,
+      "ratio": 0.615,
+      "iterations": 421,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img18",
+      "matches": 445,
+      "inliers": 282,
+      "ratio": 0.634,
+      "iterations": 396,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img19",
+      "matches": 122,
+      "inliers": 57,
+      "ratio": 0.467,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img20",
+      "matches": 253,
+      "inliers": 134,
+      "ratio": 0.53,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img23",
+      "matches": 800,
+      "inliers": 604,
+      "ratio": 0.755,
+      "iterations": 90,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img24",
+      "matches": 453,
+      "inliers": 299,
+      "ratio": 0.66,
+      "iterations": 229,
+      "kept": true
+    },
+    {
+      "pair": "Img11-Img25",
+      "matches": 358,
+      "inliers": 234,
+      "ratio": 0.654,
+      "iterations": 430,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img13",
+      "matches": 392,
+      "inliers": 261,
+      "ratio": 0.666,
+      "iterations": 451,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img14",
+      "matches": 420,
+      "inliers": 270,
+      "ratio": 0.643,
+      "iterations": 430,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img15",
+      "matches": 563,
+      "inliers": 385,
+      "ratio": 0.684,
+      "iterations": 313,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img16",
+      "matches": 530,
+      "inliers": 384,
+      "ratio": 0.725,
+      "iterations": 149,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img17",
+      "matches": 471,
+      "inliers": 347,
+      "ratio": 0.737,
+      "iterations": 98,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img18",
+      "matches": 546,
+      "inliers": 350,
+      "ratio": 0.641,
+      "iterations": 313,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img19",
+      "matches": 18,
+      "inliers": 9,
+      "ratio": 0.5,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img12-Img20",
+      "matches": 226,
+      "inliers": 126,
+      "ratio": 0.558,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img23",
+      "matches": 599,
+      "inliers": 427,
+      "ratio": 0.713,
+      "iterations": 172,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img24",
+      "matches": 371,
+      "inliers": 250,
+      "ratio": 0.674,
+      "iterations": 201,
+      "kept": true
+    },
+    {
+      "pair": "Img12-Img25",
+      "matches": 295,
+      "inliers": 169,
+      "ratio": 0.573,
+      "iterations": 592,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img14",
+      "matches": 744,
+      "inliers": 608,
+      "ratio": 0.817,
+      "iterations": 106,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img15",
+      "matches": 531,
+      "inliers": 364,
+      "ratio": 0.685,
+      "iterations": 293,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img16",
+      "matches": 169,
+      "inliers": 103,
+      "ratio": 0.609,
+      "iterations": 338,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img17",
+      "matches": 71,
+      "inliers": 12,
+      "ratio": 0.169,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img13-Img18",
+      "matches": 185,
+      "inliers": 87,
+      "ratio": 0.47,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img19",
+      "matches": 166,
+      "inliers": 107,
+      "ratio": 0.645,
+      "iterations": 337,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img20",
+      "matches": 196,
+      "inliers": 121,
+      "ratio": 0.617,
+      "iterations": 563,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img23",
+      "matches": 582,
+      "inliers": 400,
+      "ratio": 0.687,
+      "iterations": 230,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img24",
+      "matches": 620,
+      "inliers": 509,
+      "ratio": 0.821,
+      "iterations": 54,
+      "kept": true
+    },
+    {
+      "pair": "Img13-Img25",
+      "matches": 647,
+      "inliers": 451,
+      "ratio": 0.697,
+      "iterations": 200,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img15",
+      "matches": 541,
+      "inliers": 359,
+      "ratio": 0.664,
+      "iterations": 349,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img16",
+      "matches": 228,
+      "inliers": 134,
+      "ratio": 0.588,
+      "iterations": 791,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img17",
+      "matches": 130,
+      "inliers": 71,
+      "ratio": 0.546,
+      "iterations": 777,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img18",
+      "matches": 203,
+      "inliers": 82,
+      "ratio": 0.404,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img19",
+      "matches": 203,
+      "inliers": 121,
+      "ratio": 0.596,
+      "iterations": 492,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img20",
+      "matches": 205,
+      "inliers": 124,
+      "ratio": 0.605,
+      "iterations": 570,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img23",
+      "matches": 686,
+      "inliers": 522,
+      "ratio": 0.761,
+      "iterations": 244,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img24",
+      "matches": 602,
+      "inliers": 444,
+      "ratio": 0.738,
+      "iterations": 173,
+      "kept": true
+    },
+    {
+      "pair": "Img14-Img25",
+      "matches": 594,
+      "inliers": 378,
+      "ratio": 0.636,
+      "iterations": 421,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img16",
+      "matches": 385,
+      "inliers": 275,
+      "ratio": 0.714,
+      "iterations": 122,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img17",
+      "matches": 170,
+      "inliers": 88,
+      "ratio": 0.518,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img18",
+      "matches": 375,
+      "inliers": 235,
+      "ratio": 0.627,
+      "iterations": 342,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img19",
+      "matches": 298,
+      "inliers": 212,
+      "ratio": 0.711,
+      "iterations": 203,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img20",
+      "matches": 358,
+      "inliers": 242,
+      "ratio": 0.676,
+      "iterations": 219,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img23",
+      "matches": 731,
+      "inliers": 569,
+      "ratio": 0.778,
+      "iterations": 83,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img24",
+      "matches": 422,
+      "inliers": 259,
+      "ratio": 0.614,
+      "iterations": 532,
+      "kept": true
+    },
+    {
+      "pair": "Img15-Img25",
+      "matches": 381,
+      "inliers": 255,
+      "ratio": 0.669,
+      "iterations": 327,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img17",
+      "matches": 622,
+      "inliers": 406,
+      "ratio": 0.653,
+      "iterations": 264,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img18",
+      "matches": 500,
+      "inliers": 322,
+      "ratio": 0.644,
+      "iterations": 339,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img19",
+      "matches": 65,
+      "inliers": 29,
+      "ratio": 0.446,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img20",
+      "matches": 760,
+      "inliers": 562,
+      "ratio": 0.739,
+      "iterations": 245,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img23",
+      "matches": 396,
+      "inliers": 299,
+      "ratio": 0.755,
+      "iterations": 136,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img24",
+      "matches": 209,
+      "inliers": 117,
+      "ratio": 0.56,
+      "iterations": 666,
+      "kept": true
+    },
+    {
+      "pair": "Img16-Img25",
+      "matches": 132,
+      "inliers": 81,
+      "ratio": 0.614,
+      "iterations": 512,
+      "kept": true
+    },
+    {
+      "pair": "Img17-Img18",
+      "matches": 598,
+      "inliers": 506,
+      "ratio": 0.846,
+      "iterations": 41,
+      "kept": true
+    },
+    {
+      "pair": "Img17-Img19",
+      "matches": 41,
+      "inliers": 10,
+      "ratio": 0.244,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img17-Img20",
+      "matches": 342,
+      "inliers": 148,
+      "ratio": 0.433,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img17-Img23",
+      "matches": 230,
+      "inliers": 131,
+      "ratio": 0.57,
+      "iterations": 748,
+      "kept": true
+    },
+    {
+      "pair": "Img17-Img24",
+      "matches": 130,
+      "inliers": 60,
+      "ratio": 0.462,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img17-Img25",
+      "matches": 61,
+      "inliers": 17,
+      "ratio": 0.279,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img18-Img19",
+      "matches": 21,
+      "inliers": 9,
+      "ratio": 0.429,
+      "iterations": 1000,
+      "kept": false
+    },
+    {
+      "pair": "Img18-Img20",
+      "matches": 76,
+      "inliers": 26,
+      "ratio": 0.342,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img18-Img23",
+      "matches": 365,
+      "inliers": 221,
+      "ratio": 0.605,
+      "iterations": 643,
+      "kept": true
+    },
+    {
+      "pair": "Img18-Img24",
+      "matches": 228,
+      "inliers": 90,
+      "ratio": 0.395,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img18-Img25",
+      "matches": 158,
+      "inliers": 73,
+      "ratio": 0.462,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img19-Img20",
+      "matches": 282,
+      "inliers": 169,
+      "ratio": 0.599,
+      "iterations": 454,
+      "kept": true
+    },
+    {
+      "pair": "Img19-Img23",
+      "matches": 204,
+      "inliers": 119,
+      "ratio": 0.583,
+      "iterations": 834,
+      "kept": true
+    },
+    {
+      "pair": "Img19-Img24",
+      "matches": 73,
+      "inliers": 26,
+      "ratio": 0.356,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img19-Img25",
+      "matches": 178,
+      "inliers": 95,
+      "ratio": 0.534,
+      "iterations": 962,
+      "kept": true
+    },
+    {
+      "pair": "Img20-Img23",
+      "matches": 261,
+      "inliers": 150,
+      "ratio": 0.575,
+      "iterations": 679,
+      "kept": true
+    },
+    {
+      "pair": "Img20-Img24",
+      "matches": 185,
+      "inliers": 98,
+      "ratio": 0.53,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img20-Img25",
+      "matches": 165,
+      "inliers": 75,
+      "ratio": 0.455,
+      "iterations": 1000,
+      "kept": true
+    },
+    {
+      "pair": "Img23-Img24",
+      "matches": 537,
+      "inliers": 373,
+      "ratio": 0.695,
+      "iterations": 182,
+      "kept": true
+    },
+    {
+      "pair": "Img23-Img25",
+      "matches": 463,
+      "inliers": 334,
+      "ratio": 0.721,
+      "iterations": 219,
+      "kept": true
+    },
+    {
+      "pair": "Img24-Img25",
+      "matches": 547,
+      "inliers": 357,
+      "ratio": 0.653,
+      "iterations": 737,
+      "kept": true
+    }
+  ],
+  "n_kept": 86
+}

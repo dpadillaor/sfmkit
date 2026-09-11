@@ -1,0 +1,265 @@
+{
+  "stage": "reconstruct",
+  "config_path": "configs/valencia/gpu-dense.yaml",
+  "timestamp": "2026-09-11T22:42:23.640455+00:00",
+  "git_commit": "f72fde49f8a393659ec0e79b28bb2eff5b02c421",
+  "config": {
+    "dataset": "valencia",
+    "name": "gpu-dense",
+    "seed": 0,
+    "calibrate": {
+      "images": "",
+      "pattern": [
+        9,
+        6
+      ],
+      "intrinsics": "",
+      "exif": true,
+      "sensor_aspect": [
+        4,
+        3
+      ]
+    },
+    "sfm": {
+      "images": [
+        "Img02",
+        "Img11",
+        "Img12",
+        "Img13",
+        "Img14",
+        "Img15",
+        "Img16",
+        "Img17",
+        "Img18",
+        "Img19",
+        "Img20",
+        "Img23",
+        "Img24",
+        "Img25"
+      ],
+      "reference": "Img02",
+      "max_keypoints": 2048,
+      "exhaustive": true,
+      "device": "cuda",
+      "ransac_threshold": 4.0,
+      "ransac_iterations": 1000,
+      "min_inliers": 20,
+      "min_track_length": 2,
+      "min_triangulation_angle_deg": 2.0,
+      "max_reprojection_error": 12.0,
+      "pnp_threshold": 6.0,
+      "min_pnp_correspondences": 12,
+      "bundle_solver": "schur"
+    },
+    "localize": {
+      "query": "Img00"
+    },
+    "colmap": {
+      "precomputed": "",
+      "matches": "colmap",
+      "camera": "self"
+    },
+    "dense": {
+      "enabled": true,
+      "max_image_size": 2000
+    },
+    "dataset_dir": "data/valencia"
+  },
+  "versions": {
+    "sfmkit": "0.1.0",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "python": "3.11.16"
+  },
+  "tracks": {
+    "n_tracks": 3050,
+    "mean_length": 3.057704918032787,
+    "max_length": 12,
+    "length_histogram": {
+      "2": 1668,
+      "3": 630,
+      "4": 297,
+      "5": 159,
+      "6": 126,
+      "7": 75,
+      "8": 54,
+      "9": 22,
+      "10": 9,
+      "11": 4,
+      "12": 6
+    }
+  },
+  "n_observations": 9318,
+  "steps": [
+    {
+      "step": 0,
+      "image": "Img25",
+      "n_registered": 2,
+      "n_points": 446,
+      "n_pnp_correspondences": 581,
+      "rmse_before": 4.829084191292946,
+      "rmse_after": 2.222776465196926,
+      "bundle_seconds": 0.04201934672892094,
+      "bundle_iterations": 21,
+      "n_filtered": 0
+    },
+    {
+      "step": 1,
+      "image": "Img13",
+      "n_registered": 3,
+      "n_points": 725,
+      "n_pnp_correspondences": 101,
+      "rmse_before": 3.7695261118721466,
+      "rmse_after": 2.9803507427283673,
+      "bundle_seconds": 0.2485005035996437,
+      "bundle_iterations": 56,
+      "n_filtered": 0
+    },
+    {
+      "step": 2,
+      "image": "Img14",
+      "n_registered": 4,
+      "n_points": 927,
+      "n_pnp_correspondences": 126,
+      "rmse_before": 3.4504878695821617,
+      "rmse_after": 3.4923767520213045,
+      "bundle_seconds": 0.2940145912580192,
+      "bundle_iterations": 54,
+      "n_filtered": 0
+    },
+    {
+      "step": 3,
+      "image": "Img24",
+      "n_registered": 5,
+      "n_points": 1124,
+      "n_pnp_correspondences": 155,
+      "rmse_before": 3.774442817624901,
+      "rmse_after": 3.742819414681005,
+      "bundle_seconds": 0.2061584461480379,
+      "bundle_iterations": 27,
+      "n_filtered": 0
+    },
+    {
+      "step": 4,
+      "image": "Img23",
+      "n_registered": 6,
+      "n_points": 1261,
+      "n_pnp_correspondences": 116,
+      "rmse_before": 4.07144846797589,
+      "rmse_after": 4.152216086598084,
+      "bundle_seconds": 0.30017726542428136,
+      "bundle_iterations": 21,
+      "n_filtered": 1
+    },
+    {
+      "step": 5,
+      "image": "Img11",
+      "n_registered": 7,
+      "n_points": 1448,
+      "n_pnp_correspondences": 70,
+      "rmse_before": 4.1369237139771355,
+      "rmse_after": 4.207004048366167,
+      "bundle_seconds": 0.973117521032691,
+      "bundle_iterations": 25,
+      "n_filtered": 0
+    },
+    {
+      "step": 6,
+      "image": "Img15",
+      "n_registered": 8,
+      "n_points": 1580,
+      "n_pnp_correspondences": 125,
+      "rmse_before": 4.321565468786453,
+      "rmse_after": 4.326176755678997,
+      "bundle_seconds": 1.3882365836761892,
+      "bundle_iterations": 27,
+      "n_filtered": 0
+    },
+    {
+      "step": 7,
+      "image": "Img12",
+      "n_registered": 9,
+      "n_points": 1732,
+      "n_pnp_correspondences": 89,
+      "rmse_before": 4.665961023047179,
+      "rmse_after": 4.730068680859937,
+      "bundle_seconds": 2.4225688711740077,
+      "bundle_iterations": 28,
+      "n_filtered": 1
+    },
+    {
+      "step": 8,
+      "image": "Img18",
+      "n_registered": 10,
+      "n_points": 1887,
+      "n_pnp_correspondences": 45,
+      "rmse_before": 4.767994639728787,
+      "rmse_after": 4.625493217003759,
+      "bundle_seconds": 6.18058619601652,
+      "bundle_iterations": 45,
+      "n_filtered": 0
+    },
+    {
+      "step": 9,
+      "image": "Img16",
+      "n_registered": 11,
+      "n_points": 2109,
+      "n_pnp_correspondences": 36,
+      "rmse_before": 5.696568681150987,
+      "rmse_after": 4.867296194132866,
+      "bundle_seconds": 10.455428536050022,
+      "bundle_iterations": 48,
+      "n_filtered": 0
+    },
+    {
+      "step": 10,
+      "image": "Img17",
+      "n_registered": 12,
+      "n_points": 2471,
+      "n_pnp_correspondences": 70,
+      "rmse_before": 5.2489907063559755,
+      "rmse_after": 4.872833196718584,
+      "bundle_seconds": 15.880407846998423,
+      "bundle_iterations": 49,
+      "n_filtered": 1
+    },
+    {
+      "step": 11,
+      "image": "Img20",
+      "n_registered": 13,
+      "n_points": 2731,
+      "n_pnp_correspondences": 70,
+      "rmse_before": 5.434307545736051,
+      "rmse_after": 5.107401904207672,
+      "bundle_seconds": 16.401793274097145,
+      "bundle_iterations": 47,
+      "n_filtered": 3
+    },
+    {
+      "step": 12,
+      "image": "Img19",
+      "n_registered": 14,
+      "n_points": 2830,
+      "n_pnp_correspondences": 69,
+      "rmse_before": 5.320906996919493,
+      "rmse_after": 5.052120331578793,
+      "bundle_seconds": 21.32411823235452,
+      "bundle_iterations": 47,
+      "n_filtered": 2
+    },
+    {
+      "step": 13,
+      "image": "<global refinement>",
+      "n_registered": 14,
+      "n_points": 2830,
+      "n_pnp_correspondences": 0,
+      "rmse_before": 5.170598429773069,
+      "rmse_after": 4.901772131845612,
+      "bundle_seconds": 20.63525528414175,
+      "bundle_iterations": 47,
+      "n_filtered": 0
+    }
+  ],
+  "n_cameras": 14,
+  "n_points": 2830
+}

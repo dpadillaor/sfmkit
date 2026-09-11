@@ -1,0 +1,78 @@
+{
+  "stage": "localize",
+  "config_path": "configs/valencia/gpu-dense.yaml",
+  "timestamp": "2026-09-11T22:42:25.229023+00:00",
+  "git_commit": "f72fde49f8a393659ec0e79b28bb2eff5b02c421",
+  "config": {
+    "dataset": "valencia",
+    "name": "gpu-dense",
+    "seed": 0,
+    "calibrate": {
+      "images": "",
+      "pattern": [
+        9,
+        6
+      ],
+      "intrinsics": "",
+      "exif": true,
+      "sensor_aspect": [
+        4,
+        3
+      ]
+    },
+    "sfm": {
+      "images": [
+        "Img02",
+        "Img11",
+        "Img12",
+        "Img13",
+        "Img14",
+        "Img15",
+        "Img16",
+        "Img17",
+        "Img18",
+        "Img19",
+        "Img20",
+        "Img23",
+        "Img24",
+        "Img25"
+      ],
+      "reference": "Img02",
+      "max_keypoints": 2048,
+      "exhaustive": true,
+      "device": "cuda",
+      "ransac_threshold": 4.0,
+      "ransac_iterations": 1000,
+      "min_inliers": 20,
+      "min_track_length": 2,
+      "min_triangulation_angle_deg": 2.0,
+      "max_reprojection_error": 12.0,
+      "pnp_threshold": 6.0,
+      "min_pnp_correspondences": 12,
+      "bundle_solver": "schur"
+    },
+    "localize": {
+      "query": "Img00"
+    },
+    "colmap": {
+      "precomputed": "",
+      "matches": "colmap",
+      "camera": "self"
+    },
+    "dense": {
+      "enabled": true,
+      "max_image_size": 2000
+    },
+    "dataset_dir": "data/valencia"
+  },
+  "versions": {
+    "sfmkit": "0.1.0",
+    "numpy": "1.26.4",
+    "scipy": "1.17.1",
+    "python": "3.11.16"
+  },
+  "query": "Img00",
+  "trials": 20,
+  "rmse_median": 13.890431233818916,
+  "centre_spread": 0.22498918720887431
+}

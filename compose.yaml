@@ -23,6 +23,7 @@ services:
     build:
       args:
         DEVICE: gpu
+        EXAMPLE: gpu-dense
     image: sfmkit:gpu
     gpus: all
 
