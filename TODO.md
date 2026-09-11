@@ -223,10 +223,11 @@ the contract, the API and the architecture.
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
   yet, and it would make the README's best picture. The viewer draws it
   (`docs/figures/viewer.png`); it could also feed Gaussian splatting.
-- [ ] **Redo the threshold grid search** (`scripts/sweep.py`, optimizations.md
-  1.6) with the Schur solver and the EXIF K, the defaults now: its thresholds
-  were searched with scipy's solver, which stopped short of every minimum, and
-  the chessboard K. With bundles 58x faster the search is cheap.
+- [x] **The threshold grid search, redone** with the Schur solver, the EXIF K
+  and fourteen photographs (64 combinations, 2026-09-12): the chosen values
+  came out as good as anything on the grid, so nothing changed.
+  `docs/optimizations.md` 1.6 has the table and what the second search says
+  about each threshold.
 - [x] **Speed up bundle adjustment: the method, not the hardware.** Done as a
   second solver, `sfm.bundle_solver: schur` (`core/bundle_schur.py`): analytic
   Jacobian, Schur complement, our Levenberg-Marquardt; bundles of 0.1-0.9 s

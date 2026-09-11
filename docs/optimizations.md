@@ -269,6 +269,38 @@ cost of a decision is paid by the stages downstream of it, not where it is made.
 That is what makes these thresholds impossible to set by local reasoning, and
 worth the hour of compute to search.
 
+**Searched again (2026-09-12), and the thresholds held.** Everything the first
+search ran with has since changed — the EXIF K, the Schur solver, five more
+photographs, fourteen cameras instead of nine — so the grid was widened to 64
+combinations and run again, now that a reconstruction takes seconds. The
+chosen values came out as good as anything on the grid:
+
+| pnp | angle | reproj | cameras | points | mean rot | max rot |
+|---|---|---|---|---|---|---|
+| 6.0 | 4.0 | 12.0 | 14 | 2668 | **0.326** | 1.516 |
+| 9.0 | 4.0 | 12.0 | 14 | 2668 | 0.327 | 1.517 |
+| 12.0 | 4.0 | 12.0 | 14 | 2668 | 0.329 | 1.524 |
+| **6.0** | **2.0** | **12.0** | 14 | **2849** | 0.341 | 1.534 |
+
+The one combination that beats the current settings does so by 0.015 degrees
+and 181 fewer points; at that distance the ranking is noise, and points are
+worth keeping. Nothing changed.
+
+What the second search says about the thresholds themselves:
+
+- **`pnp_threshold` 3.0 registers 13 cameras at most, in all 16 combinations
+  that use it.** Its subsets score better (0.181 mean) precisely because the
+  cameras it fails to register are the hard ones. 6.0, 9.0 and 12.0 all take
+  every camera and score within 0.002 of each other: above 6.0 the threshold
+  stops mattering.
+- **A looser reprojection threshold is still better**: 0.369 mean and 1507
+  points at 3.0 px, 0.342 and 2848 at 12.0 px.
+- **The triangulation angle no longer decides anything.** With fourteen
+  photographs every value from 0.5 to 4.0 registers all of them in 12 of its
+  16 combinations, and the means overlap. The optimum the first search found
+  was a feature of a nine-camera graph, where one badly conditioned point
+  could still poison a PnP.
+
 ---
 
 ## 2. RANSAC
