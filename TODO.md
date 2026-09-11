@@ -318,6 +318,26 @@ the contract, the API and the architecture.
 
 ## Housekeeping
 
-- [ ] Delete `legacy/` when nothing in it is needed any more.
+- [ ] **What is left of `legacy/`, checked piece by piece (2026-09-12).** Every
+  algorithm is rewritten; what has no equivalent is mostly figures:
+  - **Worth doing.** The old photo's pose is not refined after RANSAC-DLT:
+    legacy minimised its reprojection error with K fixed
+    (`PoseEstimation/sfm.py:1087-1156`, called from `dlt.py:97`), sfmkit stops
+    at the RANSAC result (`core/localize.py`), and only COLMAP's pass refines
+    it. Also missing: a point-to-point RMSE between two clouds
+    (`sfm.py:502`), and real-world scale from a known distance (two tower
+    points 120 m apart, `groundtruth.py:381-420`), which would put the old
+    photographer at so many metres rather than so many units.
+  - **Figures.** Camera axes drawn as triads (`sfm.py:457`, the viewer shows
+    orientation instead), the four candidate poses of an essential matrix
+    (`sfm.py:436`), before and after the bundle overlaid (`sfm.py:954`;
+    `reconstruct` keeps `before_refinement` unused), the epipoles themselves
+    and the click-an-point epipolar viewer (`sfm.py:163-305`).
+  - **Not worth it.** Group-structured pair lists (`matchingPipeline.py`,
+    superseded by exhaustive or star), a text dump of poses
+    (`gtFunctions.py:90`), our F against OpenCV's (`ransac_filter.ipynb`),
+    `CALIB_ZERO_TANGENT_DIST` and undistortion, which legacy never applied
+    either. `legacy/repro/` is migration scaffolding, not course code.
+- [ ] **Delete `legacy/`** when nothing in it is needed any more.
 - [ ] Delete `../MGRCV-history-backup-2026-09-10.bundle` (history before the
   purge of the course code) once sure it is not needed.
