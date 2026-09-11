@@ -144,25 +144,39 @@ Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
 set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
-- [ ] **Docker, the user's lesson**: the viewer's Dockerfile (done: listens on
-  `0.0.0.0` through `SFMVIEW_HOST`), the compose service `viewer` (done:
-  `ports`, `runs/` and `data/` read-only, seen through an SSH tunnel), and the
-  service `redis`, still to do, one concept at a time, each with a fictitious
-  example first: compose's default network and DNS by service name; `ports`
-  (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
-  (container to container: `redis` needs none); `depends_on` with a
-  `healthcheck` (`/api/health`); the broker URL as an environment variable
-  (`SFMKIT_BROKER=redis://redis:6379` in `cli`, `SFMVIEW_BROKER` in `viewer`);
-  `runs/` mounted read-only in the viewer; what happens when a service dies
-  mid-run (sfmkit carries on; the viewer retries every 2 s). The build context
-  is the root, as sfmkit's. Inside a container the viewer listens on
-  `SFMVIEW_HOST=0.0.0.0`. The redis-py added to sfmkit's requirements means the
-  sfmkit image must be rebuilt.
+- [ ] **Docker, the user's lesson**, what is left. Done: the viewer's
+  Dockerfile (`SFMVIEW_HOST=0.0.0.0`), the services `viewer` (ports, read-only
+  mounts, SSH tunnel) and `redis` (no ports, found by name), the broker URLs in
+  `environment`, `depends_on` with healthchecks (only the viewer depends on
+  Redis: the live view needs a viewer to be seen, and sfmkit alone should not
+  start a Redis nobody asked for). Left: what happens when a service dies
+  mid-run (sfmkit carries on; the viewer retries every 2 s); a named volume for
+  Redis, since `docker compose down` loses the streams kept in its anonymous
+  one; stop the dev Redis (`sfmview-dev-redis`) and the dev viewer on 8765;
+  rewrite the live section of `docs/viewer.md` for compose.
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
   points and tracks; COLMAP's model has colours, ours none. The viewer draws
   each sparse model in one colour anyway, to tell them apart, but a "true
   colours" switch would need them: sample each point's colour from an image that
   observes it and save it as `colors` (the viewer already reads the key).
+- [ ] **A documentation site**, MkDocs Material from `docs/*.md`, on GitHub
+  Pages through Actions once the repo is public: Mermaid diagrams, the viewer's
+  OpenAPI embedded, mkdocstrings for sfmkit's reference, and ADRs for the
+  decisions taken (Redis, ports and adapters, `--no-deps`, EXIF K...).
+- [ ] **A static demo of the viewer** for the portfolio: save the API's answers
+  for Valencia as files (runs, scene, dense cloud, photos) and publish the page
+  read-only on GitHub Pages, so a reviewer opens the cathedral from a link.
+- [ ] **Document the interfaces with the standards.** HTTP is covered: FastAPI
+  serves OpenAPI at `/docs` and `/redoc` (say so in `docs/viewer.md`). The
+  messages are not: an AsyncAPI file in `contracts/` for the channels (the
+  stream `sfmkit:steps:<run>`, the WebSocket `/live`), who publishes and who
+  listens, reusing `step.schema.json`; and a Mermaid sequence diagram of
+  browser, viewer, Redis and sfmkit in `docs/viewer.md`.
+- [ ] **A page opened while the server had no broker never goes live.** The
+  page asks `/api/health` once, at load; restart the server with a broker (as
+  when adding Redis to compose) and the open page follows no steps until it is
+  reloaded. Seen in the Docker lesson. Fix: while `liveOn` is false, `refresh()`
+  asks `/api/health` again and, once live, opens the feed of the open run.
 - [ ] **The run list does not say which runs are running.** Only an open run
   knows, from its stream (a `start` with no `end` or `failed` after it). The
   server could look at the last message of every `sfmkit:steps:*` stream and
