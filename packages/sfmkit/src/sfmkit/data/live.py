@@ -5,13 +5,18 @@ each camera registered or refinement, an ``end``, or ``failed``. They go to a Re
 one per run, which keeps them, so a viewer that arrives late still sees every
 step. Publishing never stops a run: when the broker cannot be reached, the
 publisher says so once and drops what follows.
+
+While the run works, a heartbeat keeps a key alive beside the stream, so a
+watcher can tell a run still at work from one that died without a word.
 """
 
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import os
+import threading
 from collections.abc import Callable
 from typing import Protocol
 
@@ -23,11 +28,18 @@ from sfmkit.core.reconstruct import Snapshot
 VERSION = 1
 BROKER_ENV = "SFMKIT_BROKER"
 MAXLEN = 1000  # entries a stream keeps: far more than a run's steps
+ALIVE_SECONDS = 30  # how long the alive key outlives its last renewal
+RENEW_SECONDS = 10
 
 
 def stream_key(run: str) -> str:
     """The Redis stream of a run, ``<project>/<config>``."""
     return f"sfmkit:steps:{run}"
+
+
+def alive_key(run: str) -> str:
+    """The key that exists while a run is at work."""
+    return f"sfmkit:alive:{run}"
 
 
 def start_message(run: str, K: np.ndarray, images: list[str]) -> dict:
@@ -109,6 +121,53 @@ def publisher(run: str, on_error: Callable[[Exception], None] | None = None) -> 
     if not url:
         return NullPublisher()
     return RedisPublisher.from_url(url, run, on_error=on_error)
+
+
+class Heartbeat:
+    """Keeps ``alive_key(run)`` set while the ``with`` block runs: for ``ttl``
+    seconds, renewed every ``every`` from a thread, deleted on the way out.
+
+    A run killed outright stops renewing it and Redis lets it expire. Unlike the
+    publisher it never gives up, so a broker back mid-run hears from it again.
+    """
+
+    def __init__(self, client, run: str, ttl: float = ALIVE_SECONDS,
+                 every: float = RENEW_SECONDS) -> None:
+        self.client = client
+        self.key = alive_key(run)
+        self.ttl = ttl
+        self.every = every
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def __enter__(self) -> Heartbeat:
+        self._beat()
+        self._thread = threading.Thread(target=self._loop, name="sfmkit-heartbeat", daemon=True)
+        self._thread.start()
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self._stop.set()
+        self._thread.join()
+        with contextlib.suppress(Exception):
+            self.client.delete(self.key)
+
+    def _loop(self) -> None:
+        while not self._stop.wait(self.every):
+            self._beat()
+
+    def _beat(self) -> None:
+        with contextlib.suppress(Exception):  # the broker's trouble is never the run's
+            self.client.set(self.key, "1", px=int(self.ttl * 1000))
+
+
+def heartbeat(run: str) -> contextlib.AbstractContextManager:
+    """A ``Heartbeat`` for ``run`` on the broker in ``SFMKIT_BROKER``, if one is set."""
+    url = os.environ.get(BROKER_ENV)
+    if not url:
+        return contextlib.nullcontext()
+    client = redis.Redis.from_url(url, socket_connect_timeout=2, socket_timeout=2)
+    return Heartbeat(client, run)
 
 
 def _number(x: float) -> float | None:

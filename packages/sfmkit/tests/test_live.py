@@ -1,7 +1,9 @@
 """Live progress: the messages sfmkit publishes, and how it publishes them."""
 
+import contextlib
 import json
 import os
+import time
 
 import numpy as np
 import pytest
@@ -76,6 +78,11 @@ class FakeRedis:
     def delete(self, key):
         self.calls.append(("delete", key))
 
+    def set(self, key, value, px=None):
+        if self.fail:
+            raise redis.ConnectionError("no broker")
+        self.calls.append(("set", key, px))
+
     def xadd(self, key, fields, maxlen=None, approximate=None):
         if self.fail:
             raise redis.ConnectionError("no broker")
@@ -105,6 +112,37 @@ def test_no_broker_configured_publishes_nothing(monkeypatch):
     assert isinstance(live.publisher(RUN), live.NullPublisher)
     monkeypatch.setenv(live.BROKER_ENV, "redis://localhost:6379")
     assert isinstance(live.publisher(RUN), live.RedisPublisher)
+
+
+def test_a_heartbeat_keeps_the_key_while_the_run_works_then_deletes_it():
+    client = FakeRedis()
+    with live.Heartbeat(client, RUN, ttl=0.3, every=0.02):
+        time.sleep(0.15)
+    key = "sfmkit:alive:valencia/9cameras"
+    assert client.calls[0] == ("set", key, 300) and client.calls[-1] == ("delete", key)
+    assert sum(c[0] == "set" for c in client.calls) >= 3  # renewed, not set once
+
+
+def test_a_heartbeat_never_stops_the_run():
+    with live.Heartbeat(FakeRedis(fail=True), RUN, every=0.01):
+        time.sleep(0.05)  # beats that fail, silently
+
+
+def test_no_broker_configured_no_heartbeat(monkeypatch):
+    monkeypatch.delenv(live.BROKER_ENV, raising=False)
+    assert isinstance(live.heartbeat(RUN), contextlib.nullcontext)
+    monkeypatch.setenv(live.BROKER_ENV, "redis://localhost:6379")
+    assert isinstance(live.heartbeat(RUN), live.Heartbeat)
+
+
+@pytest.mark.redis
+@pytest.mark.skipif(not os.environ.get("SFMKIT_TEST_REDIS"), reason="SFMKIT_TEST_REDIS not set")
+def test_a_real_broker_holds_the_alive_key_while_the_run_works():
+    run = "test/alive"
+    client = redis.Redis.from_url(os.environ["SFMKIT_TEST_REDIS"])
+    with live.Heartbeat(client, run, ttl=5):
+        assert 0 < client.pttl(live.alive_key(run)) <= 5000
+    assert not client.exists(live.alive_key(run))
 
 
 @pytest.mark.redis

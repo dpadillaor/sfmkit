@@ -52,59 +52,62 @@ def cmd_reconstruct(args) -> int:
     # here and, when a broker is configured, to whoever watches the run.
     # Named as the viewer names runs: the run directory's parent and its own name.
     run_name = f"{run.parent.name}/{run.name}"
-    broker = live.publisher(run_name, on_error=lambda e: console.print(
-        f"[yellow]live progress off:[/yellow] the broker in ${live.BROKER_ENV} is unreachable "
-        f"({type(e).__name__}); the run goes on"))
-    broker.publish(live.start_message(run_name, K, s.images))
+    # Kept alive until the run ends, however it ends: a watcher tells a run at
+    # work from one that died without a word.
+    with live.heartbeat(run_name):
+        broker = live.publisher(run_name, on_error=lambda e: console.print(
+            f"[yellow]live progress off:[/yellow] the broker in ${live.BROKER_ENV} is unreachable "
+            f"({type(e).__name__}); the run goes on"))
+        broker.publish(live.start_message(run_name, K, s.images))
 
-    table = Table(title="incremental reconstruction")
-    for c, j in (("step", "right"), ("image", "left"), ("cams", "right"), ("points", "right"),
-                 ("pnp", "right"), ("rmse before", "right"), ("rmse after", "right"),
-                 ("BA s", "right")):
-        table.add_column(c, justify=j)
-    if console.is_terminal:
-        working = Spinner("dots", text="seed pair: triangulation and bundle adjustment")
-        with Live(Group(table, working), console=console, refresh_per_second=8) as display:
+        table = Table(title="incremental reconstruction")
+        for c, j in (("step", "right"), ("image", "left"), ("cams", "right"), ("points", "right"),
+                     ("pnp", "right"), ("rmse before", "right"), ("rmse after", "right"),
+                     ("BA s", "right")):
+            table.add_column(c, justify=j)
+        if console.is_terminal:
+            working = Spinner("dots", text="seed pair: triangulation and bundle adjustment")
+            with Live(Group(table, working), console=console, refresh_per_second=8) as display:
+                def on_step(snapshot):
+                    r = snapshot.report
+                    broker.publish(live.step_message(run_name, snapshot))
+                    _add_row(table, r)
+                    working.update(text=f"{r.n_registered} cameras in; next step running "
+                                        "(bundle adjustment takes tens of seconds)")
+
+                result = _reconstruct(broker, run_name, matches, K, tracks, options, on_step)
+                display.update(table)
+        else:  # piped, as in the TUI's run tab: a line per step, then the table
             def on_step(snapshot):
                 r = snapshot.report
                 broker.publish(live.step_message(run_name, snapshot))
-                _add_row(table, r)
-                working.update(text=f"{r.n_registered} cameras in; next step running "
-                                    "(bundle adjustment takes tens of seconds)")
+                console.print(f"step {r.step}: {r.image}, {r.n_registered} cameras, {r.n_points} "
+                              f"points, rmse {r.rmse_after:.3f}, BA {r.bundle_seconds:.1f} s")
 
             result = _reconstruct(broker, run_name, matches, K, tracks, options, on_step)
-            display.update(table)
-    else:  # piped, as in the TUI's run tab: a line per step, then the table
-        def on_step(snapshot):
-            r = snapshot.report
-            broker.publish(live.step_message(run_name, snapshot))
-            console.print(f"step {r.step}: {r.image}, {r.n_registered} cameras, {r.n_points} "
-                          f"points, rmse {r.rmse_after:.3f}, BA {r.bundle_seconds:.1f} s")
+            for r in result.reports:
+                _add_row(table, r)
+            console.print(table)
 
-        result = _reconstruct(broker, run_name, matches, K, tracks, options, on_step)
-        for r in result.reports:
-            _add_row(table, r)
-        console.print(table)
-
-    out = run / "reconstruct"
-    out.mkdir(parents=True, exist_ok=True)
-    io.save_reconstruction(result.reconstruction, out / "reconstruction.npz")
-    if result.before_refinement is not None:
-        io.save_reconstruction(result.before_refinement,
-                               out / "reconstruction_before_refinement.npz")
-    io.write_manifest(run, "reconstruct", cfg, config_path=args.config, extra={
-        "tracks": stats,
-        "n_observations": sum(t.length for t in tracks),
-        "steps": [vars(r) for r in result.reports],
-        "n_cameras": len(result.reconstruction.poses),
-        "n_points": result.reconstruction.n_points,
-    })
-    # Last, so a viewer told the run is over finds its files written.
-    broker.publish(live.end_message(run_name, len(result.reconstruction.poses),
-                                    result.reconstruction.n_points))
-    console.print(f"[green]registered[/green] {len(result.reconstruction.poses)} cameras, "
-                  f"{result.reconstruction.n_points} points")
-    return 0
+        out = run / "reconstruct"
+        out.mkdir(parents=True, exist_ok=True)
+        io.save_reconstruction(result.reconstruction, out / "reconstruction.npz")
+        if result.before_refinement is not None:
+            io.save_reconstruction(result.before_refinement,
+                                   out / "reconstruction_before_refinement.npz")
+        io.write_manifest(run, "reconstruct", cfg, config_path=args.config, extra={
+            "tracks": stats,
+            "n_observations": sum(t.length for t in tracks),
+            "steps": [vars(r) for r in result.reports],
+            "n_cameras": len(result.reconstruction.poses),
+            "n_points": result.reconstruction.n_points,
+        })
+        # Last, so a viewer told the run is over finds its files written.
+        broker.publish(live.end_message(run_name, len(result.reconstruction.poses),
+                                        result.reconstruction.n_points))
+        console.print(f"[green]registered[/green] {len(result.reconstruction.poses)} cameras, "
+                      f"{result.reconstruction.n_points} points")
+        return 0
 
 
 def _reconstruct(broker, run_name, *args):

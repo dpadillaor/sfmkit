@@ -40,6 +40,11 @@ class StepSource(Protocol):
         """Whether the source can be reached."""
         ...
 
+    async def running(self, runs: list[RunId]) -> set[RunId] | None:
+        """Those of ``runs`` whose sfmkit is at work, as its heartbeat says;
+        ``None`` when the source cannot tell."""
+        ...
+
 
 class ImageStore(Protocol):
     """The photos of a dataset, which runs reconstruct."""

@@ -115,3 +115,52 @@ async def test_runs_do_not_mix(source):
 async def test_it_can_be_reached(source):
     steps, _ = source
     assert await steps.ping()
+
+
+def memory_beats():
+    source = MemoryStepSource()
+    return source, source.beat, lambda: None
+
+
+def redis_beats():
+    import redis
+
+    from sfmview.adapters.redis_steps import RedisStepSource, alive_key
+
+    writer = redis.Redis.from_url(REDIS)
+    keys = []
+
+    def beat(run):
+        keys.append(alive_key(run))
+        writer.set(alive_key(run), "1", ex=30)  # as sfmkit's heartbeat sets it
+
+    return RedisStepSource.from_url(REDIS), beat, lambda: keys and writer.delete(*keys)
+
+
+@pytest.fixture(params=[
+    pytest.param(memory_beats, id="memory"),
+    pytest.param(redis_beats, id="redis", marks=[
+        pytest.mark.redis,
+        pytest.mark.skipif(not REDIS, reason="SFMVIEW_TEST_REDIS not set")]),
+])
+def beats(request):
+    made, beat, cleanup = request.param()
+    yield made, beat
+    cleanup()
+
+
+@pytest.mark.anyio
+async def test_the_runs_at_work_are_those_with_a_heartbeat(beats):
+    steps, beat = beats
+    working, done = a_run(), a_run()
+    beat(working)
+    assert await steps.running([working, done]) == {working}
+    assert await steps.running([]) == set()
+
+
+@pytest.mark.anyio
+async def test_an_unreachable_broker_cannot_tell_who_is_at_work():
+    from sfmview.adapters.redis_steps import RedisStepSource
+
+    steps = RedisStepSource.from_url("redis://127.0.0.1:1")  # nothing listens there
+    assert await steps.running([a_run()]) is None

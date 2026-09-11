@@ -108,6 +108,7 @@ button { font: inherit; color: inherit; }
 .runs .what { display: flex; flex-direction: column; min-width: 0; }
 .runs .name { font-family: var(--mono); font-size: 12.5px; }
 .runs .project { color: var(--faint); font-size: 11px; font-family: var(--mono); }
+.runs .name .live { margin-left: 8px; font-size: 9.5px; }
 .runs .has { display: flex; gap: 2px; margin-left: auto; }
 .runs .has span {
   width: 14px;

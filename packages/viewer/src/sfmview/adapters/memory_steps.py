@@ -19,9 +19,14 @@ class MemoryStepSource:
     def __init__(self, poll: float = 0.02) -> None:
         self.poll = poll
         self._runs: dict[str, list[Mapping]] = defaultdict(list)
+        self._alive: set[RunId] = set()
 
     def publish(self, run: RunId, message: Mapping) -> None:
         self._runs[str(run)].append(message)
+
+    def beat(self, run: RunId, alive: bool = True) -> None:
+        """Say ``run`` is at work, or no longer, as sfmkit's heartbeat would."""
+        (self._alive.add if alive else self._alive.discard)(run)
 
     async def events(self, run: RunId, after: str = "0") -> AsyncIterator[LiveEvent]:
         messages = self._runs[str(run)]
@@ -34,3 +39,6 @@ class MemoryStepSource:
 
     async def ping(self) -> bool:
         return True
+
+    async def running(self, runs: list[RunId]) -> set[RunId] | None:
+        return {run for run in runs if run in self._alive}

@@ -186,7 +186,10 @@ the contract, the API and the architecture.
   from the last step would have to guess how long a step can take. Better, a
   heartbeat through a key that expires: while it works, sfmkit sets
   `sfmkit:alive:<run>` with a 30 s TTL and renews it every 10 s; killed, it
-  stops renewing and Redis drops the key. Running = the key exists.
+  stops renewing and Redis drops the key. Running = the key exists. Seen in the
+  Docker lesson: Redis stopped after step 1 and started again, sfmkit gave up
+  publishing and finished, so the stream ends at step 1 with no `end` and the
+  open page kept its LIVE badge on; the heartbeat would let it turn it off.
 - [ ] **Streams never expire.** A run's stream stays in Redis until the run is
   repeated (a `start` empties it), which is what lets a finished run be
   rewound; with many runs, set an `EXPIRE` after the `end` (a week?).

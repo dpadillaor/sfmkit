@@ -56,7 +56,9 @@ Neither knows the other: sfmkit writes to the broker and the viewer reads from
 it. The stream keeps a run's messages, so a page opened late, or reloaded,
 shows every step; a finished run's stream stays until the run is repeated, so
 its timeline can still be rewound. Without a broker sfmkit runs as before, and
-if the broker goes away mid-run it says so once and carries on.
+if the broker goes away mid-run it says so once and carries on. A run at work
+is marked live in the list, and a run whose heartbeat stops before its `end`
+(sfmkit killed, or the broker lost mid-run) is no longer shown as live.
 
 ![A run followed live](figures/viewer_live.png)
 
@@ -85,7 +87,11 @@ after each camera registered and each global refinement (the cameras and the
 triangulated points as they stood, flat), and an `end`, or `failed` with the
 reason when the run stops short, Ctrl-C included. The stream is named after the
 run's directory, as the viewer names runs, so `--out` does not write into
-another run's stream. Both packages test
+another run's stream. Beside it, while `reconstruct` works, sfmkit keeps
+`sfmkit:alive:<project>/<config>` set with a 30 s expiry and renews it every
+10 s: a heartbeat. The key goes when the run ends, however it ends, and a run
+killed outright stops renewing it, so the viewer can tell a run at work from a
+stream that stopped without an `end`. Both packages test
 against the schema and its examples, with the checker in `contracts/check.py`,
 so a change on one side breaks a test on the other, not a run.
 
@@ -106,7 +112,7 @@ one place (`web/js/scene.js`).
 | Route | |
 |---|---|
 | `GET /api/health` | `{"status": "ok", "live": ...}`, and whether the broker answers |
-| `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics |
+| `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics, and `running`, whether its heartbeat beats (`null` without a broker) |
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
 | `WS /api/runs/{project}/{config}/live?after=<id>` | `{"now"}`, the server's clock, then the run's stream as `{"id", "message"}`: history first, then as it comes |

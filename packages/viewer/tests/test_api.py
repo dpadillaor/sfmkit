@@ -60,6 +60,15 @@ def test_runs(client):
     assert run["id"] == "city/full" and run["project"] == "city" and run["config"] == "full"
     assert run["layers"] == ["sfmkit", "colmap"]
     assert run["metrics"] == {"mean_rotation_error_deg": 0.98}
+    assert run["running"] is None  # no broker to ask
+
+
+def test_runs_say_which_sfmkit_is_at_work():
+    store, steps = MemoryStore(), MemoryStepSource()
+    client = TestClient(create_app(store, steps))
+    assert client.get("/api/runs").json()[0]["running"] is False
+    steps.beat(store.run)
+    assert client.get("/api/runs").json()[0]["running"] is True
 
 
 def test_scene_arrays_go_out_flat_without_nan(client):

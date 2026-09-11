@@ -65,10 +65,12 @@ export class SceneView {
   }
 
   // Every camera that can be looked through: { key, name, source, query }.
+  // The cameras of the visible layers, as pick() sees them: a hidden model's
+  // cameras are not offered, as the finished one while a new run is drawn.
   cameras() {
-    return [...this.#shots.values()].map(({ key, name, source, query }) => ({
-      key, name, source, query,
-    }));
+    return [...this.#shots.values()]
+      .filter((shot) => this.#layers.get(shot.layer)?.object.visible)
+      .map(({ key, name, source, query }) => ({ key, name, source, query }));
   }
 
   // The camera drawn nearest to (x, y), in the page's pixels, within a few

@@ -30,7 +30,8 @@ export function renderRuns(runs, onSelect) {
       'data-id': run.id, 'aria-selected': 'false', title: run.id, onclick: () => onSelect(run.id),
     },
     el('div', { class: 'what' },
-      el('span', { class: 'name' }, run.config),
+      el('span', { class: 'name' }, run.config,
+        run.running && el('span', { class: 'live', title: 'sfmkit is at work on this run' }, 'live')),
       el('span', { class: 'project' }, run.project)),
     el('span', { class: 'has' }, ...HOLDS.map(([layer, key]) => el('span', {
       class: run.layers.includes(layer) ? 'on' : '',

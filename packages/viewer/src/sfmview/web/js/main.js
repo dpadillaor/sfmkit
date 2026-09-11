@@ -19,7 +19,10 @@ const session = {
   K: null, steps: [], index: -1, running: false, hidFinished: false, fitted: false,
 };
 
-const showLayers = () => ui.renderLayers(view.layers(), (id, on) => view.setVisible(id, on));
+const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
+  view.setVisible(id, on);
+  showCameras(); // a hidden layer's cameras leave the list
+});
 const showCameras = () => ui.renderCameras(view.cameras(), view.looking()?.key, lookThrough);
 const showPhotoBar = () => ui.renderPhotoBar(view.looking(), {
   onOpacity: (opacity) => view.setPhotoOpacity(opacity),
@@ -90,7 +93,9 @@ function onLive(token, { id: entry, message }) {
   // Written after the page connected: news, not history.
   const news = writtenAt(entry) >= session.connectedAt;
   if (message.kind === 'start') {
-    Object.assign(session, { K: message.K, steps: [], index: -1, running: true });
+    Object.assign(session, {
+      K: message.K, steps: [], index: -1, running: true, startSeen: Date.now(),
+    });
   } else if (message.kind === 'step') {
     if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
     const following = session.index === session.steps.length - 1;
@@ -182,6 +187,7 @@ window.addEventListener('keydown', (e) => {
 
 // The run list again, and the open run's results if its files changed.
 async function refresh() {
+  const asked = Date.now();
   try {
     runs = await listRuns();
   } catch {
@@ -190,6 +196,14 @@ async function refresh() {
   ui.renderRuns(runs, (id) => { location.hash = id; });
   ui.selectRun(session.id);
   const run = runOf(session.id);
+  // A start with no end: sfmkit's heartbeat says whether it is still at work.
+  // Only an answer asked for after the start counts, or a run just begun would
+  // be taken for a dead one.
+  if (session.running && run?.running === false && session.startSeen < asked) {
+    session.running = false;
+    say(session.token, 'The run stopped without a word: sfmkit is no longer at work.', true);
+    scheduleDraw();
+  }
   if (!session.id && runs.length) {
     // The page came up before any run, or before the server: start now.
     ui.status('');

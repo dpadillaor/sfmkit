@@ -6,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
+from starlette.concurrency import run_in_threadpool
 
 from sfmview.api.schemas import RunOut, SceneOut
 from sfmview.domain import ImageNotFound, RunId
@@ -52,8 +53,12 @@ async def health(request: Request) -> dict[str, str | bool]:
 
 
 @router.get("/runs")
-def runs(store: Store) -> list[RunOut]:
-    return [RunOut.of(r) for r in store.runs()]
+async def runs(request: Request, store: Store) -> list[RunOut]:
+    """Every run, and whether sfmkit is at work on it, if there is a broker to ask."""
+    summaries = await run_in_threadpool(store.runs)
+    steps = request.app.state.steps
+    alive = None if steps is None else await steps.running([r.run for r in summaries])
+    return [RunOut.of(r, None if alive is None else r.run in alive) for r in summaries]
 
 
 @router.get("/runs/{project}/{config}/scene")
