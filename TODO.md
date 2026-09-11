@@ -29,68 +29,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   Scored instead against the course's model, which was fed matches like ours,
   the same reconstruction read 0.379°. COLMAP varies between runs, but
   negligibly on the scene's cameras (±0.002°, over 3 runs); its placement of
-  the old photo does not (see below).
-- [ ] **COLMAP's placement of the old photo is unstable between runs**: the query
-  error of the same config against a fresh COLMAP was 1.20°, then 0.97°
-  (`9cameras-colmap`) and 3.84° (`9cameras-dense`, the same sparse settings),
-  while the scene's cameras agree within 0.03°. Its query pass, one photo of
-  another camera registered with the principal point freed, may land in
-  different local minima. Measure over several runs, and seed COLMAP if it can
-  be.
-- [ ] **Review how the old photo (the query) is treated, stage by stage.** It is
-  handled differently almost everywhere: `match` pairs it with the reference
-  only, even when `exhaustive: true`; `reconstruct` leaves it out on purpose;
-  `localize` uses DLT as its camera is unknown; `changes` compares it with the
-  reference. And **`evaluate` never scores it**: it compares the reconstructed
-  cameras only, while `localize/query_pose.npz` is never checked against
-  COLMAP's pose for Img00, which the model has. (Now done: `evaluate` scores
-  the query against COLMAP's, apart from the other cameras.)
-  **First measurement (2026-09-10), by hand:** localize's Img00 differs by
-  ~14° in orientation from both COLMAP placements (13.6° from the new SIFT one,
-  13.9° from the course's), while the two COLMAPs agree within 0.8° despite
-  different features and procedures. localize is unstable too: across its 20
-  seeds the centre spreads 0.27 along one axis (0.02 along the others) and one
-  seed reaches 20 px. Hypothesis to test: DLT, which estimates the whole camera,
-  degenerates when the 3D points are nearly coplanar, and the old photo sees
-  mostly the facade.
-  **Strong hint:** `evaluate` now prints the K. localize's DLT puts Img00's
-  principal point at cy = 369 in a 418 px tall image (centre 209, COLMAP 209):
-  160 px off, vertically. An offset principal point is a tilt in disguise, and
-  atan(160 / 647) = 13.9°, against the 13.6° disagreement. Fixing the principal
-  point at the image centre (estimating focal and pose only) is the obvious
-  experiment.
-  **Seen in the viewer (2026-09-11):** looking through Img00, both placements
-  lay the dense cloud over the old photo about as well; to the eye, sfmkit's a
-  little better. The 11.5° is then no misplacement but a trade between K and R:
-  on a nearly planar facade a tilt and a shifted principal point project almost
-  alike, and each side resolves it its own way. sfmkit's DLT frees the principal
-  point (241, 323 in a 557x418 image); COLMAP pins it at the centre (278.5, 209),
-  which an old print, perhaps cropped, need not have. So the error against
-  COLMAP does not say which is right. Experiments to settle it: localize with
-  the principal point fixed at the centre (does it meet COLMAP's R?); COLMAP's
-  query pass refining the principal point (does it meet ours?); and both
-  poses' reprojection error on one neutral set of 2D-3D matches.
-  **Measured the same day, and it points to sfmkit being right:** the vertical
-  taken as the direction orthogonal to the nine phones' x axes (held level:
-  orthogonal within 0.6°), the phones look up 10-14°, as people photograph a
-  facade; sfmkit's Img00 is level (pitch 0.2°, roll 1.5°); COLMAP's looks up
-  11.2°. The 11.5° between them is nearly all pitch (axis 0.95 along the
-  camera's x). A level camera with the principal point well below the centre is
-  how architecture was photographed with view cameras: the rising front shifts
-  the lens up to take in a tall facade while keeping verticals parallel (a
-  cropped print would do the same). Still a pinhole, only off-centre. COLMAP,
-  its principal point pinned at the centre, has to tilt the camera up instead.
-  So the query's "error against COLMAP" is COLMAP's, for this photo. **Done:**
-  COLMAP's query pass now refines the principal point
-  (`ba_refine_principal_point`, the scene's cameras put back afterwards). It
-  finds (241, 334) against localize's (241, 323), f 552 against 554-560, the
-  camera level (-1.2°), and the query's error falls from 11.5° to 1.2°; the
-  scene's cameras are unchanged (0.311° against 0.312°). **Done too** for
-  a model made elsewhere: the `colmap` stage refines the query in a precomputed
-  model (`refine_query`, the query alone, principal point, focal and distortion
-  free), as the course's pinned it. Against the course's model the old photo
-  goes 11.9° -> 4.4°, its principal point (278, 209) -> (251, 282); the rest
-  of that gap is the model's own matches (a star, the course's keypoints).
+  the old photo does not, as `docs/old-photo.md` says.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no

@@ -264,5 +264,7 @@ def test_rotation_is_valid(rng):
 ```
 
 **For the layout and the rules it enforces**, see
-[architecture.md](architecture.md). **For the case study and the measurements
+[architecture.md](architecture.md). The old photograph, the one the pipeline
+treats apart at every stage, has its own account in
+[old-photo.md](old-photo.md). **For the case study and the measurements
 behind the design decisions**, see [optimizations.md](optimizations.md).
