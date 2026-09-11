@@ -268,7 +268,22 @@ the contract, the API and the architecture.
   (`pycolmap.poisson_meshing`), as an option of the dense stage.
 - [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
   reconstruction written as a COLMAP model (see the exporter under Later).
-- [ ] **Speed up bundle adjustment: the method, not the hardware.** A full run
+- [ ] **Img28 worsens with the Schur solver and the EXIF K**: 0.692° -> 1.805°,
+  position error ten times the other cameras', while the other seven scored
+  improve (mean 0.312 -> 0.322°, median ~0.19 -> ~0.11°). Hypothesis, untested:
+  wrong matches came in when Img28 was registered (step 4), and a bundle that
+  reaches its minimum fits them where scipy's, stopped short, did not. Look at
+  Img28's residuals after the final bundle, and at its PnP inliers.
+- [ ] **Make the Schur solver the default?** 58x faster on the bundles and
+  converged (scipy's stops at `max_nfev` on all nine Valencia bundles), but
+  it moves the numbers: redo the threshold grid search (optimizations.md 1.6)
+  with it, settle Img28, then regenerate the example run and the README numbers
+  once, together with the EXIF K.
+- [x] **Speed up bundle adjustment: the method, not the hardware.** Done as a
+  second solver, `sfm.bundle_solver: schur` (`core/bundle_schur.py`): analytic
+  Jacobian, Schur complement, our Levenberg-Marquardt; bundles of 0.1-0.9 s
+  instead of 5-42 s. Measurements in `docs/optimizations.md` 1.4. The notes
+  below are what led to it. A full run
   spends 245 of 267 s in `reconstruct`, whose bundle adjustment
   (`core/bundle.py`) is scipy's generic `least_squares` with a finite-difference
   Jacobian and the iterative `lsmr` solver: 20-35 s an adjustment for 9 cameras

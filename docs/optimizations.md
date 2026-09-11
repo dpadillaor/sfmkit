@@ -159,6 +159,33 @@ Worth doing only if 1.3 proves insufficient. For a computer-vision portfolio it
 also carries weight on its own: the Schur complement is *the* idea that makes
 bundle adjustment tractable.
 
+**Done, with 1.3, as a second solver** beside scipy's:
+`core/bundle_schur.py`, chosen with `sfm.bundle_solver: schur` (the default
+stays `scipy`). The same problem, gauge and Huber loss; an analytic Jacobian
+(checked against central differences to 1e-8), the points eliminated per
+point, the 6N-7 camera system solved directly, Levenberg-Marquardt stopping at
+Ceres's function tolerance, 1e-6. Each iteration costs ~10 ms on Valencia.
+The regression check (`--from verify`, 9cameras), same machine:
+
+| | scipy | schur |
+|---|---|---|
+| bundle adjustments, summed | 203 s (5.5 to 41.5 s each) | **3.5 s** (0.1 to 0.9 s) |
+| whole run from `verify` | 4 min 20 s | **25 s** |
+| mean / max rotation error | 0.981° / 2.835° | **0.875°** / 2.836° |
+| final RMSE, points | 7.06 px, 1691 | 6.99 px, 1756 |
+
+**scipy's solve never converged.** On each of the nine bundles of a Valencia
+run it uses up its 2000 evaluations (`max_nfev`, 10 x `max_iterations`) and
+stops; the Schur solver converges in 27 to 55 Jacobians. On the final bundle
+scipy stops at a robust cost of 72 097, the Schur solver reaches 67 983. The 0.981° was a
+bundle stopped short, and so were the thresholds of 1.6, searched with it.
+
+With the EXIF K (`9cameras-exif`, same matches, same COLMAP model) the mean
+barely moves, 0.312° to 0.322°, but its make-up does: seven of the eight
+cameras scored improve (Img12 0.547° to 0.146°, Img25 0.354° to 0.085°; median
+~0.19° to ~0.11°; the old photo 1.20° to 0.96°), and Img28 worsens, 0.692° to
+1.805°, its position error ten times the others'. Not yet explained.
+
 ### 1.5 What the speed-up actually bought — and what it did not
 
 `prueba.py:20` reconstructed from **4 cameras**, with four more commented out on

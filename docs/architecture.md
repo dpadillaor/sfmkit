@@ -12,6 +12,7 @@ packages/sfmkit/src/sfmkit/
     robust.py       RANSAC estimators, every one taking a seed
     tracks.py       union-find over the match graph
     bundle.py       residuals, sparsity, the bundle adjustment
+    bundle_schur.py the same, by our Levenberg-Marquardt and the Schur complement
     reconstruct.py  incremental SfM
     localize.py     visual localisation of a query image
     changes.py      homography alignment + change detection
