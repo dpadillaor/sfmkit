@@ -83,6 +83,7 @@ function onLive(token, { id: entry, message }) {
   if (message.kind === 'start') {
     Object.assign(session, { K: message.K, steps: [], index: -1, running: true });
   } else if (message.kind === 'step') {
+    if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
     const following = session.index === session.steps.length - 1;
     session.steps.push(message);
     if (following) session.index = session.steps.length - 1;
