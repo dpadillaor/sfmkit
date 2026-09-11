@@ -133,9 +133,9 @@ function drawStep() {
   });
   if (index < 0) return;
   if (!session.hidFinished) {
-    // The growing model says it all; the finished one, old photo included,
-    // stays a click away.
-    for (const layer of ['sfmkit-points', 'sfmkit-cameras', 'sfmkit-query']) {
+    // The growing model says it all; the finished one stays a click away. The
+    // old photo stays on: the steps have none of their own.
+    for (const layer of ['sfmkit-points', 'sfmkit-cameras']) {
       view.setVisible(layer, false);
     }
     session.hidFinished = true;
