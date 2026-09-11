@@ -34,8 +34,7 @@ def cmd_changes(args) -> int:
     src, dst = (p0, p1) if m.image0 == query else (p1, p0)
 
     images = cfg.scene_dir
-    read = lambda n: cv2.imread(str(next(p for p in [images / n, *images.glob(f"{n}.*")]  # noqa: E731
-                                         if p.is_file())), cv2.IMREAD_COLOR)
+    read = lambda n: io.read_image(io.image_file(images, n))  # noqa: E731
     hist, mod = read(query), read(target)
     if hist is None or mod is None:
         console.print("[red]could not read the images[/red]")

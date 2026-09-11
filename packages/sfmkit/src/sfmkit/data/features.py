@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from sfmkit.core.types import Matches
-from sfmkit.data.io import save_matches
+from sfmkit.data.io import image_file, read_image, save_matches
 
 __all__ = ["DEVICES", "match_pairs", "pick_device", "resolve_device"]
 
@@ -53,7 +53,7 @@ def match_pairs(
     """
     import torch
     from lightglue import LightGlue, SuperPoint
-    from lightglue.utils import load_image, rbd
+    from lightglue.utils import numpy_image_to_torch, rbd
 
     torch.set_grad_enabled(False)
     dev = torch.device(pick_device(device))
@@ -68,11 +68,8 @@ def match_pairs(
 
     def features(name: str) -> dict:
         if name not in cache:
-            candidates = [images_dir / name, *images_dir.glob(f"{name}.*")]
-            path = next((c for c in candidates if c.is_file()), None)
-            if path is None:
-                raise FileNotFoundError(f"no image named {name} in {images_dir}")
-            cache[name] = extractor.extract(load_image(path).to(dev))
+            rgb = read_image(image_file(images_dir, name))[..., ::-1].copy()
+            cache[name] = extractor.extract(numpy_image_to_torch(rgb).to(dev))
         return cache[name]
 
     written: list[Path] = []

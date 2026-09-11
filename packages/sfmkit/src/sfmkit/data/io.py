@@ -15,8 +15,8 @@ import numpy as np
 from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = [
-    "image_file", "load_matches_npz", "save_matches", "load_matches", "save_reconstruction",
-    "load_reconstruction", "write_manifest", "read_manifest",
+    "image_file", "read_image", "load_matches_npz", "save_matches", "load_matches",
+    "save_reconstruction", "load_reconstruction", "write_manifest", "read_manifest",
 ]
 
 
@@ -34,6 +34,23 @@ def image_file(directory, name: str) -> Path:
         names = ", ".join(sorted(p.name for p in found))
         raise ValueError(f"image {name} is ambiguous in {directory}: {names}")
     return found[0]
+
+
+def read_image(path, *, grey: bool = False) -> np.ndarray:
+    """A photo's pixels as stored, BGR as OpenCV reads it, or grey.
+
+    Its EXIF orientation is not applied, as OpenCV otherwise does: K, from the
+    chessboard or the EXIF, is the stored image's, and COLMAP reads the pixels
+    as stored. A portrait photo turned upright would need another K; turned,
+    Valencia's Img16-Img20 matched well and none registered.
+    """
+    import cv2
+
+    mode = cv2.IMREAD_GRAYSCALE if grey else cv2.IMREAD_COLOR
+    image = cv2.imread(str(path), mode | cv2.IMREAD_IGNORE_ORIENTATION)
+    if image is None:
+        raise OSError(f"could not read the image {path}")
+    return image
 
 
 def _git_commit() -> str | None:

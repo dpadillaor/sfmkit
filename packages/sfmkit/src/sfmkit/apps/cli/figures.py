@@ -33,11 +33,10 @@ def cmd_figures(args) -> int:
     written = []
 
     def read(name):
-        path = next((p for p in [images / name, *images.glob(f"{name}.*")] if p.is_file()), None)
-        if path is None:
+        try:
+            return cv2.cvtColor(io.read_image(io.image_file(images, name)), cv2.COLOR_BGR2RGB)
+        except (FileNotFoundError, OSError):
             return None
-        img = cv2.imread(str(path), cv2.IMREAD_COLOR)
-        return cv2.cvtColor(img, cv2.COLOR_BGR2RGB) if img is not None else None
 
     if (run / "colmap" / "images.txt").is_file():
         model = read_model(run / "colmap")

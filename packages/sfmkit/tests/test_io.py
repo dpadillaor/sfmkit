@@ -51,3 +51,17 @@ class TestImageFile:
         (tmp_path / "Img02.png").write_bytes(b"")
         with pytest.raises(ValueError, match="ambiguous"):
             io.image_file(tmp_path, "Img02")
+
+
+def test_a_photo_is_read_as_stored_not_turned_upright(tmp_path):
+    """A phone held upright stores its pixels sideways and says so in the EXIF;
+    K is the stored image's, so the pixels must be too."""
+    from PIL import Image
+
+    exif = Image.Exif()
+    exif[0x0112] = 6  # turn 90 degrees clockwise to show
+    Image.new("RGB", (64, 36)).save(tmp_path / "upright.jpg", exif=exif)
+    assert io.read_image(tmp_path / "upright.jpg").shape == (36, 64, 3)
+    assert io.read_image(tmp_path / "upright.jpg", grey=True).shape == (36, 64)
+    with pytest.raises(OSError):
+        io.read_image(tmp_path / "missing.jpg")

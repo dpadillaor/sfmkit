@@ -270,10 +270,6 @@ the contract, the API and the architecture.
   commands) so they would load without optional packages. Every supported
   install now has them all. Keep the lazy ones only where they save start-up
   time worth having (torch costs 0.6 s, pycolmap 0.1 s).
-- [ ] **Three copies of "find the file of an image"** in `data/features.py`,
-  `apps/cli/changes.py` and `apps/cli/figures.py`: replace them with
-  `data.io.image_file`, which also refuses ambiguous names (`Img02.jpg` and
-  `Img02.png`).
 - [ ] **A figure of the dense cloud.** The `dense` stage writes `dense/fused.ply`
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
   yet, and it would make the README's best picture. The viewer draws it

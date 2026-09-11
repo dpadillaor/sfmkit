@@ -22,8 +22,6 @@ def cmd_calibrate(args) -> int:
     c = cfg.calibrate
 
     if c.images:
-        import cv2
-
         from sfmkit.core.calibration import calibrate_chessboard
 
         pattern = Path(c.images)
@@ -31,7 +29,7 @@ def cmd_calibrate(args) -> int:
         if not files:
             console.print(f"[red]no calibration images match {c.images}[/red]")
             return 1
-        images = [cv2.imread(str(f), cv2.IMREAD_GRAYSCALE) for f in files]
+        images = [io.read_image(f, grey=True) for f in files]
         cal = calibrate_chessboard(images, tuple(c.pattern))
         np.savetxt(out / "K.txt", cal.K)
         np.savetxt(out / "dist.txt", cal.dist)
