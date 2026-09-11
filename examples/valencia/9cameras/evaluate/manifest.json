@@ -1,8 +1,8 @@
 {
   "stage": "evaluate",
   "config_path": "configs/valencia/9cameras.yaml",
-  "timestamp": "2026-09-11T19:30:15.311708+00:00",
-  "git_commit": "f269541d5f90d9447ba240e659a38e2d12c80bef",
+  "timestamp": "2026-09-11T21:02:27.505146+00:00",
+  "git_commit": "272fb22ba10b538494e3c1b6d82306e9227e9c27",
   "config": {
     "dataset": "valencia",
     "name": "9cameras",
@@ -70,6 +70,6 @@
   "max_rotation_error_deg": 1.6001932030548538,
   "scale": 0.431406921794316,
   "n_cameras": 9,
-  "query_rotation_error_deg": 11.91830968930747,
-  "query_position_error": 0.16956970336955696
+  "query_rotation_error_deg": 4.427112354755951,
+  "query_position_error": 0.03841287334909508
 }
