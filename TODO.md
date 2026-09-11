@@ -149,11 +149,12 @@ the contract, the API and the architecture.
   mounts, SSH tunnel) and `redis` (no ports, found by name), the broker URLs in
   `environment`, `depends_on` with healthchecks (only the viewer depends on
   Redis: the live view needs a viewer to be seen, and sfmkit alone should not
-  start a Redis nobody asked for). Left: what happens when a service dies
-  mid-run (sfmkit carries on; the viewer retries every 2 s); a named volume for
-  Redis, since `docker compose down` loses the streams kept in its anonymous
-  one; stop the dev Redis (`sfmview-dev-redis`) and the dev viewer on 8765;
-  rewrite the live section of `docs/viewer.md` for compose.
+  start a Redis nobody asked for), and a service killed mid-run (sfmkit carries
+  on; the viewer retries every 2 s; the heartbeat came of it). Left: stop the
+  dev Redis (`sfmview-dev-redis`) and the dev viewer on 8765; rewrite the live
+  section of `docs/viewer.md` for compose. Put off: a named volume for Redis,
+  since `docker compose down` loses the streams kept in its anonymous one;
+  small loss for now, 240 KB a run (see "Streams never expire").
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
   points and tracks; COLMAP's model has colours, ours none. The viewer draws
   each sparse model in one colour anyway, to tell them apart, but a "true
@@ -177,22 +178,15 @@ the contract, the API and the architecture.
   when adding Redis to compose) and the open page follows no steps until it is
   reloaded. Seen in the Docker lesson. Fix: while `liveOn` is false, `refresh()`
   asks `/api/health` again and, once live, opens the feed of the open run.
-- [ ] **The run list does not say which runs are running.** Only an open run
-  knows, from its stream (a `start` with no `end` or `failed` after it). The
-  server could look at the last message of every `sfmkit:steps:*` stream and
-  add `running` to `/api/runs`, for a mark in the list. Caveat for both: a
-  sfmkit killed outright (SIGKILL, a container removed) never publishes
-  `failed`, so its run would look running forever. A timeout from `start` or
-  from the last step would have to guess how long a step can take. Better, a
-  heartbeat through a key that expires: while it works, sfmkit sets
-  `sfmkit:alive:<run>` with a 30 s TTL and renews it every 10 s; killed, it
-  stops renewing and Redis drops the key. Running = the key exists. Seen in the
-  Docker lesson: Redis stopped after step 1 and started again, sfmkit gave up
-  publishing and finished, so the stream ends at step 1 with no `end` and the
-  open page kept its LIVE badge on; the heartbeat would let it turn it off.
 - [ ] **Streams never expire.** A run's stream stays in Redis until the run is
   repeated (a `start` empties it), which is what lets a finished run be
-  rewound; with many runs, set an `EXPIRE` after the `end` (a week?).
+  rewound; with many runs, set an `EXPIRE` after the `end` (a week?). Size,
+  measured: valencia/9cameras-exif's stream is 11 messages, 240 KB in Redis's
+  memory, 200 KB saved (the run's directory is 99 MB). But each step carries the
+  whole model as it stood, not what changed, so a run grows with steps times
+  points: a few hundred cameras and 100k points would be hundreds of MB, in
+  RAM. Then send the new points only (a `step` with the ids of what moved), or
+  cap the points a step carries.
 - [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
   frame (the seed pair's first camera), not the reference camera's, as the
   transform comes from the finished model. Harmless, as nothing else is drawn
