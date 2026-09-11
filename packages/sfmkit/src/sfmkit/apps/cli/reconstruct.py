@@ -8,15 +8,14 @@ from rich.spinner import Spinner
 from rich.table import Table
 
 from sfmkit.apps.cli._common import console, load_K, run_dir
+from sfmkit.core.reconstruct import ReconstructionConfig, reconstruct
+from sfmkit.core.tracks import build_tracks, track_statistics
 from sfmkit.data import io, live
 from sfmkit.data.config import load_config
 
 
 def cmd_reconstruct(args) -> int:
     """Build tracks and run incremental SfM with bundle adjustment."""
-    from sfmkit.core.reconstruct import ReconstructionConfig
-    from sfmkit.core.tracks import build_tracks, track_statistics
-
     cfg = load_config(args.config)
     run = run_dir(cfg, args.out)
     src = run / "verify"
@@ -113,8 +112,6 @@ def cmd_reconstruct(args) -> int:
 
 def _reconstruct(broker, run_name, *args):
     """``reconstruct``, telling whoever watches when it stops short."""
-    from sfmkit.core.reconstruct import reconstruct
-
     try:
         return reconstruct(*args)
     except BaseException as e:  # Ctrl-C included: a watcher would wait forever

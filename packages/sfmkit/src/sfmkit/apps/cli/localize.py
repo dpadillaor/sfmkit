@@ -6,14 +6,13 @@ import numpy as np
 from rich.table import Table
 
 from sfmkit.apps.cli._common import console, progress, run_dir
+from sfmkit.core.localize import localize_image
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
 
 def cmd_localize(args) -> int:
     """Localise the query image against the reconstruction (the historical photo)."""
-    from sfmkit.core.localize import localize_image
-
     cfg = load_config(args.config)
     query = cfg.localize.query
     if not query:

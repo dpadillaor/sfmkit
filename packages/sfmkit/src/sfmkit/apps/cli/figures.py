@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+import cv2
+import numpy as np
+
 from sfmkit.apps.cli._common import console, run_dir
+from sfmkit.core.geometry import eight_point, project
+from sfmkit.core.tracks import build_tracks, track_statistics
 from sfmkit.data import io
+from sfmkit.data.colmap import intrinsics, read_fused, read_model
 from sfmkit.data.config import load_config
 
 
@@ -13,10 +19,6 @@ def _view(camera: dict, *, width: int):
     Drawn at the photo's own size a cloud is mostly gaps; smaller, its points
     meet.
     """
-    import numpy as np
-
-    from sfmkit.data.colmap import intrinsics
-
     k = intrinsics(camera)
     s = width / camera["width"]
     K = np.array([[k["fx"] * s, 0, k["cx"] * s], [0, k["fy"] * s, k["cy"] * s], [0, 0, 1]])
@@ -25,11 +27,7 @@ def _view(camera: dict, *, width: int):
 
 def cmd_figures(args) -> int:
     """Render the figures for a finished run: comparison, matches, residuals."""
-    import cv2
-
-    from sfmkit.core.geometry import eight_point, project
-    from sfmkit.core.tracks import build_tracks, track_statistics
-    from sfmkit.data.colmap import read_fused, read_model
+    # Lazy: viz pulls matplotlib, which no other command needs.
     from sfmkit.render.viz import (
         orbit,
         plot_camera_layout,

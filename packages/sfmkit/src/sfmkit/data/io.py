@@ -10,8 +10,11 @@ from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+import cv2
 import numpy as np
+import scipy
 
+import sfmkit
 from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = [
@@ -44,8 +47,6 @@ def read_image(path, *, grey: bool = False) -> np.ndarray:
     as stored. A portrait photo turned upright would need another K; turned,
     Valencia's Img16-Img20 matched well and none registered.
     """
-    import cv2
-
     mode = cv2.IMREAD_GRAYSCALE if grey else cv2.IMREAD_COLOR
     image = cv2.imread(str(path), mode | cv2.IMREAD_IGNORE_ORIENTATION)
     if image is None:
@@ -90,10 +91,6 @@ def write_manifest(run_dir, stage: str, config, extra: dict | None = None,
     """
     stage_dir = Path(run_dir) / stage
     stage_dir.mkdir(parents=True, exist_ok=True)
-    import scipy
-
-    import sfmkit
-
     root = Path.cwd().resolve()
     config = asdict(config) if is_dataclass(config) else dict(config or {})
     payload = {

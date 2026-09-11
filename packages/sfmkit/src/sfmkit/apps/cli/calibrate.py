@@ -8,8 +8,10 @@ from pathlib import Path
 import numpy as np
 
 from sfmkit.apps.cli._common import console, load_K, run_dir
+from sfmkit.core.calibration import calibrate_chessboard, intrinsics_from_focal_35mm
 from sfmkit.data import io
 from sfmkit.data.config import load_config
+from sfmkit.data.exif import read_camera
 from sfmkit.data.io import image_file
 
 
@@ -22,8 +24,6 @@ def cmd_calibrate(args) -> int:
     c = cfg.calibrate
 
     if c.images:
-        from sfmkit.core.calibration import calibrate_chessboard
-
         pattern = Path(c.images)
         files = sorted(pattern.parent.glob(pattern.name))
         if not files:
@@ -60,9 +60,6 @@ def cmd_calibrate(args) -> int:
 
 def _from_exif(cfg, out: Path) -> dict | None:
     """K from the scene photos' EXIF, which must agree on one camera setting."""
-    from sfmkit.core.calibration import intrinsics_from_focal_35mm
-    from sfmkit.data.exif import read_camera
-
     shots = {n: read_camera(image_file(cfg.scene_dir, n)) for n in cfg.sfm.images}
     # Digital zoom is a crop: a photo zoomed 1.17x is a camera 17% longer.
     settings = {(round(s.effective_35mm, 2), s.size) for s in shots.values()}

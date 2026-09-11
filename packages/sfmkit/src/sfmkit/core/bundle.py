@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 
 import numpy as np
@@ -197,8 +198,6 @@ def solve_bundle(
     BundleResult
         Optimised poses and points, RMSE before and after, and timings.
     """
-    import time
-
     prob = BundleProblem(K, images, poses, points, observations)
     x0 = prob.pack(poses, points)
 

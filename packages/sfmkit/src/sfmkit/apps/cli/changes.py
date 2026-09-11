@@ -2,19 +2,17 @@
 
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from sfmkit.apps.cli._common import console, run_dir
+from sfmkit.core.changes import detect_changes
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
 
 def cmd_changes(args) -> int:
     """Align the historical photograph to a modern one and flag what differs."""
-    import cv2
-
-    from sfmkit.core.changes import detect_changes
-
     cfg = load_config(args.config)
     query = cfg.localize.query
     if not query:
@@ -69,8 +67,6 @@ def cmd_changes(args) -> int:
 
 def _legend(image: np.ndarray, text: str) -> np.ndarray:
     """``image`` under a black strip saying how to read it."""
-    import cv2
-
     h = max(40, image.shape[1] // 40)
     strip = np.zeros((h, image.shape[1], 3), np.uint8)
     scale = h / 45

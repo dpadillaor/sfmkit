@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import cv2
 import numpy as np
 
 from sfmkit.core.geometry import eight_point, sampson_distance
@@ -113,8 +114,6 @@ def ransac_pnp(
     Wraps ``cv2.solvePnPRansac``, seeded for reproducibility, and refines the
     result on the inliers alone.
     """
-    import cv2
-
     points_3d = np.ascontiguousarray(points_3d, dtype=np.float64)
     points_2d = np.ascontiguousarray(points_2d, dtype=np.float64)
     n = len(points_3d)

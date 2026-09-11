@@ -12,7 +12,7 @@ import numpy as np  # noqa: E402
 
 from sfmkit.core.geometry import rodrigues  # noqa: E402
 from sfmkit.core.metrics import align_to_reference, scale_between  # noqa: E402
-from sfmkit.core.types import Pose, Reconstruction  # noqa: E402
+from sfmkit.core.types import Matches, Pose, Reconstruction  # noqa: E402
 
 __all__ = [
     "plot_comparison", "plot_camera_layout", "plot_track_lengths",
@@ -153,8 +153,6 @@ def plot_matches(image0, image1, matches, out_path, max_lines: int = 400):
     it threw away. Outliers that form a coherent pattern usually mean a repeated
     structure in the scene rather than random mismatching.
     """
-    from sfmkit.core.types import Matches
-
     assert isinstance(matches, Matches)
     kp0, kp1 = matches.keypoints0, matches.keypoints1
     pairs = matches.pairs

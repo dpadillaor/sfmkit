@@ -5,14 +5,13 @@ from __future__ import annotations
 from rich.table import Table
 
 from sfmkit.apps.cli._common import console, progress, run_dir
+from sfmkit.core.robust import ransac_fundamental
 from sfmkit.data import io
 from sfmkit.data.config import load_config
 
 
 def cmd_verify(args) -> int:
     """Geometric verification: fit a fundamental matrix and keep the inliers."""
-    from sfmkit.core.robust import ransac_fundamental
-
     cfg = load_config(args.config)
     run = run_dir(cfg, args.out)
     src, dst = run / "match", run / "verify"
