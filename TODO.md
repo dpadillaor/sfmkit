@@ -139,6 +139,15 @@ the contract, the API and the architecture.
   down` loses the streams kept in its anonymous one and so every finished run's
   timeline. Put off: a small loss for now, 240 KB a run (see "Streams never
   expire").
+- [ ] **Light up the points a camera sees**, on hover or when chosen, beside its
+  view drawn out to the scene (done): the 3D points its matches made, so how
+  well a camera is held shows at a glance (Img28, the worst, against the
+  rest). The data exists: sfmkit's `reconstruction.npz` has `track_images`, a
+  JSON object a point, image to keypoint; COLMAP's `points3D.txt` has each
+  point's track (image ids). The scene API sends neither: add, per model, each
+  camera's point indices (or each point's cameras) to the contract in
+  `docs/viewer.md`, read them in `sfmkit_files.py` and `colmap_text.py`, and
+  colour those points in `scene.js`.
 - [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
   points and tracks; COLMAP's model has colours, ours none. The viewer draws
   each sparse model in one colour anyway, to tell them apart, but a "true

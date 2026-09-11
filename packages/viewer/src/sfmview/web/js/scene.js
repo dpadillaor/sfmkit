@@ -4,7 +4,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
-import { frustumDepth, frustumSegments, robustSphere, segmentDistance } from './geometry.js';
+import {
+  cameraCentre, frustumDepth, frustumSegments, imageCorners, robustSphere, segmentDistance, viewDepth,
+} from './geometry.js';
 import { colours, PALETTE, SIGNAL } from './palette.js';
 import { PhotoView } from './pov.js';
 
@@ -44,6 +46,8 @@ export class SceneView {
   #shots = new Map(); // camera key -> { key, name, source, query, camera, frame, depth, layer }
   #photos; // looking through a camera, its photo in front
   #hovered = null; // { key, object }: the camera under the pointer, outlined
+  #reach = new Map(); // camera key -> its view drawn out to the scene
+  #pointsOf = new Map(); // model source -> its sparse points, flat, in its own frame
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
 
@@ -124,6 +128,7 @@ export class SceneView {
       shot.frame.add(object);
       this.#hovered = { key, object };
     }
+    this.#updateReach();
     return key;
   }
 
@@ -131,11 +136,16 @@ export class SceneView {
   // whether the photo loaded.
   lookThrough(key, url) {
     const shot = this.#shots.get(key);
-    return shot ? this.#photos.show(shot, url) : Promise.resolve(false);
+    const loaded = shot ? this.#photos.show(shot, url) : Promise.resolve(false);
+    this.#updateReach();
+    return loaded;
   }
 
   // Back to the camera being looked through, after the view moved away.
-  lookAgain() { this.#photos.enter(); }
+  lookAgain() {
+    this.#photos.enter();
+    this.#updateReach();
+  }
 
   // The camera looked through and whether the view is still its: or null.
   looking() {
@@ -146,7 +156,10 @@ export class SceneView {
 
   setPhotoOpacity(opacity) { this.#photos.setOpacity(opacity); }
 
-  closePhoto() { this.#photos.clear(); }
+  closePhoto() {
+    this.#photos.clear();
+    this.#updateReach();
+  }
 
   // Layers for the panel, grouped by model: { id, group, label, color, count,
   // visible }. sfmkit's points and cameras are the step's while one is drawn.
@@ -163,6 +176,7 @@ export class SceneView {
     this.#unhover();
     this.#wanted.set(id, visible);
     this.#apply(id);
+    this.#updateReach();
   }
 
   // Draw a scene from the API, replacing whatever was drawn.
@@ -172,6 +186,7 @@ export class SceneView {
     this.#reference = scene.reference;
     for (const model of scene.models) {
       this.#frames.set(model.source, model.to_common);
+      this.#pointsOf.set(model.source, model.points);
       const frame = this.#frame(model.to_common);
       const { main, query, label } = colours(model.source);
       const reconstructed = model.cameras.filter((c) => !c.query);
@@ -204,6 +219,11 @@ export class SceneView {
     }
 
     this.#unhover(); // its camera may be the last step's
+    for (const key of [...this.#reach.keys()].filter((k) => k.startsWith('live:'))) {
+      dispose(this.#reach.get(key));
+      this.#reach.delete(key);
+    }
+    this.#pointsOf.set('live', step.points);
     const size = K ? [Math.round(2 * K[0][2]), Math.round(2 * K[1][2])] : null;
     const cameras = step.cameras.map((c) => ({ ...c, K, size }));
     // Sized to this step's cameras, so a step replayed looks as it did live.
@@ -224,6 +244,7 @@ export class SceneView {
     this.#add('live-cameras', 'sfmkit', 'cameras', LIVE.main, cameras.length, this.#live, outline);
     this.#apply('sfmkit-points');
     this.#apply('sfmkit-cameras');
+    this.#updateReach();
   }
 
   // Frame the bulk of the points, from behind the reference camera if known.
@@ -262,6 +283,7 @@ export class SceneView {
     if (!this.#photos.active) return;
     const ahead = Math.max(this.#camera.position.distanceTo(this.#bounds.centre), 0.1);
     this.#photos.leave(ahead);
+    this.#updateReach();
     this.#onLeave();
   }
 
@@ -292,6 +314,28 @@ export class SceneView {
     return group;
   }
 
+  // The hovered camera's view, and the chosen one's once the view has left it,
+  // drawn out to the scene: what part of it each photo takes in. From inside
+  // a camera its view is the screen, so the chosen one's waits.
+  #updateReach() {
+    const chosen = this.#photos.shot && !this.#photos.active ? this.#photos.shot.key : null;
+    const keys = new Set([this.#hovered?.key, chosen].filter(Boolean));
+    for (const [key, object] of this.#reach) {
+      if (keys.has(key)) continue;
+      dispose(object);
+      this.#reach.delete(key);
+    }
+    for (const key of keys) {
+      const shot = this.#shots.get(key);
+      if (this.#reach.has(key) || !shot || !this.#layers.get(shot.layer)?.object.visible) continue;
+      shot.reach ??= viewDepth(shot.camera, this.#pointsOf.get(shot.source) ?? []);
+      if (!shot.reach) continue;
+      const object = cone(shot.camera, shot.reach, HOVER);
+      shot.frame.add(object);
+      this.#reach.set(key, object);
+    }
+  }
+
   #unhover() {
     if (!this.#hovered) return;
     this.#hovered.object.removeFromParent();
@@ -303,6 +347,8 @@ export class SceneView {
   #clear() {
     this.#unhover();
     this.#wanted.clear();
+    this.#reach.clear(); // disposed with the world below
+    this.#pointsOf.clear();
     this.#photos.clear();
     this.#shots.clear();
     this.#world.traverse((o) => {
@@ -358,6 +404,32 @@ function points(flat, color) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute(flat, 3));
   return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 3, sizeAttenuation: false, color }));
+}
+
+// A camera's view out to ``depth``: its four edges and its sides, faint, drawn
+// over the scene.
+function cone(camera, depth, color) {
+  const C = cameraCentre(camera);
+  const corners = imageCorners(camera, depth);
+  const next = (i) => corners[(i + 1) % 4];
+  const geometry = (flat) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(flat, 3));
+    return g;
+  };
+  const sides = new THREE.Mesh(geometry(corners.flatMap((a, i) => [C, a, next(i)]).flat()),
+    new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.07, side: THREE.DoubleSide,
+      depthWrite: false }));
+  const edges = new THREE.LineSegments(geometry(corners.flatMap((a, i) => [C, a, a, next(i)]).flat()),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.5, depthWrite: false }));
+  const group = new THREE.Group();
+  group.add(sides, edges);
+  return group;
+}
+
+function dispose(object) {
+  object.removeFromParent();
+  object.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
 }
 
 // Cameras as one set of line segments, all of one size and colour.

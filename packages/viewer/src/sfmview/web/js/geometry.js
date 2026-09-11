@@ -51,6 +51,26 @@ export function frustumSegments(camera, depth) {
   return [C, a, C, b, C, c, C, d, a, b, b, c, c, d, d, a, a, up, up, b];
 }
 
+// How deep the scene lies before a camera: the ``q`` quantile of the depths of
+// the points, flat [x0, y0, z0, x1, ...], that fall inside its image; null if
+// fewer than ``least`` do. A high quantile, so a view drawn to it reaches the
+// far side of what the photo takes in, and not past a few stray points.
+export function viewDepth(camera, flat, { q = 0.9, least = 10 } = {}) {
+  const { K, w, h } = intrinsics(camera);
+  const { R, t } = camera;
+  const depths = [];
+  for (let i = 0; i + 2 < flat.length; i += 3) {
+    const c = [0, 1, 2].map((r) => R[r][0] * flat[i] + R[r][1] * flat[i + 1] + R[r][2] * flat[i + 2] + t[r]);
+    if (c[2] <= 0) continue;
+    const u = (K[0][0] * c[0] + K[0][1] * c[1]) / c[2] + K[0][2];
+    const v = K[1][1] * c[1] / c[2] + K[1][2];
+    if (u >= 0 && u <= w && v >= 0 && v <= h) depths.push(c[2]);
+  }
+  if (depths.length < least) return null;
+  depths.sort((a, b) => a - b);
+  return depths[Math.floor(q * (depths.length - 1))];
+}
+
 // Distance from point (x, y) to the segment from (ax, ay) to (bx, by), in the
 // units they are given in.
 export function segmentDistance(x, y, ax, ay, bx, by) {
