@@ -17,6 +17,16 @@ function el(tag, attrs = {}, ...children) {
 }
 
 const degrees = (x) => (x === null || x === undefined ? null : `${x.toFixed(2)}°`);
+
+// Where a run's GPU-capable stages ran: one word if they agree, else each.
+function device(devices = {}) {
+  const word = { cuda: 'GPU', cpu: 'CPU' };
+  const all = Object.entries(devices);
+  if (!all.length) return null;
+  const seen = new Set(all.map(([, d]) => d));
+  return seen.size === 1 ? word[[...seen][0]] ?? [...seen][0]
+    : all.map(([stage, d]) => `${stage} ${word[d] ?? d}`).join(' · ');
+}
 const count = (n) => n.toLocaleString('en');
 const pad = (n, width) => String(n).padStart(width, '0');
 
@@ -48,16 +58,20 @@ export function selectRun(id) {
   for (const li of $('runs').children) li.setAttribute('aria-selected', String(li.dataset.id === id));
 }
 
+// Layers under their model's name, in the order given.
 export function renderLayers(layers, onToggle) {
-  $('layers').replaceChildren(...layers.map((layer) => {
+  const rows = [];
+  layers.forEach((layer, i) => {
+    if (layer.group !== layers[i - 1]?.group) rows.push(el('li', { class: 'group' }, layer.group));
     const box = el('input', { type: 'checkbox', onchange: (e) => onToggle(layer.id, e.target.checked) });
     box.checked = layer.visible;
     const swatch = layer.color === 'rgb'
       ? el('span', { class: 'swatch rgb' })
       : el('span', { class: 'swatch', style: `background:${layer.color}` });
-    return el('li', {}, el('label', {}, box, swatch, layer.label),
-      el('span', { class: 'count' }, count(layer.count)));
-  }));
+    rows.push(el('li', {}, el('label', {}, box, swatch, layer.label),
+      el('span', { class: 'count' }, count(layer.count))));
+  });
+  $('layers').replaceChildren(...rows);
 }
 
 // One row a photo, a key for each model that placed it; ``selected`` is lit.
@@ -103,6 +117,7 @@ export function renderCameras(cameras, selected, onPick, step = null) {
 export function renderInfo(run, scene) {
   const rows = [
     ['run', run.id],
+    ['device', device(run.devices) ?? '—'],
     ['reference', scene?.reference ?? '—'],
     ['mean rot err', degrees(run.metrics.mean_rotation_error_deg) ?? '—'],
     ['max rot err', degrees(run.metrics.max_rotation_error_deg) ?? '—'],

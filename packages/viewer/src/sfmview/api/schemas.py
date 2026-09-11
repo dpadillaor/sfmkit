@@ -74,10 +74,11 @@ class RunOut(BaseModel):
     updated: str | None
     metrics: dict[str, float | None]
     layers: list[str]
+    devices: dict[str, str]  # stage -> where it ran, "cuda" or "cpu", for those that say
     running: bool | None  # sfmkit at work on it now; None, no broker to ask
 
     @classmethod
     def of(cls, r: RunSummary, running: bool | None = None) -> RunOut:
         return cls(id=str(r.run), project=r.run.project, config=r.run.config,
                    stages=list(r.stages), updated=r.updated, metrics=dict(r.metrics),
-                   layers=list(r.layers), running=running)
+                   layers=list(r.layers), devices=dict(r.devices), running=running)

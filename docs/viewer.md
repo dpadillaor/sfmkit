@@ -78,7 +78,7 @@ reads, and only these:
 
 | File | Stage | What the viewer takes |
 |---|---|---|
-| `*/manifest.json` | every stage | `stage`, `timestamp`, `config` (`sfm.reference`, `localize.query`); from `evaluate`'s, `mean_rotation_error_deg`, `max_rotation_error_deg`, `n_cameras`, `query_rotation_error_deg` |
+| `*/manifest.json` | every stage | `stage`, `timestamp`, `config` (`sfm.reference`, `localize.query`), `device` where a stage records one (`match`, `colmap`); from `evaluate`'s, `mean_rotation_error_deg`, `max_rotation_error_deg`, `n_cameras`, `query_rotation_error_deg` |
 | `reconstruct/reconstruction.npz` | reconstruct | `K` (3×3), `image_names` (N), `rotations` (N×3×3), `translations` (N×3), `points` (M×3); `colors` (M×3, uint8) if present |
 | `localize/query_pose.npz` | localize | `R`, `t`; `K` if present |
 | `colmap/{cameras,images,points3D}.txt` | colmap | COLMAP's text model, image names without extension |
@@ -121,7 +121,7 @@ one place (`web/js/scene.js`).
 | Route | |
 |---|---|
 | `GET /api/health` | `{"status": "ok", "live": ...}`, and whether the broker answers |
-| `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics, and `running`, whether its heartbeat beats (`null` without a broker) |
+| `GET /api/runs` | every run: stages, layers (`sfmkit`, `colmap`, `dense`), metrics, `devices` (stage to `cuda` or `cpu`), and `running`, whether its heartbeat beats (`null` without a broker) |
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
 | `WS /api/runs/{project}/{config}/live?after=<id>` | `{"now"}`, the server's clock, then the run's stream as `{"id", "message"}`: history first, then as it comes |

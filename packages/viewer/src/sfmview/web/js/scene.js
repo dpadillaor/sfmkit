@@ -21,6 +21,12 @@ const IDENTITY = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
 // A camera under the pointer, drawn over everything else.
 const HOVER = '#ffffff';
 
+// A live step stands in for sfmkit's finished model, under its layers' names:
+// while a step is drawn, the finished points and cameras are not.
+const STEP_OF = { 'sfmkit-points': 'live-points', 'sfmkit-cameras': 'live-cameras' };
+const LAYER_OF = Object.fromEntries(Object.entries(STEP_OF).map(([a, b]) => [b, a]));
+const GROUPS = ['sfmkit', 'COLMAP'];
+
 const matrix4 = (rows) => new THREE.Matrix4().set(...rows.flat());
 
 export class SceneView {
@@ -29,7 +35,8 @@ export class SceneView {
   #camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
   #controls;
   #world = new THREE.Group();
-  #layers = new Map(); // id -> { label, color, count, object }
+  #layers = new Map(); // id -> { group, label, color, count, object }
+  #wanted = new Map(); // layer id, as the panel names it -> whether it should show
   #generation = 0; // bumped by show(), so a late dense cloud is not drawn into another run
   #frames = new Map(); // model source -> its transform into the shared frame
   #reference = null;
@@ -141,17 +148,21 @@ export class SceneView {
 
   closePhoto() { this.#photos.clear(); }
 
-  // Layers in drawing order, for a legend: { id, label, color, count, visible }.
+  // Layers for the panel, grouped by model: { id, group, label, color, count,
+  // visible }. sfmkit's points and cameras are the step's while one is drawn.
   layers() {
-    return [...this.#layers].map(([id, l]) => ({
-      id, label: l.label, color: l.color, count: l.count, visible: l.object.visible,
-    }));
+    const ids = [...new Set([...this.#layers.keys()].map((id) => LAYER_OF[id] ?? id))];
+    return ids.map((id) => {
+      const l = this.#drawn(id);
+      return { id, group: l.group, label: l.label, color: l.color, count: l.count,
+        visible: this.#wanted.get(id) ?? true };
+    }).sort((a, b) => GROUPS.indexOf(a.group) - GROUPS.indexOf(b.group));
   }
 
   setVisible(id, visible) {
     this.#unhover();
-    const layer = this.#layers.get(id);
-    if (layer) layer.object.visible = visible;
+    this.#wanted.set(id, visible);
+    this.#apply(id);
   }
 
   // Draw a scene from the API, replacing whatever was drawn.
@@ -170,12 +181,12 @@ export class SceneView {
         this.#addShot(model.source, camera, frame, depth,
           `${model.source}-${camera.query ? 'query' : 'cameras'}`);
       }
-      this.#add(`${model.source}-points`, `${label} points`, main, model.points.length / 3,
+      this.#add(`${model.source}-points`, label, 'points', main, model.points.length / 3,
         frame, points(model.points, main));
-      this.#add(`${model.source}-cameras`, `${label} cameras`, main, reconstructed.length,
+      this.#add(`${model.source}-cameras`, label, 'cameras', main, reconstructed.length,
         frame, outlines(reconstructed, depth, main));
       if (placed.length) {
-        this.#add(`${model.source}-query`, `${label} old photo`, query, placed.length,
+        this.#add(`${model.source}-query`, label, 'old photo', query, placed.length,
           frame, outlines(placed, depth, query));
       }
     }
@@ -187,8 +198,6 @@ export class SceneView {
   // the run's finished model is shown. ``K`` is the run's, from its start.
   showStep(step, K) {
     this.#live ??= this.#frame(this.#frames.get('sfmkit') ?? IDENTITY);
-    const visible = (id) => this.#layers.get(id)?.object.visible ?? true;
-    const shown = { points: visible('live-points'), cameras: visible('live-cameras') };
     for (const id of ['live-points', 'live-cameras']) { // the last step's, not a photo
       this.#layers.get(id)?.object.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
       this.#layers.get(id)?.object.removeFromParent();
@@ -210,12 +219,11 @@ export class SceneView {
     outline.add(outlines(cameras.filter((c) => c.name === step.image), depth, LIVE.added));
 
     const cloud = points(step.points, LIVE.main);
-    this.#add('live-points', `step ${step.step + 1} points`, LIVE.main, step.points.length / 3,
+    this.#add('live-points', 'sfmkit', 'points', LIVE.main, step.points.length / 3,
       this.#live, cloud);
-    this.#add('live-cameras', `step ${step.step + 1} cameras`, LIVE.main, cameras.length,
-      this.#live, outline);
-    cloud.visible = shown.points;
-    outline.visible = shown.cameras;
+    this.#add('live-cameras', 'sfmkit', 'cameras', LIVE.main, cameras.length, this.#live, outline);
+    this.#apply('sfmkit-points');
+    this.#apply('sfmkit-cameras');
   }
 
   // Frame the bulk of the points, from behind the reference camera if known.
@@ -238,7 +246,8 @@ export class SceneView {
       size: 1.5, sizeAttenuation: false, vertexColors: geometry.hasAttribute('color'),
     }));
     const count = geometry.getAttribute('position').count;
-    this.#add('dense', 'COLMAP dense', 'rgb', count, this.#frame(dense.to_common), cloud);
+    this.#add('dense', 'COLMAP', 'dense', 'rgb', count, this.#frame(dense.to_common), cloud);
+    this.#apply('dense');
     return count;
   }
 
@@ -256,9 +265,23 @@ export class SceneView {
     this.#onLeave();
   }
 
-  #add(id, label, color, count, parent, object) {
+  #add(id, group, label, color, count, parent, object) {
     parent.add(object);
-    this.#layers.set(id, { label, color, count, object });
+    this.#layers.set(id, { group, label, color, count, object });
+  }
+
+  // What a panel layer draws now: the step's, if one is drawn, else its own.
+  #drawn(id) {
+    return this.#layers.get(STEP_OF[id]) ?? this.#layers.get(id);
+  }
+
+  // Show a panel layer as wanted, and whatever it stands in for not at all.
+  #apply(id) {
+    const on = this.#wanted.get(id) ?? true;
+    const drawn = this.#drawn(id);
+    for (const layer of [this.#layers.get(id), this.#layers.get(STEP_OF[id])]) {
+      if (layer) layer.object.visible = on && layer === drawn;
+    }
   }
 
   #frame(rows) {
@@ -279,6 +302,7 @@ export class SceneView {
 
   #clear() {
     this.#unhover();
+    this.#wanted.clear();
     this.#photos.clear();
     this.#shots.clear();
     this.#world.traverse((o) => {

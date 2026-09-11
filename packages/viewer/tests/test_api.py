@@ -24,7 +24,8 @@ class MemoryStore:
 
     def runs(self):
         return [RunSummary(self.run, ("colmap", "reconstruct"), "2026-09-10T10:00:00+00:00",
-                           {"mean_rotation_error_deg": 0.98}, ("sfmkit", "colmap"))]
+                           {"mean_rotation_error_deg": 0.98}, ("sfmkit", "colmap"),
+                           {"match": "cuda", "colmap": "cpu"})]
 
     def scene(self, run):
         if run != self.run:
@@ -60,6 +61,7 @@ def test_runs(client):
     assert run["id"] == "city/full" and run["project"] == "city" and run["config"] == "full"
     assert run["layers"] == ["sfmkit", "colmap"]
     assert run["metrics"] == {"mean_rotation_error_deg": 0.98}
+    assert run["devices"] == {"match": "cuda", "colmap": "cpu"}
     assert run["running"] is None  # no broker to ask
 
 

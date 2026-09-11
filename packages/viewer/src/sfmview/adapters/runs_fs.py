@@ -90,6 +90,9 @@ class FsRunStore:
             updated=max((m.get("timestamp", "") for m in manifests.values()), default=None),
             metrics={k: evaluated[k] for k in METRICS if k in evaluated},
             layers=tuple(layers),
+            # Where the stages that can use a GPU ran, as their manifests say.
+            devices={stage: m["device"] for stage, m in manifests.items()
+                     if isinstance(m.get("device"), str)},
         )
 
 

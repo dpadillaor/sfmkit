@@ -18,14 +18,16 @@ def apply(T, X):
 
 def test_runs_are_listed_newest_first_with_what_they_hold(tmp_path):
     make_run(tmp_path, "city", "old", colmap=False, timestamp="2026-01-01T00:00:00+00:00")
-    make_run(tmp_path, "city", "new", dense=True, timestamp="2026-02-01T00:00:00+00:00")
+    new_dir = make_run(tmp_path, "city", "new", dense=True, timestamp="2026-02-01T00:00:00+00:00")
+    write_manifest(new_dir, "match", "2026-02-01T00:00:00+00:00", device="cuda")
     runs = FsRunStore(tmp_path).runs()
 
     assert [str(r.run) for r in runs] == ["city/new", "city/old"]
     new, old = runs
     assert new.layers == ("sfmkit", "colmap", "dense")
     assert old.layers == ("sfmkit",)
-    assert new.stages == ("calibrate", "colmap", "dense", "evaluate", "reconstruct")
+    assert new.stages == ("calibrate", "colmap", "dense", "evaluate", "match", "reconstruct")
+    assert new.devices == {"match": "cuda"} and old.devices == {}
     assert new.metrics["mean_rotation_error_deg"] == 0.5
     assert old.metrics == {}
 

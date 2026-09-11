@@ -17,7 +17,7 @@ let liveOn = false;
 // open() takes a new token; work begun for an older one drops its results.
 const session = {
   token: 0, id: null, feed: null, scene: null, updated: null, connectedAt: Infinity,
-  K: null, steps: [], index: -1, running: false, hidFinished: false, fitted: false,
+  K: null, steps: [], index: -1, running: false, fitted: false,
 };
 
 const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
@@ -68,7 +68,7 @@ async function showScene(token) {
     }
   }
   if (token !== session.token) return;
-  Object.assign(session, { scene, hidFinished: false, fitted: false });
+  Object.assign(session, { scene, fitted: false });
   view.show(scene ?? { models: [], reference: null });
   drawStep();
   showLayers();
@@ -134,14 +134,7 @@ function drawStep() {
     drawStep();
   });
   if (index < 0) return;
-  if (!session.hidFinished) {
-    // The growing model says it all; the finished one stays a click away. The
-    // old photo stays on: the steps have none of their own.
-    for (const layer of ['sfmkit-points', 'sfmkit-cameras']) {
-      view.setVisible(layer, false);
-    }
-    session.hidFinished = true;
-  }
+  // sfmkit's points and cameras become the step's; the old photo stays.
   view.showStep(steps[index], session.K);
   if (!session.scene && !session.fitted) {
     view.fit();

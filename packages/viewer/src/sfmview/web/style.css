@@ -125,6 +125,17 @@ button { font: inherit; color: inherit; }
 
 /* layers and cameras: square checks and swatches */
 .layers label { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
+/* a model's layers under its name; the rows below it indented */
+.layers > li.group {
+  min-height: 20px;
+  padding-top: 4px;
+  font: 500 10.5px var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.layers > li.group:hover { background: none; }
+.layers > li:not(.group) { padding-left: 20px; }
 input[type="checkbox"] {
   appearance: none;
   margin: 0;

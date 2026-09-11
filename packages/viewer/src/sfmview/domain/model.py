@@ -55,6 +55,7 @@ class RunSummary:
     updated: str | None  # the latest manifest's timestamp
     metrics: Mapping[str, float | None]
     layers: tuple[str, ...]  # what can be drawn: "sfmkit", "colmap", "dense"
+    devices: Mapping[str, str] = field(default_factory=dict)  # stage -> "cuda" | "cpu"
 
 
 @dataclass(frozen=True, eq=False)
