@@ -8,24 +8,14 @@
 
 import * as THREE from 'three';
 
-import { cameraAxes, imageCorners, imageFrustum, intrinsics } from './geometry.js';
-
-// The photo's texture coordinates at its corners, top left first, clockwise,
-// for each EXIF orientation a browser turns a photo by to show it (a mirrored
-// one is drawn as it comes). The camera saw the pixels as stored: these turn
-// them back.
-const UNTURN = {
-  1: [0, 1, 1, 1, 1, 0, 0, 0],
-  3: [1, 0, 0, 0, 0, 1, 1, 1],
-  6: [1, 1, 1, 0, 0, 0, 0, 1], // held upright: stored turned a quarter anticlockwise
-  8: [0, 0, 0, 1, 1, 1, 1, 0],
-};
+import { cameraAxes, imageCorners, imageFrustum, intrinsics, turnUpright } from './geometry.js';
 
 export class PhotoView {
   #camera;
   #controls;
   #photo = null; // the photo's mesh
   #shot = null; // { camera, frame, depth, ... }: whose photo it is
+  #view = null; // its camera as it took the photo, upright: what the view takes
   #active = false; // the view is the camera's
   #opacity = 0.6;
   #loads = 0; // bumped per photo, so a slow one does not replace a later one
@@ -43,15 +33,23 @@ export class PhotoView {
   // false if the photo could not be loaded (the view moves all the same).
   async show(shot, url) {
     this.clear();
-    this.#shot = shot;
-    this.enter();
-    if (!url) return false;
+    this.#shot = this.#view = shot;
+    if (!url) {
+      this.enter();
+      return false;
+    }
     const load = ++this.#loads;
+    // The browser shows the photo upright, so the view looks through the camera
+    // that would have taken it that way. Its few bytes come before the view
+    // moves: entering sideways and turning after is a lurch to watch.
+    const orientation = await orientationOf(url);
+    if (load !== this.#loads || this.#shot !== shot) return true;
+    this.#view = { ...shot, camera: turnUpright(shot.camera, orientation) };
+    this.enter();
+
     let texture;
-    let orientation;
     try {
-      [texture, orientation] = await Promise.all([
-        new THREE.TextureLoader().loadAsync(url), orientationOf(url)]);
+      texture = await new THREE.TextureLoader().loadAsync(url);
     } catch {
       return false;
     }
@@ -60,12 +58,15 @@ export class PhotoView {
       return true;
     }
     texture.colorSpace = THREE.SRGBColorSpace;
-    // A quarter turn shows in the photo's shape: taken as turned only if it did.
+    // A quarter turn shows in the photo's shape: a browser that did not turn it
+    // (none does today) would leave it as stored, and so must the view.
     const { w, h } = intrinsics(shot.camera);
-    const { width, height } = texture.image;
-    if ((orientation === 6 || orientation === 8) && (width > height) === (w > h)) orientation = 1;
-    this.#photo = photoMesh(shot.camera, shot.depth, texture, this.#opacity,
-      UNTURN[orientation] ?? UNTURN[1]);
+    const turned = (texture.image.width > texture.image.height) !== (w > h);
+    if ([6, 8].includes(orientation) && !turned) {
+      this.#view = shot;
+      if (this.#active) this.enter();
+    }
+    this.#photo = photoMesh(this.#view.camera, shot.depth, texture, this.#opacity);
     shot.frame.add(this.#photo);
     return true;
   }
@@ -105,7 +106,7 @@ export class PhotoView {
     }
     this.#photo = null;
     if (this.#active) this.leave(1);
-    this.#shot = null;
+    this.#shot = this.#view = null;
   }
 
   setOpacity(opacity) {
@@ -117,7 +118,7 @@ export class PhotoView {
   resize() {
     if (!this.#active) return;
     const c = this.#camera;
-    const { left, right, top, bottom } = imageFrustum(this.#shot.camera, c.near, c.aspect);
+    const { left, right, top, bottom } = imageFrustum(this.#view.camera, c.near, c.aspect);
     c.projectionMatrix.makePerspective(left, right, top, bottom, c.near, c.far);
     c.projectionMatrixInverse.copy(c.projectionMatrix).invert();
   }
@@ -125,7 +126,7 @@ export class PhotoView {
   // The shot's camera in the world: where it is, its axis, its up, and how far
   // in front the photo hangs.
   #pose() {
-    const { camera, frame, depth } = this.#shot;
+    const { camera, frame, depth } = this.#view;
     frame.updateWorldMatrix(true, false);
     const M = frame.matrixWorld;
     const { centre, forward, up } = cameraAxes(camera);
@@ -178,11 +179,11 @@ export function exifOrientation(buffer) {
   return 1;
 }
 
-function photoMesh(camera, depth, texture, opacity, uv) {
+function photoMesh(camera, depth, texture, opacity) {
   const [a, b, c, d] = imageCorners(camera, depth);
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([...a, ...b, ...c, ...d], 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2));
   geometry.setIndex([0, 1, 2, 0, 2, 3]);
   const material = new THREE.MeshBasicMaterial({
     map: texture, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false,

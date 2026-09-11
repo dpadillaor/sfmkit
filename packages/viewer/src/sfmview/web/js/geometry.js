@@ -80,6 +80,29 @@ export function segmentDistance(x, y, ax, ay, bx, by) {
   return Math.hypot(ax + s * dx - x, ay + s * dy - y);
 }
 
+// The camera as it would be had it taken the photo upright, for an EXIF
+// orientation of 3, 6 or 8: the same centre and the same view, its axes and
+// its K turned with the pixels. Anything else is left as it is.
+export function turnUpright(camera, orientation) {
+  const turn = { 3: [[-1, 0, 0], [0, -1, 0]], 6: [[0, -1, 0], [1, 0, 0]], 8: [[0, 1, 0], [-1, 0, 0]] };
+  if (!turn[orientation]) return camera;
+  const M = [...turn[orientation], [0, 0, 1]];
+  const { K, w, h } = intrinsics(camera);
+  const [fx, fy, cx, cy] = [K[0][0], K[1][1], K[0][2], K[1][2]];
+  const turned = {
+    3: { K: [[fx, 0, w - 1 - cx], [0, fy, h - 1 - cy], [0, 0, 1]], size: [w, h] },
+    6: { K: [[fy, 0, h - 1 - cy], [0, fx, cx], [0, 0, 1]], size: [h, w] },
+    8: { K: [[fy, 0, cy], [0, fx, w - 1 - cx], [0, 0, 1]], size: [h, w] },
+  }[orientation];
+  return {
+    ...camera,
+    R: M.map((m) => [0, 1, 2].map((j) => m[0] * camera.R[0][j] + m[1] * camera.R[1][j]
+      + m[2] * camera.R[2][j])),
+    t: M.map((m) => m[0] * camera.t[0] + m[1] * camera.t[1] + m[2] * camera.t[2]),
+    ...turned,
+  };
+}
+
 // The view frustum at distance ``near`` that shows the camera's whole image as
 // its K sees it, principal point and all, in a viewport of ``aspect``: the
 // image fills the viewport one way, and the scene shows past its edges the
