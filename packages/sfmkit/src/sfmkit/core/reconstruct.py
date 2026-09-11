@@ -21,8 +21,9 @@ from sfmkit.core.types import Matches, Pose, Reconstruction, Track
 
 __all__ = ["BUNDLE_SOLVERS", "ReconstructionConfig", "StageReport", "reconstruct"]
 
-# The same bundle adjustment, two solvers: scipy's generic least squares, or our
-# Levenberg-Marquardt with an analytic Jacobian and the Schur complement.
+# The same bundle adjustment, two solvers: our Levenberg-Marquardt with an
+# analytic Jacobian and the Schur complement, or scipy's generic least squares,
+# 58x slower on Valencia and stopped short of the minimum (docs/optimizations.md).
 BUNDLE_SOLVERS = {"scipy": solve_bundle, "schur": solve_bundle_schur}
 
 
@@ -55,7 +56,7 @@ class ReconstructionConfig:
     min_pnp_correspondences: int = 30
     min_pnp_inliers: int = 20
     bundle_every_camera: bool = True
-    bundle_solver: str = "scipy"
+    bundle_solver: str = "schur"
     final_refinements: int = 3
     max_cameras: int | None = None
 

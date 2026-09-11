@@ -64,7 +64,7 @@ class SfmConfig:
     max_reprojection_error: float = 8.0
     pnp_threshold: float = 8.0
     min_pnp_correspondences: int = 12
-    bundle_solver: str = "scipy"  # scipy | schur: our own, same problem, faster
+    bundle_solver: str = "schur"  # schur | scipy: the same problem, scipy's slower
 
     def __post_init__(self) -> None:
         if self.device not in DEVICES:

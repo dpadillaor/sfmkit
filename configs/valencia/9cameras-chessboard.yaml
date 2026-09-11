@@ -1,12 +1,11 @@
-# 9cameras-dense with the camera's K from the photos' EXIF instead of the
-# course's chessboard K, which is ~17% too long (see TODO.md). For a machine
-# with an NVIDIA GPU: GPU matches, COLMAP on the GPU, and the dense cloud.
+# 9cameras-colmap with the course's chessboard K instead of the photos' EXIF:
+# ~17% too long (see TODO.md), kept to compare against until the chessboard is
+# redone. Paths are relative to data/valencia/.
 dataset: valencia
 seed: 0
 
 calibrate:
-  exif: true                # 26 mm equivalent on a 4:3 sensor: f = 3029 px
-  sensor_aspect: [4, 3]     # the phone's whole sensor; the photos are a 16:9 cut
+  intrinsics: precomputed/K.txt   # the course's chessboard, photos lost
 
 sfm:
   images: [Img02, Img12, Img13, Img14, Img15, Img23, Img24, Img25, Img28]
@@ -30,5 +29,4 @@ colmap:
   camera: self      # COLMAP calibrates the phone itself
 
 dense:
-  enabled: true
-  max_image_size: 2000
+  enabled: false

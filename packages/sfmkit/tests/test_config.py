@@ -121,6 +121,15 @@ def test_calibrate_takes_one_source():
         CalibrateConfig(exif=True, sensor_aspect=[4])
 
 
-def test_the_exif_config_loads():
-    cfg = load_config(REPO / "configs" / "valencia" / "9cameras-exif.yaml")
-    assert cfg.calibrate.exif and cfg.dense.enabled and not cfg.calibrate.intrinsics
+def test_the_valencia_configs_take_k_from_exif_but_one():
+    configs = sorted((REPO / "configs" / "valencia").glob("*.yaml"))
+    chessboard = [c.stem for c in configs if not load_config(c).calibrate.exif]
+    assert chessboard == ["9cameras-chessboard"]  # kept to compare against
+
+
+def test_the_schur_solver_is_the_default():
+    from sfmkit.data.config import SfmConfig
+
+    assert SfmConfig().bundle_solver == "schur"
+    with pytest.raises(ValueError, match="bundle_solver"):
+        SfmConfig(bundle_solver="ceres")

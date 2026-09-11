@@ -4,7 +4,8 @@ dataset: valencia
 seed: 0
 
 calibrate:
-  intrinsics: precomputed/K.txt
+  exif: true                # 26 mm equivalent on a 4:3 sensor: f = 3029 px
+  sensor_aspect: [4, 3]     # the phone's whole sensor; the photos are a 16:9 cut
 
 sfm:
   images: [Img02, Img12, Img13, Img14, Img15, Img23, Img24, Img25, Img28]
