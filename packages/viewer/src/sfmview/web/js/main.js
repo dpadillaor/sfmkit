@@ -93,11 +93,14 @@ function onLive(token, { id: entry, message }) {
   // Written after the page connected: news, not history.
   const news = writtenAt(entry) >= session.connectedAt;
   if (message.kind === 'start') {
+    // Replayed, a start is at work only if its heartbeat said so; new, it is.
+    const running = news || runOf(session.id)?.running !== false;
     Object.assign(session, {
-      K: message.K, steps: [], index: -1, running: true, startSeen: Date.now(),
+      K: message.K, steps: [], index: -1, running, startSeen: Date.now(),
     });
   } else if (message.kind === 'step') {
     if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
+    if (news) session.running = true; // at work, whatever the list last said
     const following = session.index === session.steps.length - 1;
     session.steps.push(message);
     if (following) session.index = session.steps.length - 1;
@@ -130,9 +133,11 @@ function drawStep() {
   });
   if (index < 0) return;
   if (!session.hidFinished) {
-    // The growing model says it all; the finished one stays a click away.
-    view.setVisible('sfmkit-points', false);
-    view.setVisible('sfmkit-cameras', false);
+    // The growing model says it all; the finished one, old photo included,
+    // stays a click away.
+    for (const layer of ['sfmkit-points', 'sfmkit-cameras', 'sfmkit-query']) {
+      view.setVisible(layer, false);
+    }
     session.hidFinished = true;
   }
   view.showStep(steps[index], session.K);
