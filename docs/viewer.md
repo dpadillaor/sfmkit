@@ -97,8 +97,8 @@ triangulated points as they stood, flat), and an `end`, or `failed` with the
 reason when the run stops short, Ctrl-C included. The stream is named after the
 run's directory, as the viewer names runs, so `--out` does not write into
 another run's stream. Beside it, while `reconstruct` works, sfmkit keeps
-`sfmkit:alive:<project>/<config>` set with a 30 s expiry and renews it every
-10 s: a heartbeat. The key goes when the run ends, however it ends, and a run
+`sfmkit:alive:<project>/<config>` set with a 15 s expiry and renews it every
+5 s: a heartbeat. The key goes when the run ends, however it ends, and a run
 killed outright stops renewing it, so the viewer can tell a run at work from a
 stream that stopped without an `end`. Both packages test
 against the schema and its examples, with the checker in `contracts/check.py`,

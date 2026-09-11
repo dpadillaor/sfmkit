@@ -28,8 +28,8 @@ from sfmkit.core.reconstruct import Snapshot
 VERSION = 1
 BROKER_ENV = "SFMKIT_BROKER"
 MAXLEN = 1000  # entries a stream keeps: far more than a run's steps
-ALIVE_SECONDS = 30  # how long the alive key outlives its last renewal
-RENEW_SECONDS = 10
+ALIVE_SECONDS = 15  # how long the alive key outlives its last renewal
+RENEW_SECONDS = 5
 
 
 def stream_key(run: str) -> str:

@@ -103,18 +103,29 @@ function onLive(token, { id: entry, message }) {
     });
   } else if (message.kind === 'step') {
     if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
-    if (news) session.running = true; // at work, whatever the list last said
+    if (news) markLive(true); // at work, whatever the list last said
     const following = session.index === session.steps.length - 1;
     session.steps.push(message);
     if (following) session.index = session.steps.length - 1;
   } else if (message.kind === 'end') {
-    session.running = false;
+    markLive(false);
     if (news) refresh(); // its files are newer than those drawn
   } else if (message.kind === 'failed') {
-    session.running = false;
+    markLive(false);
     if (news) say(token, `The run stopped: ${message.error}`, true);
   }
   scheduleDraw();
+}
+
+// At work, or no longer: the open run's own stream says so before the list,
+// which is asked every few seconds, catches up.
+function markLive(running) {
+  session.running = running;
+  const run = runOf(session.id);
+  if (!run || run.running === running || run.running === null) return;
+  run.running = running;
+  ui.renderRuns(runs, (id) => { location.hash = id; });
+  ui.selectRun(session.id);
 }
 
 // The history arrives in a burst: draw once per frame, not once per message.
@@ -231,7 +242,7 @@ async function refresh() {
   // Only an answer asked for after the start counts, or a run just begun would
   // be taken for a dead one.
   if (session.running && run?.running === false && session.startSeen < asked) {
-    session.running = false;
+    markLive(false);
     say(session.token, 'The run stopped without a word: sfmkit is no longer at work.', true);
     scheduleDraw();
   }
@@ -256,7 +267,7 @@ function initial() {
 
 async function start() {
   window.addEventListener('hashchange', () => open(decodeURIComponent(location.hash.slice(1))));
-  setInterval(refresh, 15000); // new runs, and new results, without a reload
+  setInterval(refresh, 5000); // new runs, and new results, without a reload
   try {
     [runs, { live: liveOn }] = await Promise.all([listRuns(), health()]);
   } catch (error) {
