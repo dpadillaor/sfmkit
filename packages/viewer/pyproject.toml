@@ -18,7 +18,10 @@ sfmview-health = "sfmview.main:health"
 where = ["src"]
 
 [tool.setuptools.package-data]
-sfmview = ["web/*.html", "web/*.css", "web/js/*.js"]
+sfmview = [
+    "web/*.html", "web/*.css", "web/js/*.js",
+    "web/vendor/fonts/*", "web/vendor/three/*", "web/vendor/three/addons/*/*",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -172,9 +172,14 @@ the contract, the API and the architecture.
   Pages through Actions once the repo is public: Mermaid diagrams, the viewer's
   OpenAPI embedded, mkdocstrings for sfmkit's reference, and ADRs for the
   decisions taken (Redis, ports and adapters, `--no-deps`, EXIF K...).
-- [ ] **A static demo of the viewer** for the portfolio: save the API's answers
-  for Valencia as files (runs, scene, dense cloud, photos) and publish the page
-  read-only on GitHub Pages, so a reviewer opens the cathedral from a link.
+- [ ] **A static demo of the viewer** for the portfolio, and to embed in a site:
+  save the API's answers for Valencia as files (runs, scene, dense cloud,
+  photos, and the steps of the live stream so the timeline still rewinds),
+  teach `api.js` to read them, and publish the page on GitHub Pages; an
+  `iframe` then carries it anywhere. Measured, so it is small: the page and its
+  vendored three.js 0.9 MB, a run's scene 245 KB, the dense cloud 5.9 MB
+  (220k points, worth thinning to ~50k), a photo 3.9 MB as it is and ~300 KB
+  resized, fetched only when one is looked through.
 - [ ] **Document the interfaces with the standards.** HTTP is covered: FastAPI
   serves OpenAPI at `/docs` and `/redoc` (say so in `docs/viewer.md`). The
   messages are not: an AsyncAPI file in `contracts/` for the channels (the
@@ -204,13 +209,11 @@ the contract, the API and the architecture.
 - [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
   start and end too, so the page shows where a whole run is; the TUI could read
   the same stream instead of parsing the CLI's output.
-- [ ] **three.js comes from jsDelivr** (pinned, 0.170.0, through an import map),
-  and IBM Plex from Google Fonts, so the page needs the internet. For offline
-  use, keep them in `web/vendor/` (tracked, with their licences: MIT and OFL)
-  and point the import map and the CSS there. Small: `three.module.min.js` is
-  0.69 MB, OrbitControls and PLYLoader 0.05 MB, the fonts well under 1 MB,
-  against an image of about 250 MB. It also stops the page telling Google and
-  jsDelivr who opens it.
+- [x] **three.js and the fonts are in `web/vendor/`** (three 0.170.0, 0.74 MB
+  with OrbitControls and PLYLoader, MIT; IBM Plex Sans and Roboto Mono, one
+  variable file a family, 0.14 MB, both OFL), so the page needs no network and
+  tells Google and jsDelivr nothing. Checked with every outside host blocked:
+  it asks for its own server only.
 - [ ] **The page's JavaScript has no tests.** `web/js/geometry.js` is pure (camera
   outlines, robust bounds) and could be tested with `node --test` if Node joins
   the toolchain; for now the page is checked by screenshots from headless Chrome
