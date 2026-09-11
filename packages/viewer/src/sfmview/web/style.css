@@ -15,7 +15,7 @@
   --signal: #ff4f00;
   --warn: #ff6b5a;
   --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --mono: "Roboto Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   font: 13px/1.4 var(--sans);
   color: var(--text);
   color-scheme: dark;
