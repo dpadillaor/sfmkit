@@ -320,14 +320,23 @@ the contract, the API and the architecture.
 
 - [ ] **What is left of `legacy/`, checked piece by piece (2026-09-12).** Every
   algorithm is rewritten; what has no equivalent is mostly figures:
-  - **Worth doing.** The old photo's pose is not refined after RANSAC-DLT:
-    legacy minimised its reprojection error with K fixed
-    (`PoseEstimation/sfm.py:1087-1156`, called from `dlt.py:97`), sfmkit stops
-    at the RANSAC result (`core/localize.py`), and only COLMAP's pass refines
-    it. Also missing: a point-to-point RMSE between two clouds
+  - **Done: the old photo's camera is refined after RANSAC**
+    (`core/localize.refine_camera`, `localize.refine: none | pose | camera`).
+    RANSAC's fit is linear and algebraic; this minimises the pixels, robustly.
+    On Valencia the median reprojection falls 14.1 -> 2.0 px, the spread of the
+    camera's centre over 20 seeds 0.235 -> 0.031 (the instability that item
+    complained of), the error against COLMAP 1.60 -> 1.32° (cpu) and
+    0.91 -> 0.66° (gpu-dense), and the estimated principal point moves towards
+    COLMAP's (cy 326.8 -> 330.0, COLMAP 340.6). Watch out: a point behind the
+    camera cannot be projected, and counted as no error at all it makes turning
+    the camera around free -- it now costs, with a test to keep it so.
+    (`core/bundle*.py` zeroes those residuals too, which a gauge and many
+    cameras make harmless; worth a look one day.)
+  - **Worth doing, still.** A point-to-point RMSE between two clouds
     (`sfm.py:502`), and real-world scale from a known distance (two tower
     points 120 m apart, `groundtruth.py:381-420`), which would put the old
-    photographer at so many metres rather than so many units.
+    photographer at so many metres rather than so many units. Both were judged
+    not worth it on 2026-09-12: the viewer shows the clouds agree.
   - **Figures.** Camera axes drawn as triads (`sfm.py:457`, the viewer shows
     orientation instead), the four candidate poses of an essential matrix
     (`sfm.py:436`), before and after the bundle overlaid (`sfm.py:954`;
@@ -338,6 +347,15 @@ the contract, the API and the architecture.
     (`gtFunctions.py:90`), our F against OpenCV's (`ransac_filter.ipynb`),
     `CALIB_ZERO_TANGENT_DIST` and undistortion, which legacy never applied
     either. `legacy/repro/` is migration scaffolding, not course code.
-- [ ] **Delete `legacy/`** when nothing in it is needed any more.
+- [ ] **Delete `legacy/`**, checked 2026-09-12: `legacy/CV` (197 MB, the course
+  code) and `legacy/repro` (the migration scaffolding) are both in
+  `../MGRCV-history-backup-2026-09-10.bundle`, file by file, under the tag
+  `baseline-original`; only four junk files (two sqlite journals, two `.pyc`)
+  are not. `legacy/runs` (47 MB of old outputs) is in no backup at all, and of
+  it only `baseline-repro-01` (2.8 MB) is cited anywhere: `docs/optimizations.md`
+  takes every measured number from it. So: delete `legacy/CV` and
+  `legacy/repro`, keep `legacy/runs/baseline-repro-01` and
+  `legacy/.baseline/manifest.md5`, and keep the bundle, which becomes the only
+  copy of the course's code.
 - [ ] Delete `../MGRCV-history-backup-2026-09-10.bundle` (history before the
   purge of the course code) once sure it is not needed.
