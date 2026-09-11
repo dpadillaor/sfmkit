@@ -37,6 +37,9 @@ def test_colmap_on_its_own_places_the_scene_and_the_old_photo(tmp_path):
     assert set(model["poses"]) == {*IMAGES, "Img00"}  # sfmkit's names, no extension
     assert (tmp_path / "database.db").is_file()
     assert cameras["Img00"]["fx"] != cameras["Img02"]["fx"]  # a camera of its own
+    # Its principal point is refined, and the view camera's shifted lens puts it
+    # well below the centre of the 557 x 418 print.
+    assert cameras["Img00"]["cy"] > 209 + 50
 
 
 def test_a_fixed_camera_stays_the_given_k_through_both_passes(tmp_path):

@@ -192,8 +192,18 @@ def _scene_pass(K: np.ndarray | None) -> pycolmap.IncrementalPipelineOptions:
 
 
 def _query_pass() -> pycolmap.IncrementalPipelineOptions:
-    """The existing poses held fixed, and the query placed from few matches."""
+    """The existing poses held fixed, and the query placed from few matches.
+
+    The principal point is refined too, as localize's DLT frees it: an old
+    photograph need not have it at the centre (a view camera's rising front, a
+    cropped print), and pinned there COLMAP tilts the camera instead. On
+    Valencia's Img00, pinned: looking 11° up, 11.5° from localize; refined: the
+    principal point 125 px below the centre, the camera level, 1.2° from
+    localize. The existing cameras are put back afterwards, so only the query's
+    moves.
+    """
     options = pycolmap.IncrementalPipelineOptions(fix_existing_frames=True)
+    options.ba_refine_principal_point = True
     options.mapper.abs_pose_min_num_inliers = QUERY_MIN_INLIERS
     options.mapper.abs_pose_min_inlier_ratio = 0.1
     return options

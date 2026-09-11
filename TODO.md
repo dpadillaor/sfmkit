@@ -75,9 +75,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the lens up to take in a tall facade while keeping verticals parallel (a
   cropped print would do the same). Still a pinhole, only off-centre. COLMAP,
   its principal point pinned at the centre, has to tilt the camera up instead.
-  So the query's "error against COLMAP" is COLMAP's, for this photo. To do:
-  refine the query's principal point in `data/colmap/run.py`'s query pass
-  (`ba_refine_principal_point`), and see whether COLMAP then comes level too.
+  So the query's "error against COLMAP" is COLMAP's, for this photo. **Done:**
+  COLMAP's query pass now refines the principal point
+  (`ba_refine_principal_point`, the scene's cameras put back afterwards). It
+  finds (241, 334) against localize's (241, 323), f 552 against 554-560, the
+  camera level (-1.2°), and the query's error falls from 11.5° to 1.2°; the
+  scene's cameras are unchanged (0.311° against 0.312°). What is left of this
+  item: the precomputed course model (`examples/`, `9cameras`) still has the
+  query's principal point pinned, so its 13.7° stands until it is regenerated.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
