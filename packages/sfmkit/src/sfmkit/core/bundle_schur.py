@@ -201,13 +201,15 @@ def _moved(R, t, X, dc, dp):
 
 def solve_bundle_schur(
     K, images, poses, points, observations, *, max_iterations: int = 200,
-    loss: str = "huber", f_scale: float = 4.0, ftol: float = 1e-8, xtol: float = 1e-8,
+    loss: str = "huber", f_scale: float = 4.0, ftol: float = 1e-6, xtol: float = 1e-8,
 ) -> BundleResult:
     """Refine poses and points by minimising reprojection error; ``solve_bundle``'s
     arguments and result, another solver.
 
-    Stops, as scipy does, when an accepted step lowers the cost by less than
-    ``ftol`` of it, or moves the unknowns by less than ``xtol`` of them.
+    Stops when an accepted step lowers the cost by less than ``ftol`` of it, or
+    moves the unknowns by less than ``xtol`` of them. ``ftol`` is Ceres's
+    default: with the Huber loss the last stretch converges slowly, and on
+    Valencia 1e-8 takes five times the iterations to move a camera 0.002°.
     ``n_iterations`` counts Jacobians, as scipy's ``njev``.
     """
     if loss not in LOSSES:
