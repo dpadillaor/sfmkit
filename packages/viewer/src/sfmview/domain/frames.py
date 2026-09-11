@@ -62,7 +62,7 @@ def shared_frame(ours: Model, theirs: Model, reference: str,
 
 def assemble_scene(run: RunId, ours: Model | None, theirs: Model | None, *,
                    reference: str | None = None, scale_image: str | None = None,
-                   dense: bool = False) -> Scene:
+                   dense: bool = False, dataset: str | None = None) -> Scene:
     """A run's scene, its models in one frame when they can be.
 
     The dense cloud is COLMAP's and lives in its frame, so it takes ``theirs``'s
@@ -84,5 +84,5 @@ def assemble_scene(run: RunId, ours: Model | None, theirs: Model | None, *,
 
     colmap = next((m for m in models if m.source == "colmap"), None)
     dense_T = None if not dense or colmap is None else colmap.to_common
-    return Scene(run, tuple(models), reference, dense_T)
+    return Scene(run, tuple(models), reference, dense_T, dataset)
 

@@ -39,3 +39,11 @@ class StepSource(Protocol):
     async def ping(self) -> bool:
         """Whether the source can be reached."""
         ...
+
+
+class ImageStore(Protocol):
+    """The photos of a dataset, which runs reconstruct."""
+
+    def image_file(self, dataset: str, name: str) -> Path:
+        """The photo ``name`` of ``dataset``, a local file. Raises ``ImageNotFound``."""
+        ...

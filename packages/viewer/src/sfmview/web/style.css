@@ -119,3 +119,39 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .live-badge::before { content: "● "; animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: 0.3; } }
+
+.small { font-size: 12px; margin: -4px 0 8px; }
+.cameras li { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.cameras .cam-name { flex: 1; font-variant-numeric: tabular-nums; }
+.cameras .chips { display: flex; gap: 4px; }
+.chip, .photo-bar button {
+  font: inherit;
+  font-size: 11px;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  cursor: pointer;
+}
+.chip { border-color: var(--c); color: var(--c); }
+.chip:hover { background: #1d222b; }
+.chip.on { background: var(--c); color: #0f1115; }
+
+.photo-bar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(22, 26, 33, 0.92);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.photo-name { font-weight: 600; }
+.photo-bar label { display: flex; align-items: center; gap: 6px; }
+.photo-bar input { width: 110px; accent-color: var(--accent); }
+.photo-bar button:hover { background: #1d222b; }

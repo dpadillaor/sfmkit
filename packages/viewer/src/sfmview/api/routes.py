@@ -8,8 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 
 from sfmview.api.schemas import RunOut, SceneOut
-from sfmview.domain import RunId
-from sfmview.ports import RunStore
+from sfmview.domain import ImageNotFound, RunId
+from sfmview.ports import ImageStore, RunStore
 
 router = APIRouter(prefix="/api")
 
@@ -19,6 +19,16 @@ def get_store(request: Request) -> RunStore:
 
 
 Store = Annotated[RunStore, Depends(get_store)]
+
+
+def get_images(request: Request) -> ImageStore:
+    images = request.app.state.images
+    if images is None:
+        raise ImageNotFound("this server has no photos")
+    return images
+
+
+Images = Annotated[ImageStore, Depends(get_images)]
 
 
 def get_run(project: str, config: str) -> RunId:
@@ -55,3 +65,10 @@ def scene(run: Run, store: Store) -> SceneOut:
 def dense(run: Run, store: Store) -> FileResponse:
     return FileResponse(store.dense_file(run), media_type="application/octet-stream",
                         filename=f"{run.project}_{run.config}_fused.ply")
+
+
+@router.get("/datasets/{dataset}/images/{name}")
+def image(dataset: str, name: str, images: Images) -> FileResponse:
+    """A photo, as it is; the browser caches it for an hour."""
+    return FileResponse(images.image_file(dataset, name),
+                        headers={"Cache-Control": "private, max-age=3600"})

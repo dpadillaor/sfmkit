@@ -53,6 +53,7 @@ class SceneOut(BaseModel):
     reference: str | None
     models: list[ModelOut]
     dense: DenseOut | None
+    images: str | None  # where the photos are: <images>/<name>
 
     @classmethod
     def of(cls, s: Scene) -> SceneOut:
@@ -60,8 +61,9 @@ class SceneOut(BaseModel):
         if s.dense_to_common is not None:
             url = f"/api/runs/{s.run.project}/{s.run.config}/dense.ply"
             dense = DenseOut(url=url, to_common=s.dense_to_common.tolist())
+        images = None if s.dataset is None else f"/api/datasets/{s.dataset}/images"
         return cls(run=str(s.run), reference=s.reference,
-                   models=[ModelOut.of(m) for m in s.models], dense=dense)
+                   models=[ModelOut.of(m) for m in s.models], dense=dense, images=images)
 
 
 class RunOut(BaseModel):

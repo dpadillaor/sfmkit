@@ -6,15 +6,18 @@ No I/O, no HTTP, no broker: everything here is tested with arrays alone.
 from sfmview.domain.frames import assemble_scene, camera_frame, shared_frame
 from sfmview.domain.model import (
     Camera,
+    ImageNotFound,
     LiveEvent,
     Model,
+    NotFound,
     RunId,
     RunNotFound,
     RunSummary,
     Scene,
+    valid_name,
 )
 
 __all__ = [
-    "Camera", "LiveEvent", "Model", "RunId", "RunNotFound", "RunSummary", "Scene",
-    "assemble_scene", "camera_frame", "shared_frame",
+    "Camera", "ImageNotFound", "LiveEvent", "Model", "NotFound", "RunId", "RunNotFound",
+    "RunSummary", "Scene", "assemble_scene", "camera_frame", "shared_frame", "valid_name",
 ]

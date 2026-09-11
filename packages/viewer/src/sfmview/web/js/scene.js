@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
-import { frustumDepth, frustumSegments, robustSphere } from './geometry.js';
+import { cameraCentre, frustumDepth, frustumSegments, robustSphere } from './geometry.js';
+import { PhotoView } from './pov.js';
 
 // sfmkit and COLMAP use OpenCV's axes (x right, y down, z forward); three.js has
 // y up and cameras looking down -z. This is the one place that converts.
@@ -39,8 +40,14 @@ export class SceneView {
   #reference = null;
   #live = null; // the group holding a live step, in sfmkit's frame
   #liveDepth = 0;
+  #shots = new Map(); // camera key -> { key, name, source, query, camera, frame, depth, layer }
+  #photos; // looking through a camera, its photo in front
+  #bounds = { centre: new THREE.Vector3(), radius: 1 };
+  #onLeave;
 
-  constructor(canvas) {
+  // ``onLeave()`` is called when the user moves the view away from a camera.
+  constructor(canvas, { onLeave = () => {} } = {}) {
+    this.#onLeave = onLeave;
     this.#renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.#renderer.setPixelRatio(window.devicePixelRatio);
     this.#scene.background = new THREE.Color('#0f1115');
@@ -50,14 +57,67 @@ export class SceneView {
 
     this.#controls = new OrbitControls(this.#camera, canvas);
     this.#controls.enableDamping = true;
+    this.#photos = new PhotoView(this.#camera, this.#controls);
+    // Captured, so the controls see the press that leaves a camera's view and
+    // the drag starts at once.
+    for (const type of ['pointerdown', 'wheel']) {
+      canvas.addEventListener(type, () => this.#leaveOnTouch(), { capture: true });
+    }
 
     new ResizeObserver(() => this.#resize()).observe(canvas.parentElement);
     this.#resize();
     this.#renderer.setAnimationLoop(() => {
-      this.#controls.update();
+      if (!this.#photos.active) this.#controls.update();
       this.#renderer.render(this.#scene, this.#camera);
     });
   }
+
+  // Every camera that can be looked through: { key, name, source, query }.
+  cameras() {
+    return [...this.#shots.values()].map(({ key, name, source, query }) => ({
+      key, name, source, query,
+    }));
+  }
+
+  // The camera drawn nearest to (x, y), in the page's pixels, within a few
+  // pixels of it; null if none. Hidden cameras are not picked.
+  pick(x, y, within = 14) {
+    const rect = this.#renderer.domElement.getBoundingClientRect();
+    this.#world.updateMatrixWorld(true);
+    let best = null;
+    let bestDistance = within;
+    for (const shot of this.#shots.values()) {
+      if (!this.#layers.get(shot.layer)?.object.visible) continue;
+      const p = new THREE.Vector3(...cameraCentre(shot.camera))
+        .applyMatrix4(shot.frame.matrixWorld).project(this.#camera);
+      if (p.z < -1 || p.z > 1) continue; // behind the view, or beyond it
+      const d = Math.hypot(rect.left + (p.x + 1) / 2 * rect.width - x,
+        rect.top + (1 - p.y) / 2 * rect.height - y);
+      if (d < bestDistance) [best, bestDistance] = [shot.key, d];
+    }
+    return best;
+  }
+
+  // Look through a camera, with its photo from ``url`` in front. Resolves to
+  // whether the photo loaded.
+  lookThrough(key, url) {
+    const shot = this.#shots.get(key);
+    return shot ? this.#photos.show(shot, url) : Promise.resolve(false);
+  }
+
+  // Back to the camera being looked through, after the view moved away.
+  lookAgain() { this.#photos.enter(); }
+
+  // The camera looked through and whether the view is still its: or null.
+  looking() {
+    const shot = this.#photos.shot;
+    return shot ? { key: shot.key, name: shot.name, source: shot.source,
+      active: this.#photos.active, opacity: this.#photos.opacity } : null;
+  }
+
+  setPhotoOpacity(opacity) { this.#photos.setOpacity(opacity); }
+
+  closePhoto() { this.#photos.clear(); }
 
   // Layers in drawing order, for a legend: { id, label, color, count, visible }.
   layers() {
@@ -84,6 +144,10 @@ export class SceneView {
       const reconstructed = model.cameras.filter((c) => !c.query);
       const placed = model.cameras.filter((c) => c.query);
       const depth = frustumDepth(reconstructed);
+      for (const camera of model.cameras) {
+        this.#addShot(model.source, camera, frame, depth,
+          `${model.source}-${camera.query ? 'query' : 'cameras'}`);
+      }
       this.#add(`${model.source}-points`, `${label} points`, main, model.points.length / 3,
         frame, points(model.points, main));
       this.#add(`${model.source}-cameras`, `${label} cameras`, main, reconstructed.length,
@@ -103,14 +167,20 @@ export class SceneView {
     this.#live ??= this.#frame(this.#frames.get('sfmkit') ?? IDENTITY);
     const visible = (id) => this.#layers.get(id)?.object.visible ?? true;
     const shown = { points: visible('live-points'), cameras: visible('live-cameras') };
-    for (const child of [...this.#live.children]) {
-      child.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
-      this.#live.remove(child);
+    for (const id of ['live-points', 'live-cameras']) { // the last step's, not a photo
+      this.#layers.get(id)?.object.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
+      this.#layers.get(id)?.object.removeFromParent();
     }
 
     const size = K ? [Math.round(2 * K[0][2]), Math.round(2 * K[1][2])] : null;
     const cameras = step.cameras.map((c) => ({ ...c, K, size }));
     this.#liveDepth = Math.max(this.#liveDepth, frustumDepth(cameras));
+    for (const key of [...this.#shots.keys()].filter((k) => k.startsWith('live:'))) {
+      this.#shots.delete(key);
+    }
+    for (const camera of cameras) {
+      this.#addShot('live', camera, this.#live, this.#liveDepth, 'live-cameras');
+    }
     const outline = new THREE.Group();
     outline.add(outlines(cameras.filter((c) => c.name !== step.image), this.#liveDepth, LIVE.main));
     outline.add(outlines(cameras.filter((c) => c.name === step.image), this.#liveDepth, LIVE.added));
@@ -148,6 +218,20 @@ export class SceneView {
     return count;
   }
 
+  #addShot(source, camera, frame, depth, layer) {
+    const key = `${source}:${camera.name}`;
+    this.#shots.set(key, {
+      key, name: camera.name, source, query: Boolean(camera.query), camera, frame, depth, layer,
+    });
+  }
+
+  #leaveOnTouch() {
+    if (!this.#photos.active) return;
+    const ahead = Math.max(this.#camera.position.distanceTo(this.#bounds.centre), 0.1);
+    this.#photos.leave(ahead);
+    this.#onLeave();
+  }
+
   #add(id, label, color, count, parent, object) {
     parent.add(object);
     this.#layers.set(id, { label, color, count, object });
@@ -162,6 +246,8 @@ export class SceneView {
   }
 
   #clear() {
+    this.#photos.clear();
+    this.#shots.clear();
     this.#world.traverse((o) => {
       o.geometry?.dispose();
       o.material?.dispose();
@@ -189,6 +275,7 @@ export class SceneView {
     }
     const { centre, radius } = robustSphere(flat);
     const target = new THREE.Vector3(...centre);
+    this.#bounds = { centre: target.clone(), radius };
     const eye = reference ? new THREE.Vector3(0, 0, 0)
       : target.clone().add(new THREE.Vector3(0, 0, 2 * radius));
     const back = eye.clone().sub(target).normalize().multiplyScalar(0.5 * radius);
@@ -205,6 +292,7 @@ export class SceneView {
     this.#renderer.setSize(w, h, false);
     this.#camera.aspect = w / Math.max(h, 1);
     this.#camera.updateProjectionMatrix();
+    this.#photos.resize();
   }
 }
 

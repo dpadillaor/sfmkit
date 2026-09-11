@@ -7,7 +7,8 @@ import { LiveFeed, writtenAt } from './live.js';
 import { SceneView } from './scene.js';
 import * as ui from './ui.js';
 
-const view = new SceneView(document.getElementById('view'));
+const canvas = document.getElementById('view');
+const view = new SceneView(canvas, { onLeave: () => showPhotoBar() });
 let runs = [];
 let liveOn = false;
 
@@ -19,6 +20,12 @@ const session = {
 };
 
 const showLayers = () => ui.renderLayers(view.layers(), (id, on) => view.setVisible(id, on));
+const showCameras = () => ui.renderCameras(view.cameras(), view.looking()?.key, lookThrough);
+const showPhotoBar = () => ui.renderPhotoBar(view.looking(), {
+  onOpacity: (opacity) => view.setPhotoOpacity(opacity),
+  onBack: () => { view.lookAgain(); showPhotoBar(); },
+  onClose: closePhoto,
+});
 const runOf = (id) => runs.find((r) => r.id === id);
 const say = (token, text, error = false) => {
   if (token === session.token) ui.status(text, error);
@@ -60,6 +67,8 @@ async function showScene(token) {
   view.show(scene ?? { models: [], reference: null });
   drawStep();
   showLayers();
+  showCameras();
+  showPhotoBar();
   ui.renderInfo(runOf(id), scene);
   say(token, scene ? '' : 'No results yet: waiting for the run.');
 
@@ -127,7 +136,42 @@ function drawStep() {
     session.fitted = true;
   }
   showLayers();
+  showCameras();
 }
+
+// Look through a camera, its photo in front of it.
+async function lookThrough(key) {
+  const shot = view.cameras().find((c) => c.key === key);
+  if (!shot) return;
+  const token = session.token;
+  const base = session.scene?.images;
+  const loaded = view.lookThrough(key, base && `${base}/${encodeURIComponent(shot.name)}`);
+  showCameras();
+  showPhotoBar();
+  if (!(await loaded)) say(token, `No photo of ${shot.name} to show`);
+}
+
+function closePhoto() {
+  view.closePhoto();
+  showCameras();
+  showPhotoBar();
+}
+
+// A click, not a drag, on a camera looks through it.
+let press = null;
+canvas.addEventListener('pointerdown', (e) => {
+  press = { x: e.clientX, y: e.clientY, at: performance.now() };
+});
+canvas.addEventListener('pointerup', (e) => {
+  const click = press && Math.hypot(e.clientX - press.x, e.clientY - press.y) < 5
+    && performance.now() - press.at < 500;
+  press = null;
+  const key = click && view.pick(e.clientX, e.clientY);
+  if (key) lookThrough(key);
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && view.looking()) closePhoto();
+});
 
 // The run list again, and the open run's results if its files changed.
 async function refresh() {

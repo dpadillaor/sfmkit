@@ -13,8 +13,21 @@ import numpy as np
 _NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
 
-class RunNotFound(LookupError):
+def valid_name(part: str) -> bool:
+    """A name that can be one path component, and nothing more."""
+    return bool(_NAME.fullmatch(part))
+
+
+class NotFound(LookupError):
+    """What was asked for is not there."""
+
+
+class RunNotFound(NotFound):
     """No run by that name, or not the part of it asked for."""
+
+
+class ImageNotFound(NotFound):
+    """No photo by that name in the dataset."""
 
 
 @dataclass(frozen=True)
@@ -26,7 +39,7 @@ class RunId:
 
     def __post_init__(self) -> None:
         for part in (self.project, self.config):
-            if not _NAME.fullmatch(part):
+            if not valid_name(part):
                 raise ValueError(f"not a run name: {part!r}")
 
     def __str__(self) -> str:
@@ -84,6 +97,7 @@ class Scene:
     models: tuple[Model, ...]
     reference: str | None  # the camera whose frame is shared
     dense_to_common: np.ndarray | None = None  # the dense cloud's similarity, if there is one
+    dataset: str | None = None  # where the run's photos are, for an ImageStore
 
 
 @dataclass(frozen=True)

@@ -59,7 +59,8 @@ class FsRunStore:
         reference = evaluation.get("reference") or (config.get("sfm") or {}).get("reference")
         return assemble_scene(run, ours, theirs, reference=reference,
                               scale_image=evaluation.get("scale_image"),
-                              dense=(d / "dense" / "fused.ply").is_file())
+                              dense=(d / "dense" / "fused.ply").is_file(),
+                              dataset=config.get("dataset") or run.project)
 
     def dense_file(self, run: RunId) -> Path:
         path = self._dir(run) / "dense" / "fused.ply"

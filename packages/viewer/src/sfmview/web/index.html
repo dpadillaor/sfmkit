@@ -29,6 +29,11 @@
       <ul id="layers" class="layers"></ul>
     </section>
     <section>
+      <h2>Cameras</h2>
+      <p class="muted small">look through one: click it here or in the view</p>
+      <ul id="cameras" class="cameras"></ul>
+    </section>
+    <section>
       <h2>Run</h2>
       <dl id="info" class="info"></dl>
     </section>
@@ -36,12 +41,18 @@
   <main id="stage">
     <canvas id="view"></canvas>
     <div id="status" class="status" hidden></div>
+    <div id="photo-bar" class="photo-bar" hidden>
+      <span id="photo-name" class="photo-name"></span>
+      <label class="muted">photo <input id="photo-opacity" type="range" min="0" max="1" step="0.05"></label>
+      <button id="photo-back" type="button">back to the camera</button>
+      <button id="photo-close" type="button" title="close (Esc)">✕</button>
+    </div>
     <div id="timeline" class="timeline" hidden>
       <span id="live-badge" class="live-badge" hidden>live</span>
       <input id="scrub" type="range" min="0" max="0" value="0" aria-label="step">
       <span id="step-label" class="step-label"></span>
     </div>
-    <p class="hint muted">drag to orbit · right-drag to pan · scroll to zoom</p>
+    <p class="hint muted">drag to orbit · right-drag to pan · scroll to zoom · click a camera to look through it</p>
   </main>
   <script type="module" src="js/main.js"></script>
 </body>
