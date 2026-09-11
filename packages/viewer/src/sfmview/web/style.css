@@ -243,7 +243,9 @@ input[type="range"]::-webkit-slider-thumb {
 }
 input[type="range"]::-moz-range-thumb { width: 8px; height: 14px; background: var(--text); border: none; border-radius: 0; }
 
-.photo-bar { top: 12px; left: 12px; }
+.photo-bar { top: 12px; left: 12px; flex-direction: column; align-items: stretch; gap: 6px; }
+.photo-bar .line { display: flex; align-items: center; gap: 12px; }
+.photo-bar .line-name { font: 11px var(--mono); color: var(--muted); padding-left: 16px; }
 /* the camera under the pointer, named beside it */
 .hover-label {
   position: absolute;
