@@ -28,11 +28,12 @@ example, whose matches came from a GPU:
 ```bash
 mkdir -p /tmp/check/valencia && cp -r examples/valencia/9cameras /tmp/check/valencia/
 SFMKIT_RUNS=/tmp/check sfmkit run --config configs/valencia/9cameras.yaml --from verify
-# mean rotation error 0.981°
+# mean rotation error 0.379°
 ```
 
-A full run from scratch in `sfmkit-gpu` reproduces the example (9 cameras, 1699
-points); on CPU it gives 1.574° with 8 cameras, as CPU matches differ.
+A full run from scratch in `sfmkit-gpu` reproduces the example (9 cameras, 1868
+points); on CPU, whose matches differ, it gives 9 cameras, 1857 points and
+0.379° too.
 
 ## Layout
 

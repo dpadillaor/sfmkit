@@ -1,7 +1,7 @@
 # 9cameras with the matching forced onto the CPU. CPU and GPU give slightly
-# different matches, and here a different result: Img12 is lost (8 cameras,
-# 1.57°, against 9 and 0.98° from GPU matches). Paths are relative to
-# data/valencia/.
+# different matches, and camera by camera a different result, but the same mean:
+# 9 cameras, 0.379° (with the chessboard K and scipy's solver, CPU matches lost
+# Img12). Paths are relative to data/valencia/.
 dataset: valencia
 seed: 0
 

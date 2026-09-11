@@ -160,8 +160,8 @@ also carries weight on its own: the Schur complement is *the* idea that makes
 bundle adjustment tractable.
 
 **Done, with 1.3, as a second solver** beside scipy's:
-`core/bundle_schur.py`, chosen with `sfm.bundle_solver: schur` (the default
-stays `scipy`). The same problem, gauge and Huber loss; an analytic Jacobian
+`core/bundle_schur.py`, `sfm.bundle_solver: schur`, the default since; scipy's
+stays a choice, `sfm.bundle_solver: scipy`. The same problem, gauge and Huber loss; an analytic Jacobian
 (checked against central differences to 1e-8), the points eliminated per
 point, the 6N-7 camera system solved directly, Levenberg-Marquardt stopping at
 Ceres's function tolerance, 1e-6. Each iteration costs ~10 ms on Valencia.

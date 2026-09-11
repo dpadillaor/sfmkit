@@ -22,16 +22,23 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   To do: (1) recalibrate with the chessboard, photos taken in the same mode as
   the scene (main lens 1x, 16:9, 4032x2268), kept in data/valencia/calibration/;
   (2) done: `calibrate.exif: true` takes K from the photos' EXIF (f = 3028.7),
-  used by `configs/valencia/9cameras-exif.yaml`; the other configs still use the
-  chessboard K, to compare; (3) regenerate the example run and the README
-  numbers, from the EXIF K or the new chessboard one.
-- [ ] **Independent reference: 1.041°, first run.** The course's COLMAP model
-  was fed the course's own matches, so 0.981° against it was not independent.
+  used by every Valencia config but `9cameras-chessboard.yaml`, kept to compare;
+  (3) done: the example run and the README numbers regenerated from it, with the
+  Schur solver.
+- [ ] **Independent reference: 0.323°.** The course's COLMAP model was fed the
+  course's own matches, so a score against it is not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
-  and matching) scores the same GPU reconstruction at **1.041° mean, 2.680° max**,
-  with the same cameras worst (Img12, Img23, Img14). COLMAP varies between runs,
-  but negligibly (±0.002° on that mean, measured over 3 runs). Say it in the
-  README.
+  and matching) scores the reconstruction at **0.323° mean, 1.808° max** (EXIF K,
+  Schur solver; 1.041° with the chessboard K and scipy's), against 0.379° for
+  the course's model. COLMAP varies between runs, but negligibly on the scene's
+  cameras (±0.002° on that mean, measured over 3 runs). Say it in the README.
+- [ ] **COLMAP's placement of the old photo is unstable between runs**: the query
+  error of the same config against a fresh COLMAP was 1.20°, then 0.97°
+  (`9cameras-colmap`) and 3.84° (`9cameras-dense`, the same sparse settings),
+  while the scene's cameras agree within 0.03°. Its query pass, one photo of
+  another camera registered with the principal point freed, may land in
+  different local minima. Measure over several runs, and seed COLMAP if it can
+  be.
 - [ ] **Review how the old photo (the query) is treated, stage by stage.** It is
   handled differently almost everywhere: `match` pairs it with the reference
   only, even when `exhaustive: true`; `reconstruct` leaves it out on purpose;
@@ -82,7 +89,8 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   camera level (-1.2°), and the query's error falls from 11.5° to 1.2°; the
   scene's cameras are unchanged (0.311° against 0.312°). What is left of this
   item: the precomputed course model (`examples/`, `9cameras`) still has the
-  query's principal point pinned, so its 13.7° stands until it is regenerated.
+  query's principal point pinned, so its 11.9° (13.7° with the chessboard K)
+  stands until it is regenerated.
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no
@@ -90,8 +98,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the right name, so our runs, and the 0.981°, use 2048. To reproduce the course
   model with `matches: sfmkit`, allow `sfm.max_keypoints: null` (no limit).
   Worth an experiment: does a higher limit change the result, or save Img12?
-- [ ] **Img12 is fragile**, partly because of the wrong K: with the EXIF K it is no
-  longer the worst camera. Recheck with CPU matches once K is fixed.
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
@@ -104,9 +110,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   plain `docker run` is not root and is right for the common UID 1000; compose
   keeps overriding it from `.env` (optional: without it compose uses 1000). Then
   document it in the README's "Try it".
-- [ ] **The `cpu` image cannot reproduce 0.981° from scratch**: its CPU matches
-  give 8 cameras and 1.574°, as CPU matches do outside Docker. The saved example
-  run (`--from verify`) does give 0.981°. See the Img12 item.
 - [ ] **Licence of the SuperPoint weights** baked into the image. They come from
   Magic Leap under terms that restrict use; check them before publishing the
   image to a registry.
@@ -270,15 +273,16 @@ the contract, the API and the architecture.
   reconstruction written as a COLMAP model (see the exporter under Later).
 - [ ] **Img28 worsens with the Schur solver and the EXIF K**: 0.692° -> 1.805°,
   position error ten times the other cameras', while the other seven scored
-  improve (mean 0.312 -> 0.322°, median ~0.19 -> ~0.11°). Hypothesis, untested:
+  improve (mean 0.312 -> 0.322°, median ~0.19 -> ~0.11°). It is the worst camera
+  of every run since, 1.42-1.81° against 0.02-0.42° for the rest; Img12, the
+  fragile one before, is 0.14-0.42° and now registers from CPU matches too. Hypothesis, untested:
   wrong matches came in when Img28 was registered (step 4), and a bundle that
   reaches its minimum fits them where scipy's, stopped short, did not. Look at
   Img28's residuals after the final bundle, and at its PnP inliers.
-- [ ] **Make the Schur solver the default?** 58x faster on the bundles and
-  converged (scipy's stops at `max_nfev` on all nine Valencia bundles), but
-  it moves the numbers: redo the threshold grid search (optimizations.md 1.6)
-  with it, settle Img28, then regenerate the example run and the README numbers
-  once, together with the EXIF K.
+- [ ] **Redo the threshold grid search** (`scripts/sweep.py`, optimizations.md
+  1.6) with the Schur solver and the EXIF K, the defaults now: its thresholds
+  were searched with scipy's solver, which stopped short of every minimum, and
+  the chessboard K. With bundles 58x faster the search is cheap.
 - [x] **Speed up bundle adjustment: the method, not the hardware.** Done as a
   second solver, `sfm.bundle_solver: schur` (`core/bundle_schur.py`): analytic
   Jacobian, Schur complement, our Levenberg-Marquardt; bundles of 0.1-0.9 s

@@ -1,8 +1,8 @@
 {
   "stage": "verify",
   "config_path": "configs/valencia/9cameras.yaml",
-  "timestamp": "2026-09-10T14:13:57.032153+00:00",
-  "git_commit": "86a5e8ac8dbae7256a119b43e9adf8e995012aed",
+  "timestamp": "2026-09-11T19:30:09.090262+00:00",
+  "git_commit": "f269541d5f90d9447ba240e659a38e2d12c80bef",
   "config": {
     "dataset": "valencia",
     "name": "9cameras",
@@ -13,7 +13,12 @@
         9,
         6
       ],
-      "intrinsics": "data/valencia/precomputed/K.txt"
+      "intrinsics": "",
+      "exif": true,
+      "sensor_aspect": [
+        4,
+        3
+      ]
     },
     "sfm": {
       "images": [
@@ -38,21 +43,28 @@
       "min_triangulation_angle_deg": 2.0,
       "max_reprojection_error": 12.0,
       "pnp_threshold": 6.0,
-      "min_pnp_correspondences": 12
+      "min_pnp_correspondences": 12,
+      "bundle_solver": "schur"
     },
     "localize": {
       "query": "Img00"
     },
     "colmap": {
-      "model": "data/valencia/precomputed/colmap"
+      "precomputed": "data/valencia/precomputed/colmap/9cameras_sfmkit_matches",
+      "matches": "",
+      "camera": "self"
+    },
+    "dense": {
+      "enabled": false,
+      "max_image_size": 2000
     },
     "dataset_dir": "data/valencia"
   },
   "versions": {
     "sfmkit": "0.1.0",
     "numpy": "1.26.4",
-    "scipy": "1.13.1",
-    "python": "3.10.21"
+    "scipy": "1.17.1",
+    "python": "3.11.16"
   },
   "pairs": [
     {

@@ -30,11 +30,11 @@ order.
 | `calibrate` | Works out the camera's focal length and image centre, without which nothing can be measured | the phone's calibration |
 | `match` | Finds distinctive points in each photo and pairs them up between photos. Runs on a GPU if there is one, about 10× faster; `sfm.device` in the config chooses | 37 photo pairs |
 | `verify` | Throws away pairings that do not fit the geometry of two views | `Img02`–`Img13`: 627 of 772 kept |
-| `reconstruct` | Builds the 3D model: starts from two photos and adds the rest one at a time | 9 cameras, 1699 points |
+| `reconstruct` | Builds the 3D model: starts from two photos and adds the rest one at a time | 9 cameras, 1868 points |
 | `localize` | Places the old photo in the model | located to within 2 px |
 | `colmap` | Gets COLMAP's model of the same photos, to compare against | 10 cameras |
-| `dense` | Optional, needs an NVIDIA GPU: a dense point cloud of the scene from COLMAP's model | 137 650 points |
-| `evaluate` | Measures how far each camera is from COLMAP's | 0.98° mean error |
+| `dense` | Optional, needs an NVIDIA GPU: a dense point cloud of the scene from COLMAP's model | 136 418 points |
+| `evaluate` | Measures how far each camera is from COLMAP's | 0.38° mean error |
 | `changes` | Overlays the old photo on a modern one and marks what differs | 7.6% of the overlap |
 | `figures` | Draws the plots for a finished run | |
 
