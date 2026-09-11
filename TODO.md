@@ -145,8 +145,9 @@ set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
 - [ ] **Docker, the user's lesson**: the viewer's Dockerfile (done: listens on
-  `0.0.0.0` through `SFMVIEW_HOST`) and the compose
-  services `viewer` and `redis`, one concept at a time, each with a fictitious
+  `0.0.0.0` through `SFMVIEW_HOST`), the compose service `viewer` (done:
+  `ports`, `runs/` and `data/` read-only, seen through an SSH tunnel), and the
+  service `redis`, still to do, one concept at a time, each with a fictitious
   example first: compose's default network and DNS by service name; `ports`
   (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
   (container to container: `redis` needs none); `depends_on` with a
@@ -199,8 +200,10 @@ the contract, the API and the architecture.
   a `progress.jsonl` the viewer tails (the TensorBoard way, simplest of all, but
   no network to learn from); NATS, RabbitMQ, Kafka or MQTT instead of Redis
   (history needs JetStream; routing first and consumed messages gone; a JVM for
-  tens of messages; only the last message kept). Valkey is Redis's open-source
-  fork, same protocol, if the licence matters.
+  tens of messages; only the last message kept). Licence: `redis:7-alpine` is
+  Redis 7.4, under RSALv2/SSPLv1 (free to use, not to resell as a hosted
+  service); Redis 8 adds AGPLv3; redis-py is MIT. Valkey is the BSD fork, same
+  protocol and a drop-in image, if that ever matters.
 
 ## README
 

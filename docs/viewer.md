@@ -21,9 +21,22 @@ cd ../..
 sfmview --runs runs        # http://127.0.0.1:8000
 ```
 
-`--runs`, `--host`, `--port` and `--broker`, or `SFMVIEW_RUNS`, `SFMVIEW_HOST`,
-`SFMVIEW_PORT` and `SFMVIEW_BROKER` in a container. The page loads three.js from
-jsDelivr, so the browser needs the internet.
+`--runs`, `--data`, `--host`, `--port` and `--broker`, or `SFMVIEW_RUNS`,
+`SFMVIEW_DATA`, `SFMVIEW_HOST`, `SFMVIEW_PORT` and `SFMVIEW_BROKER` in a
+container. The page loads three.js from jsDelivr, so the browser needs the
+internet.
+
+With Docker, from the root:
+
+```bash
+docker compose up --build viewer    # http://127.0.0.1:8000
+```
+
+The service mounts `runs/` and `data/` read-only and publishes port 8000 on the
+host's loopback only. From another machine, open an SSH tunnel to the host,
+`ssh -N -L 8000:127.0.0.1:8000 <host>`, and browse http://localhost:8000 there.
+The image sets `SFMVIEW_HOST=0.0.0.0`: a published port arrives on the
+container's network address, not on its loopback.
 
 ### Live progress
 

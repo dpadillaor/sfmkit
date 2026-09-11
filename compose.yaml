@@ -24,3 +24,16 @@ services:
         DEVICE: gpu
     image: sfmkit:gpu
     gpus: all
+
+  # The web viewer: it only reads runs/ and data/. The port is published on the
+  # host's loopback only; from another machine, through an SSH tunnel.
+  viewer:
+    build:
+      context: .
+      dockerfile: packages/viewer/Dockerfile
+    image: sfmview
+    volumes:
+      - ./data:/app/data:ro
+      - ./runs:/app/runs:ro
+    ports:
+      - "127.0.0.1:8000:8000"

@@ -11,6 +11,8 @@ COPY packages/viewer/pyproject.toml .
 COPY packages/viewer/src src
 RUN pip install --no-cache-dir --no-deps .
 
+# Inside a container, listen on every address: a published port arrives on
+# the container's network address, not on its loopback
 ENV SFMVIEW_HOST=0.0.0.0
 EXPOSE 8000
 
