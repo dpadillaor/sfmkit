@@ -144,7 +144,8 @@ Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
 set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
-- [ ] **Docker, the user's lesson**: the viewer's Dockerfile and the compose
+- [ ] **Docker, the user's lesson**: the viewer's Dockerfile (done: listens on
+  `0.0.0.0` through `SFMVIEW_HOST`) and the compose
   services `viewer` and `redis`, one concept at a time, each with a fictitious
   example first: compose's default network and DNS by service name; `ports`
   (host to container, `127.0.0.1:8000:8000` for the browser) against no ports
@@ -174,8 +175,12 @@ the contract, the API and the architecture.
   start and end too, so the page shows where a whole run is; the TUI could read
   the same stream instead of parsing the CLI's output.
 - [ ] **three.js comes from jsDelivr** (pinned, 0.170.0, through an import map),
-  so the page needs the internet. For offline use, fetch it at image build time
-  into `web/vendor/` and point the import map there.
+  and IBM Plex from Google Fonts, so the page needs the internet. For offline
+  use, keep them in `web/vendor/` (tracked, with their licences: MIT and OFL)
+  and point the import map and the CSS there. Small: `three.module.min.js` is
+  0.69 MB, OrbitControls and PLYLoader 0.05 MB, the fonts well under 1 MB,
+  against an image of about 250 MB. It also stops the page telling Google and
+  jsDelivr who opens it.
 - [ ] **The page's JavaScript has no tests.** `web/js/geometry.js` is pure (camera
   outlines, robust bounds) and could be tested with `node --test` if Node joins
   the toolchain; for now the page is checked by screenshots from headless Chrome
