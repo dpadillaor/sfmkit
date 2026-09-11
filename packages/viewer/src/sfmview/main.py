@@ -6,7 +6,9 @@ Settings come from the command line or, for containers, the environment.
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import urllib.request
 
 import uvicorn
 
@@ -38,6 +40,22 @@ def main(argv: list[str] | None = None) -> None:
     steps = RedisStepSource.from_url(args.broker) if args.broker else None
     app = create_app(FsRunStore(args.runs), steps, FsImageStore(args.data))
     uvicorn.run(app, host=args.host, port=args.port)
+
+
+def health(argv: list[str] | None = None) -> int:
+    """0 if the server the same settings describe answers ``/api/health``, else 1.
+
+    A container's healthcheck, run inside it: the image has Python, not curl.
+    """
+    args = build_parser().parse_args(argv)
+    host = {"0.0.0.0": "127.0.0.1", "::": "::1"}.get(args.host, args.host)
+    if ":" in host:
+        host = f"[{host}]"
+    try:
+        with urllib.request.urlopen(f"http://{host}:{args.port}/api/health", timeout=2) as r:
+            return 0 if json.load(r).get("status") == "ok" else 1
+    except (OSError, ValueError):
+        return 1
 
 
 if __name__ == "__main__":

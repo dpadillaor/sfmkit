@@ -12,6 +12,7 @@ requires-python = ">=3.11"
 
 [project.scripts]
 sfmview = "sfmview.main:main"
+sfmview-health = "sfmview.main:health"
 
 [tool.setuptools.packages.find]
 where = ["src"]

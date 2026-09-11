@@ -36,7 +36,10 @@ The service mounts `runs/` and `data/` read-only and publishes port 8000 on the
 host's loopback only. From another machine, open an SSH tunnel to the host,
 `ssh -N -L 8000:127.0.0.1:8000 <host>`, and browse http://localhost:8000 there.
 The image sets `SFMVIEW_HOST=0.0.0.0`: a published port arrives on the
-container's network address, not on its loopback.
+container's network address, not on its loopback. It also carries its own
+healthcheck, `sfmview-health`, which asks `/api/health` from inside the
+container (the image has Python, not curl); in a container, set the port with
+`SFMVIEW_PORT` rather than `--port`, so the check finds it.
 
 ### Live progress
 

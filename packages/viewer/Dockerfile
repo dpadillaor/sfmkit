@@ -16,5 +16,10 @@ RUN pip install --no-cache-dir --no-deps .
 ENV SFMVIEW_HOST=0.0.0.0
 EXPOSE 8000
 
+# Asks /api/health from inside; set the port with SFMVIEW_PORT, not --port,
+# so the check finds it too
+HEALTHCHECK --interval=10s --timeout=3s --retries=3 --start-period=10s --start-interval=1s \
+    CMD ["sfmview-health"]
+
 # Entrypoint
 ENTRYPOINT ["sfmview"]
