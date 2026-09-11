@@ -50,14 +50,14 @@ again, which varies a little between runs.
 - `data/<project>/` raw inputs, never written. `configs/<project>/*.yaml` one
   experiment each. `runs/<project>/<config>/<stage>/` outputs, ignored by git.
 - `examples/` a saved run, tracked and copied into the image.
-- `legacy/` the original course code, ignored by git, kept on disk for reference.
 
 ## Git
 
 - Stage files by name, never `git add -A`: the user edits files at the same time.
 - Commit before generating anything that records the commit (a run, an image),
   so the recorded commit names the code that produced it.
-- Never delete `legacy/` or rewrite history without asking.
+- Never rewrite history without asking. The course's code is no longer on disk:
+  it lives in `../MGRCV-history-backup-2026-09-10.bundle`, tag `baseline-original`.
 
 ## Working with the user
 

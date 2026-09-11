@@ -347,15 +347,9 @@ the contract, the API and the architecture.
     (`gtFunctions.py:90`), our F against OpenCV's (`ransac_filter.ipynb`),
     `CALIB_ZERO_TANGENT_DIST` and undistortion, which legacy never applied
     either. `legacy/repro/` is migration scaffolding, not course code.
-- [ ] **Delete `legacy/`**, checked 2026-09-12: `legacy/CV` (197 MB, the course
-  code) and `legacy/repro` (the migration scaffolding) are both in
-  `../MGRCV-history-backup-2026-09-10.bundle`, file by file, under the tag
-  `baseline-original`; only four junk files (two sqlite journals, two `.pyc`)
-  are not. `legacy/runs` (47 MB of old outputs) is in no backup at all, and of
-  it only `baseline-repro-01` (2.8 MB) is cited anywhere: `docs/optimizations.md`
-  takes every measured number from it. So: delete `legacy/CV` and
-  `legacy/repro`, keep `legacy/runs/baseline-repro-01` and
-  `legacy/.baseline/manifest.md5`, and keep the bundle, which becomes the only
-  copy of the course's code.
-- [ ] Delete `../MGRCV-history-backup-2026-09-10.bundle` (history before the
-  purge of the course code) once sure it is not needed.
+- [ ] **Keep the history bundle beside the repository safe.** With legacy/
+  deleted (2026-09-12, 278 MB: the course's code, the migration scaffolding and
+  old outputs) ../MGRCV-history-backup-2026-09-10.bundle is the only copy of
+  the course's code, under the tag baseline-original; worth a second copy off
+  this machine, and not to be deleted. Gone with it, in no backup: the re-run
+  of the original pipeline whose measured numbers docs/optimizations.md quotes.

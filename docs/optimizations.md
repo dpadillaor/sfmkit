@@ -4,9 +4,12 @@ Findings from reproducing the original pipeline on a clean machine
 (2026-09-02). Nothing here has been applied — the baseline is deliberately
 untouched so that any change can be measured against it.
 
-Every number tagged **measured** comes from `runs/baseline-repro-01/`. Numbers
-tagged **estimated** are derived from reading the code and should be confirmed
-with a profiler before anyone spends effort on them.
+Every number tagged **measured** comes from a re-run of the original pipeline,
+kept then as `legacy/runs/baseline-repro-01/` and deleted with the rest of
+`legacy/` on 2026-09-12; the course's code itself is in the history bundle
+beside the repository, tagged `baseline-original`. Numbers tagged **estimated**
+are derived from reading the code and should be confirmed with a profiler
+before anyone spends effort on them.
 
 ---
 
