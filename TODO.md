@@ -209,6 +209,11 @@ the contract, the API and the architecture.
 
 ## Later
 
+- [ ] **Set aside (2026-09-12): everything downstream of exporting to COLMAP's
+  format.** A COLMAP-format exporter would let a reconstruction of ours feed
+  Gaussian splatting, be densified by COLMAP, or be meshed by it
+  (`pycolmap.poisson_meshing`). None of that is what this project is for: it
+  reconstructs, localises an old photograph and measures itself.
 - [ ] **Review the imports inside functions.** Several modules import inside
   functions (torch in `data/features.py`, cv2 and core modules in the CLI
   commands) so they would load without optional packages. Every supported
@@ -218,11 +223,6 @@ the contract, the API and the architecture.
   (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
   yet, and it would make the README's best picture. The viewer draws it
   (`docs/figures/viewer.png`); it could also feed Gaussian splatting.
-- [ ] **A mesh of the dense cloud.** `fused.ply` is points only, which the viewer
-  draws but mesh viewers (3dviewer.net) refuse: "no faces". COLMAP can mesh it
-  (`pycolmap.poisson_meshing`), as an option of the dense stage.
-- [ ] **A dense cloud from sfmkit's own model**, not only COLMAP's: needs sfmkit's
-  reconstruction written as a COLMAP model (see the exporter under Later).
 - [ ] **Redo the threshold grid search** (`scripts/sweep.py`, optimizations.md
   1.6) with the Schur solver and the EXIF K, the defaults now: its thresholds
   were searched with scipy's solver, which stopped short of every minimum, and
@@ -255,8 +255,6 @@ the contract, the API and the architecture.
     uses its GPU solver from 50 images up only, and pycolmap-cuda12's Ceres is
     built without CUDA anyway (it falls back to the CPU; its mapping takes
     1.6 s on Valencia either way).
-- [ ] **COLMAP-format exporter**, so a reconstruction can feed Gaussian splatting.
-
 ## Housekeeping
 
 - [ ] **What is left of `legacy/`, checked piece by piece (2026-09-12).** Every
