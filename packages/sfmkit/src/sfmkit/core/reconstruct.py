@@ -405,7 +405,7 @@ def reconstruct(
     for i in range(cfg.final_refinements):
         before = rec.n_points
         _triangulate_tracks(rec, keypoints, cfg)
-        rep = StageReport(step + i, "<global refinement>", len(rec.poses), rec.n_points, 0)
+        rep = StageReport(step + i, "global refinement", len(rec.poses), rec.n_points, 0)
         _run_bundle(rec, keypoints, images, rep, cfg)
         rep.n_filtered = _filter_observations(rec, keypoints, cfg)
         _triangulate_tracks(rec, keypoints, cfg)

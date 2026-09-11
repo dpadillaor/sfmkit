@@ -26,7 +26,7 @@
         "kind": {"const": "step"},
         "run": {"type": "string"},
         "step": {"type": "integer"},
-        "image": {"type": "string", "description": "the camera added, or '<global refinement>'"},
+        "image": {"type": "string", "description": "the camera added, or 'global refinement'"},
         "n_registered": {"type": "integer"},
         "n_points": {"type": "integer"},
         "rmse_before": {"type": ["number", "null"], "description": "reprojection RMSE in pixels before this step's bundle adjustment"},

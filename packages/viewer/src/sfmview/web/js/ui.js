@@ -143,7 +143,7 @@ export function renderTimeline(steps, index, running, onStep) {
     onclick: () => onStep(i),
   })));
   const s = steps[index];
-  const rmse = s.rmse_after === null ? '' : ` · ${s.rmse_after.toFixed(2)} px`;
+  const rmse = s.rmse_after === null ? '' : ` · ${s.rmse_after.toFixed(2)} px error`;
   $('step-label').textContent = `${s.image} · ${s.n_registered} cam · ${count(s.n_points)} pts${rmse}`;
 }
 
