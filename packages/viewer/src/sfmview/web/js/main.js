@@ -4,6 +4,7 @@
 
 import { getScene, health, listRuns, liveUrl } from './api.js';
 import { LiveFeed, writtenAt } from './live.js';
+import { colours } from './palette.js';
 import { SceneView } from './scene.js';
 import * as ui from './ui.js';
 
@@ -178,7 +179,37 @@ canvas.addEventListener('pointerup', (e) => {
   press = null;
   const key = click && view.pick(e.clientX, e.clientY);
   if (key) lookThrough(key);
+  queueHover(key ? null : { x: e.clientX, y: e.clientY }); // the view may have moved under it
 });
+
+// The camera under the pointer, outlined and named, so a click takes what it
+// shows. Once a frame at most; not while dragging.
+const hoverLabel = document.getElementById('hover-label');
+let pointer = null;
+let hoverQueued = false;
+function queueHover(next) {
+  pointer = next;
+  if (hoverQueued) return;
+  hoverQueued = true;
+  requestAnimationFrame(() => {
+    hoverQueued = false;
+    const key = pointer ? view.hover(pointer.x, pointer.y) : view.hover();
+    const shot = key && view.cameras().find((c) => c.key === key);
+    canvas.style.cursor = shot ? 'pointer' : '';
+    hoverLabel.hidden = !shot;
+    if (!shot) return;
+    const source = document.createElement('span');
+    source.className = 'source';
+    source.textContent = `${colours(shot.source).label}${shot.query ? ' old photo' : ''}`;
+    hoverLabel.replaceChildren(shot.name, source);
+    const stage = canvas.getBoundingClientRect();
+    hoverLabel.style.left = `${pointer.x - stage.left + 14}px`;
+    hoverLabel.style.top = `${pointer.y - stage.top + 14}px`;
+  });
+}
+canvas.addEventListener('pointermove', (e) => queueHover(e.buttons ? null : { x: e.clientX, y: e.clientY }));
+canvas.addEventListener('wheel', (e) => queueHover({ x: e.clientX, y: e.clientY }), { passive: true });
+canvas.addEventListener('pointerleave', () => queueHover(null));
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && view.looking()) closePhoto();
   // Step through the timeline, as a sequencer's arrows do.

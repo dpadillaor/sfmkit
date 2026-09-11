@@ -51,6 +51,15 @@ export function frustumSegments(camera, depth) {
   return [C, a, C, b, C, c, C, d, a, b, b, c, c, d, d, a, a, up, up, b];
 }
 
+// Distance from point (x, y) to the segment from (ax, ay) to (bx, by), in the
+// units they are given in.
+export function segmentDistance(x, y, ax, ay, bx, by) {
+  const [dx, dy] = [bx - ax, by - ay];
+  const length2 = dx * dx + dy * dy;
+  const s = length2 ? Math.min(Math.max(((x - ax) * dx + (y - ay) * dy) / length2, 0), 1) : 0;
+  return Math.hypot(ax + s * dx - x, ay + s * dy - y);
+}
+
 // The view frustum at distance ``near`` that shows the camera's whole image as
 // its K sees it, principal point and all, in a viewport of ``aspect``: the
 // image fills the viewport one way, and the scene shows past its edges the

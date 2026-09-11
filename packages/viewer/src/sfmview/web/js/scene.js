@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
-import { cameraCentre, frustumDepth, frustumSegments, robustSphere } from './geometry.js';
+import { frustumDepth, frustumSegments, robustSphere, segmentDistance } from './geometry.js';
 import { colours, PALETTE, SIGNAL } from './palette.js';
 import { PhotoView } from './pov.js';
 
@@ -17,6 +17,9 @@ const OPENCV_TO_THREE = new THREE.Matrix4().makeScale(1, -1, -1);
 const LIVE = { main: PALETTE.live.main, added: SIGNAL };
 
 const IDENTITY = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+
+// A camera under the pointer, drawn over everything else.
+const HOVER = '#ffffff';
 
 const matrix4 = (rows) => new THREE.Matrix4().set(...rows.flat());
 
@@ -33,6 +36,7 @@ export class SceneView {
   #live = null; // the group holding a live step, in sfmkit's frame
   #shots = new Map(); // camera key -> { key, name, source, query, camera, frame, depth, layer }
   #photos; // looking through a camera, its photo in front
+  #hovered = null; // { key, object }: the camera under the pointer, outlined
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
 
@@ -72,23 +76,48 @@ export class SceneView {
       .map(({ key, name, source, query }) => ({ key, name, source, query }));
   }
 
-  // The camera drawn nearest to (x, y), in the page's pixels, within a few
-  // pixels of it; null if none. Hidden cameras are not picked.
-  pick(x, y, within = 14) {
+  // The camera whose outline, any of its lines, passes nearest to (x, y) in
+  // the page's pixels, within a few pixels of it; null if none. Hidden cameras
+  // are not picked.
+  pick(x, y, within = 8) {
     const rect = this.#renderer.domElement.getBoundingClientRect();
     this.#world.updateMatrixWorld(true);
+    const v = new THREE.Vector3();
+    const toPage = (point, frame) => {
+      v.set(...point).applyMatrix4(frame.matrixWorld).project(this.#camera);
+      // Behind the view, or beyond it: not on the page.
+      return v.z < -1 || v.z > 1 ? null
+        : [rect.left + (v.x + 1) / 2 * rect.width, rect.top + (1 - v.y) / 2 * rect.height];
+    };
     let best = null;
     let bestDistance = within;
     for (const shot of this.#shots.values()) {
       if (!this.#layers.get(shot.layer)?.object.visible) continue;
-      const p = new THREE.Vector3(...cameraCentre(shot.camera))
-        .applyMatrix4(shot.frame.matrixWorld).project(this.#camera);
-      if (p.z < -1 || p.z > 1) continue; // behind the view, or beyond it
-      const d = Math.hypot(rect.left + (p.x + 1) / 2 * rect.width - x,
-        rect.top + (1 - p.y) / 2 * rect.height - y);
-      if (d < bestDistance) [best, bestDistance] = [shot.key, d];
+      const ends = frustumSegments(shot.camera, shot.depth).map((p) => toPage(p, shot.frame));
+      for (let i = 0; i < ends.length; i += 2) {
+        if (!ends[i] || !ends[i + 1]) continue;
+        const d = segmentDistance(x, y, ...ends[i], ...ends[i + 1]);
+        if (d < bestDistance) [best, bestDistance] = [shot.key, d];
+      }
     }
     return best;
+  }
+
+  // Outline the camera under (x, y) over everything else, and return its key;
+  // or clear the outline, given no point or finding no camera.
+  hover(x = null, y = null) {
+    const key = x === null ? null : this.pick(x, y);
+    if (key === (this.#hovered?.key ?? null)) return key;
+    this.#unhover();
+    const shot = key && this.#shots.get(key);
+    if (shot) {
+      const object = outlines([shot.camera], shot.depth, HOVER);
+      object.material.depthTest = false;
+      object.renderOrder = 10;
+      shot.frame.add(object);
+      this.#hovered = { key, object };
+    }
+    return key;
   }
 
   // Look through a camera, with its photo from ``url`` in front. Resolves to
@@ -120,6 +149,7 @@ export class SceneView {
   }
 
   setVisible(id, visible) {
+    this.#unhover();
     const layer = this.#layers.get(id);
     if (layer) layer.object.visible = visible;
   }
@@ -164,6 +194,7 @@ export class SceneView {
       this.#layers.get(id)?.object.removeFromParent();
     }
 
+    this.#unhover(); // its camera may be the last step's
     const size = K ? [Math.round(2 * K[0][2]), Math.round(2 * K[1][2])] : null;
     const cameras = step.cameras.map((c) => ({ ...c, K, size }));
     // Sized to this step's cameras, so a step replayed looks as it did live.
@@ -238,7 +269,16 @@ export class SceneView {
     return group;
   }
 
+  #unhover() {
+    if (!this.#hovered) return;
+    this.#hovered.object.removeFromParent();
+    this.#hovered.object.geometry.dispose();
+    this.#hovered.object.material.dispose();
+    this.#hovered = null;
+  }
+
   #clear() {
+    this.#unhover();
     this.#photos.clear();
     this.#shots.clear();
     this.#world.traverse((o) => {
