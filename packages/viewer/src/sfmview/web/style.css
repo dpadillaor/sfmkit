@@ -156,6 +156,23 @@ input[type="checkbox"]:checked::before { content: ""; width: 6px; height: 6px; b
 }
 .cameras .keys button:hover { border-color: var(--c); }
 .cameras .keys .gap { width: 22px; height: 18px; border: 1px dashed var(--line); }
+/* what a key is, named at once on hover, to its left */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  pointer-events: none;
+  white-space: nowrap;
+  font: 500 11px var(--mono);
+  color: var(--text);
+  background: rgba(24, 24, 24, 0.96);
+  border: 1px solid var(--line-strong);
+  padding: 2px 6px;
+}
 .cameras .keys button.on { background: var(--c); border-color: var(--c); color: var(--ground); }
 
 .info {

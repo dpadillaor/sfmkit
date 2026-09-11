@@ -21,7 +21,8 @@ const count = (n) => n.toLocaleString('en');
 const pad = (n, width) => String(n).padStart(width, '0');
 
 // What a run holds, as three cells: sfmkit's model, COLMAP's, the dense cloud.
-const HOLDS = [['sfmkit', 'S'], ['colmap', 'C'], ['dense', 'D']];
+const HOLDS = [['sfmkit', 'S', 'sfmkit model'], ['colmap', 'C', 'COLMAP model'],
+  ['dense', 'D', 'dense cloud']];
 
 export function renderRuns(runs, onSelect) {
   $('runs').replaceChildren(...runs.map((run) => {
@@ -33,9 +34,9 @@ export function renderRuns(runs, onSelect) {
       el('span', { class: 'name' }, run.config,
         run.running && el('span', { class: 'live', title: 'sfmkit is at work on this run' }, 'live')),
       el('span', { class: 'project' }, run.project)),
-    el('span', { class: 'has' }, ...HOLDS.map(([layer, key]) => el('span', {
+    el('span', { class: 'has' }, ...HOLDS.map(([layer, key, what]) => el('span', {
       class: run.layers.includes(layer) ? 'on' : '',
-      title: run.layers.includes(layer) ? `has ${layer}` : `no ${layer} yet`,
+      'data-tip': run.layers.includes(layer) ? what : `no ${what}`,
     }, key))),
     el('span', {
       class: mean ? 'metric' : 'metric none', title: 'mean rotation error against COLMAP',
@@ -60,29 +61,41 @@ export function renderLayers(layers, onToggle) {
 }
 
 // One row a photo, a key for each model that placed it; ``selected`` is lit.
-export function renderCameras(cameras, selected, onPick) {
+// ``step``, the timeline's step drawn, if any: its cameras are sfmkit's.
+export function renderCameras(cameras, selected, onPick, step = null) {
+  // A live step is sfmkit's model as it stood: it takes sfmkit's column, before
+  // the finished model's camera.
+  const column = (c) => (c.source === 'live' ? 'sfmkit' : c.source);
   const byName = new Map();
   for (const c of cameras) {
     if (!byName.has(c.name)) byName.set(c.name, []);
     byName.get(c.name).push(c);
   }
   // A column per model, in a fixed order, so the keys line up down the list.
-  const columns = ['sfmkit', 'colmap', 'live'].filter((m) => cameras.some((c) => c.source === m));
+  const columns = ['sfmkit', 'colmap'].filter((m) => cameras.some((c) => column(c) === m));
+  const live = cameras.some((c) => c.source === 'live');
+  const as = (s) => (s.source === 'live' ? `sfmkit, step ${step + 1}`
+    : `${colours(s.source).label}${s.query ? ' old photo' : ''}`);
   $('cameras').replaceChildren(...[...byName.keys()].sort().map((name) => {
     const shots = byName.get(name);
     return el('li', {},
       el('span', { class: 'cam' }, name),
       shots.some((s) => s.query) && el('span', { class: 'note' }, 'old photo'),
       el('span', { class: 'keys' }, ...columns.map((model) => {
-        const s = shots.find((shot) => shot.source === model);
-        if (!s) return el('span', { class: 'gap', title: `${colours(model).label} did not place ${name}` });
+        const s = shots.filter((shot) => column(shot) === model)
+          .sort((a, b) => (b.source === 'live') - (a.source === 'live'))[0];
+        if (!s) {
+          const why = model === 'sfmkit' && live ? `not yet, step ${step + 1}` : 'not placed';
+          return el('span', { class: 'gap', 'data-tip': `${colours(model).label}: ${why}` });
+        }
         return el('button', {
           type: 'button',
           class: s.key === selected ? 'on' : '',
-          style: `--c:${colours(s.source).main}`,
-          title: `look through ${name} as ${colours(s.source).label} placed it`,
+          style: `--c:${colours(model).main}`,
+          'data-tip': as(s),
+          'aria-label': `look through ${name} as ${as(s)} placed it`,
           onclick: () => onPick(s.key),
-        }, colours(s.source).key);
+        }, colours(model).key);
       })));
   }));
 }
@@ -90,7 +103,6 @@ export function renderCameras(cameras, selected, onPick) {
 export function renderInfo(run, scene) {
   const rows = [
     ['run', run.id],
-    ['stages', run.stages.join(' ')],
     ['reference', scene?.reference ?? '—'],
     ['mean rot err', degrees(run.metrics.mean_rotation_error_deg) ?? '—'],
     ['max rot err', degrees(run.metrics.max_rotation_error_deg) ?? '—'],

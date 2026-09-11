@@ -24,7 +24,8 @@ const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
   view.setVisible(id, on);
   showCameras(); // a hidden layer's cameras leave the list
 });
-const showCameras = () => ui.renderCameras(view.cameras(), view.looking()?.key, lookThrough);
+const showCameras = () => ui.renderCameras(view.cameras(), view.looking()?.key, lookThrough,
+  session.steps[session.index]?.step ?? null);
 const showPhotoBar = () => ui.renderPhotoBar(view.looking(), {
   onOpacity: (opacity) => view.setPhotoOpacity(opacity),
   onBack: () => { view.lookAgain(); showPhotoBar(); },
