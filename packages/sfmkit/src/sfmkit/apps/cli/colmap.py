@@ -11,6 +11,7 @@ from sfmkit.data.colmap import (
     ColmapSummary,
     colmap_device,
     read_model,
+    refine_query,
     run_colmap,
     run_colmap_on_matches,
 )
@@ -43,7 +44,16 @@ def _precomputed(cfg: Config, out: Path) -> dict:
         shutil.copyfile(Path(cfg.colmap.precomputed) / name, out / name)
     n = len(read_model(out)["poses"])
     console.print(f"using precomputed model from {cfg.colmap.precomputed}: {n} images")
-    return {"source": "precomputed", "n_images": n}
+    extra = {"source": "precomputed", "n_images": n}
+    # Its query was placed with the principal point pinned; ours never is.
+    query = cfg.localize.query
+    moved = refine_query(out, query) if query else None
+    if moved is not None:
+        (x0, y0), (x1, y1) = moved
+        console.print(f"{query}: principal point freed, "
+                      f"({x0:.0f}, {y0:.0f}) -> ({x1:.0f}, {y1:.0f})")
+        extra["query_principal_point"] = [float(x1), float(y1)]
+    return extra
 
 
 def _computed(cfg: Config, run: Path, out: Path) -> dict:

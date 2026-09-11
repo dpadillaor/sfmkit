@@ -121,10 +121,9 @@ def test_calibrate_takes_one_source():
         CalibrateConfig(exif=True, sensor_aspect=[4])
 
 
-def test_the_valencia_configs_take_k_from_exif_but_one():
-    configs = sorted((REPO / "configs" / "valencia").glob("*.yaml"))
-    chessboard = [c.stem for c in configs if not load_config(c).calibrate.exif]
-    assert chessboard == ["9cameras-chessboard"]  # kept to compare against
+def test_the_valencia_configs_take_k_from_exif():
+    for config in (REPO / "configs" / "valencia").glob("*.yaml"):
+        assert load_config(config).calibrate.exif, config.stem
 
 
 def test_the_schur_solver_is_the_default():

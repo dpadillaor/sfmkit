@@ -4,27 +4,13 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Pipeline
 
-- [ ] **Real calibration.** `calibrate` only copies `precomputed/K.txt`: the
-  chessboard photos from the course were never kept. The chessboard code exists
-  and is tested on synthetic boards; it needs the photos in
-  `data/valencia/calibration/`.
-- [ ] **Our K is wrong for these photos, by ~17%: confirmed.** The chessboard K
-  (`legacy/.../camera_calibration.py`, photos `calib_*.jpg` lost, never pushed
-  to ipastore/MGRCV either) says f = 3544, self-consistent but at odds with
-  everything else: the photos' EXIF (SM-G996B, 5.4 mm, 26 mm equivalent, no
-  zoom) give ~3000-3028 px and COLMAP self-calibrates to ~3020. Reconstructing
-  with the EXIF K (f = 3028.4, principal point at the centre), same GPU
-  matches, same code: final reprojection 7.11 -> 5.10 px, 1699 -> 1854 points,
-  and against the same COLMAP models the mean rotation error falls ~4x:
-  1.06 -> 0.26° (GPU SIFT), 1.03 -> 0.22° (CPU SIFT), 0.98 -> 0.30° (course
-  model); max 2.7 -> 0.5-1.0°; Img12 no longer the worst. The old photo only
-  improves 13.7 -> 11.7° (its own problem, see the query item).
-  To do: (1) recalibrate with the chessboard, photos taken in the same mode as
-  the scene (main lens 1x, 16:9, 4032x2268), kept in data/valencia/calibration/;
-  (2) done: `calibrate.exif: true` takes K from the photos' EXIF (f = 3028.7),
-  used by every Valencia config but `9cameras-chessboard.yaml`, kept to compare;
-  (3) done: the example run and the README numbers regenerated from it, with the
-  Schur solver.
+- [ ] **Check the K with a chessboard.** K comes from the photos' EXIF
+  (SM-G996B, 26 mm equivalent: f = 3029 px, principal point at the centre),
+  and COLMAP's self-calibration (~3020) agrees. The course's chessboard K,
+  `precomputed/K.txt` (f = 3544), was ~17% too long, and its photos are lost.
+  `calibrate` still takes chessboard photos (tested on synthetic boards) or a
+  K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
+  `data/valencia/calibration/` would check the EXIF K.
 - [ ] **Independent reference: 0.323°.** The course's COLMAP model was fed the
   course's own matches, so a score against it is not independent.
   `configs/valencia/9cameras-colmap.yaml` (`matches: colmap`: COLMAP's own SIFT
@@ -87,10 +73,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   (`ba_refine_principal_point`, the scene's cameras put back afterwards). It
   finds (241, 334) against localize's (241, 323), f 552 against 554-560, the
   camera level (-1.2°), and the query's error falls from 11.5° to 1.2°; the
-  scene's cameras are unchanged (0.311° against 0.312°). What is left of this
-  item: the precomputed course model (`examples/`, `9cameras`) still has the
-  query's principal point pinned, so its 11.9° (13.7° with the chessboard K)
-  stands until it is regenerated.
+  scene's cameras are unchanged (0.311° against 0.312°). **Done too** for
+  a model made elsewhere: the `colmap` stage refines the query in a precomputed
+  model (`refine_query`, the query alone, principal point, focal and distortion
+  free), as the course's pinned it. Against the course's model the old photo
+  goes 11.9° -> 4.4°, its principal point (278, 209) -> (251, 282); the rest
+  of that gap is the model's own matches (a star, the course's keypoints).
 - [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
   passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
   `max_num_keypoints`: the unknown name is kept and ignored, so there was no

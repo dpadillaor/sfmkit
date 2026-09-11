@@ -20,7 +20,7 @@ import pycolmap
 from sfmkit.core.types import Matches
 from sfmkit.data.io import image_file
 
-__all__ = ["ColmapSummary", "colmap_device", "run_colmap", "run_colmap_on_matches"]
+__all__ = ["ColmapSummary", "colmap_device", "refine_query", "run_colmap", "run_colmap_on_matches"]
 
 # An old photograph shares few matches with modern ones (32 SIFT matches at best
 # on Valencia): with COLMAP's default minimum of 30 inliers it is never placed.
@@ -207,6 +207,41 @@ def _query_pass() -> pycolmap.IncrementalPipelineOptions:
     options.mapper.abs_pose_min_num_inliers = QUERY_MIN_INLIERS
     options.mapper.abs_pose_min_inlier_ratio = 0.1
     return options
+
+
+def refine_query(model_dir, query: str) -> tuple[np.ndarray, np.ndarray] | None:
+    """Refine the query's camera in a finished text model, its principal point free.
+
+    What the query pass does, for a model made elsewhere with the principal
+    point pinned at the centre, as the course's was. The query's pose, focal
+    length, principal point and distortion move; every other camera, every
+    other pose and every point stay. Returns its principal point before and
+    after, or None when the model has no such image.
+    """
+    pycolmap.logging.minloglevel = pycolmap.logging.ERROR  # its report otherwise
+    rec = pycolmap.Reconstruction(str(model_dir))
+    image = next((i for i in rec.images.values() if Path(i.name).stem == query), None)
+    if image is None:
+        return None
+    if sum(i.camera_id == image.camera_id for i in rec.images.values()) > 1:
+        raise ValueError(f"{query} shares its camera: refining it would move the others")
+    def principal_point():
+        camera = rec.cameras[image.camera_id]
+        return np.array([camera.principal_point_x, camera.principal_point_y])
+
+    before = principal_point()
+    config = pycolmap.BundleAdjustmentConfig()
+    config.add_image(image.image_id)
+    for p in image.points2D:
+        if p.has_point3D():
+            config.add_constant_point(p.point3D_id)
+    options = pycolmap.BundleAdjustmentOptions()
+    options.refine_focal_length = options.refine_principal_point = True
+    options.refine_extra_params = True
+    options.refine_points3D = False
+    pycolmap.create_default_bundle_adjuster(options, config, rec).solve()
+    rec.write_text(str(model_dir))
+    return before, principal_point()
 
 
 def _largest(models: dict):
