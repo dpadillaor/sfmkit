@@ -49,9 +49,21 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   plain `docker run` is not root and is right for the common UID 1000; compose
   keeps overriding it from `.env` (optional: without it compose uses 1000). Then
   document it in the README's "Try it".
-- [ ] **Licence of the SuperPoint weights** baked into the image. They come from
-  Magic Leap under terms that restrict use; check them before publishing the
-  image to a registry.
+- [ ] **The SuperPoint weights may not be redistributed: checked 2026-09-12.**
+  Magic Leap licenses them "ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL
+  RESEARCH USE ONLY": use by an academic, a non-profit or oneself, no
+  commercial use, and "You may not distribute, copy or use the Software except
+  as explicitly permitted" — the weights included. Our images bake two files
+  (`/opt/torch/hub/checkpoints/`): `superpoint_v1.pth`, 5.2 MB, Magic Leap's,
+  and `superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB, from cvg/LightGlue, whose
+  code is Apache-2.0 (its weights' terms not stated separately; check before
+  relying on it). Building the image yourself is fine — you download them under
+  the licence, as we do. **Publishing that image to a registry is distribution
+  and is not.** To publish one: leave the weights out of the image and let the
+  first run fetch them, so whoever runs it accepts Magic Leap's terms; say so
+  in the README, and offer a permissive detector beside SuperPoint —
+  `sfm.features`, with ALIKED (BSD-3-Clause, in the same LightGlue package) or
+  OpenCV's SIFT — for anyone who cannot take those terms.
 - [ ] **Publish the image** to a registry, so nobody has to build it.
 - [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
   UID has no entry in the image's `/etc/passwd`. Permissions are unaffected. The
