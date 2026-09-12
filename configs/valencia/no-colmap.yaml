@@ -1,0 +1,34 @@
+# The whole pipeline without COLMAP installed: the comparison is made against a
+# saved COLMAP model rather than one computed here. Everything else is the cpu
+# config. Paths are relative to data/valencia/.
+dataset: valencia
+name: no-colmap
+seed: 0
+
+calibrate:
+  exif: true                # 26 mm equivalent on a 4:3 sensor: f = 3029 px
+  sensor_aspect: [4, 3]     # the phone's whole sensor; the photos are a 16:9 cut
+
+sfm:
+  images: [Img01, Img02, Img03, Img04, Img05, Img06, Img07, Img08, Img09, Img10, Img11,
+           Img12, Img13, Img14]
+  reference: Img01
+  exhaustive: true
+  max_keypoints: 2048
+  device: cpu
+  ransac_threshold: 4.0
+  ransac_iterations: 1000
+  min_inliers: 20
+  min_track_length: 2
+  min_triangulation_angle_deg: 2.0
+  max_reprojection_error: 12.0
+  pnp_threshold: 6.0
+
+localize:
+  query: Img_Old
+
+colmap:
+  precomputed: precomputed/colmap/15cameras_gpu   # copied, not computed
+
+dense:
+  enabled: false    # COLMAP's dense stereo; there is no COLMAP here to run it
