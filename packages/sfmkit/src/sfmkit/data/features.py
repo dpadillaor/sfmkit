@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from pathlib import Path
 
@@ -12,9 +13,64 @@ from sfmkit.core.types import Matches
 from sfmkit.data.exif import read_orientation
 from sfmkit.data.io import image_file, read_image, save_matches
 
-__all__ = ["DEVICES", "match_pairs", "pick_device", "resolve_device"]
+__all__ = [
+    "DEVICES", "WEIGHTS", "match_pairs", "missing_weights", "pick_device", "resolve_device",
+    "weights_dir", "weights_help",
+]
 
 DEVICES = ("auto", "cpu", "cuda")
+
+# The weights matching needs, and where they come from. They are not shipped
+# with sfmkit: SuperPoint's are Magic Leap's, licensed for noncommercial
+# research and not to be redistributed, so whoever matches downloads them and
+# takes those terms on themselves.
+RELEASE = "https://github.com/cvg/LightGlue/releases/download/v0.1_arxiv"
+WEIGHTS = {
+    "superpoint_v1.pth": f"{RELEASE}/superpoint_v1.pth",
+    "superpoint_lightglue_v0-1_arxiv.pth": f"{RELEASE}/superpoint_lightglue_v0-1_arxiv.pth",
+}
+
+
+def weights_dir() -> Path:
+    """Where torch keeps downloaded weights: ``$TORCH_HOME/hub/checkpoints``.
+
+    Read without importing torch, which costs a second, and by torch's own
+    rule so the two always agree.
+    """
+    home = os.environ.get("TORCH_HOME")
+    if not home:
+        cache = os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache"
+        home = Path(cache) / "torch"
+    return Path(home) / "hub" / "checkpoints"
+
+
+def missing_weights() -> list[str]:
+    """Those of ``WEIGHTS`` that are not downloaded yet."""
+    where = weights_dir()
+    return [name for name in WEIGHTS if not (where / name).is_file()]
+
+
+def in_container() -> bool:
+    return Path("/.dockerenv").exists()
+
+
+def weights_help() -> str:
+    """What to do when the weights are missing and cannot be fetched."""
+    where = weights_dir()
+    lines = [f"no SuperPoint and LightGlue weights in {where}, and they could not be downloaded."]
+    if in_container():
+        lines += [
+            "That directory is what compose mounts, so tell it where they are:",
+            "  - weights you already have: SFMKIT_WEIGHTS=/home/you/.cache/torch in .env",
+            "  - or let Docker keep them: leave SFMKIT_WEIGHTS unset and its volume holds them",
+            "  - plain docker run: -v ~/.cache/torch:/opt/torch",
+        ]
+    else:
+        lines.append("Set TORCH_HOME to the directory that holds them, or let this download them.")
+    lines.append("To fetch them by hand, into that directory:")
+    lines += [f"  {url}" for url in WEIGHTS.values()]
+    lines.append("SuperPoint's weights are Magic Leap's: noncommercial research use only.")
+    return "\n".join(lines)
 
 
 def resolve_device(requested: str, cuda_available: bool) -> str:
@@ -47,11 +103,14 @@ def match_pairs(
     max_keypoints: int = 2048,
     device: str = "auto",
     on_pair: Callable[[str, str, int], None] | None = None,
+    on_download: Callable[[list[str], Path], None] | None = None,
 ) -> list[Path]:
     """Extract features once per image and match every requested pair.
 
     Features are cached across pairs: an exhaustive graph over N images has
-    N(N-1)/2 pairs but needs only N extractions.
+    N(N-1)/2 pairs but needs only N extractions. The weights are downloaded on
+    first use, ``on_download`` told first; without a network, the error says
+    where they go and how to point at them.
     """
     import torch
     from lightglue import LightGlue, SuperPoint
@@ -59,8 +118,14 @@ def match_pairs(
 
     torch.set_grad_enabled(False)
     dev = torch.device(pick_device(device))
-    extractor = SuperPoint(max_num_keypoints=max_keypoints).eval().to(dev)
-    matcher = LightGlue(features="superpoint").eval().to(dev)
+    missing = missing_weights()
+    if missing and on_download is not None:
+        on_download(missing, weights_dir())
+    try:
+        extractor = SuperPoint(max_num_keypoints=max_keypoints).eval().to(dev)
+        matcher = LightGlue(features="superpoint").eval().to(dev)
+    except OSError as no_weights:  # no network, or nowhere to write them
+        raise RuntimeError(weights_help()) from no_weights
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

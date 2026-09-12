@@ -28,7 +28,7 @@ order.
 | Stage | What it does | Valencia example |
 |---|---|---|
 | `calibrate` | Works out the camera's focal length and image centre, without which nothing can be measured | the phone's calibration |
-| `match` | Finds distinctive points in each photo and pairs them up between photos. Runs on a GPU if there is one, about 10× faster; `sfm.device` in the config chooses | 91 photo pairs |
+| `match` | Finds distinctive points in each photo and pairs them up between photos. Runs on a GPU if there is one, about 10× faster; `sfm.device` in the config chooses. Its weights (SuperPoint and LightGlue, 53 MB) download the first time it runs | 91 photo pairs |
 | `verify` | Throws away pairings that do not fit the geometry of two views | `Img02`–`Img13`: 597 of 769 kept |
 | `reconstruct` | Builds the 3D model: starts from two photos and adds the rest one at a time | 14 cameras, 2850 points |
 | `localize` | Places the old photo in the model | located to within 2 px |

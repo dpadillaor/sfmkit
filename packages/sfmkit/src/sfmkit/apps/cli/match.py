@@ -26,6 +26,9 @@ def cmd_match(args) -> int:
             cfg.scene_dir, pairs, out,
             max_keypoints=cfg.sfm.max_keypoints, device=device,
             on_pair=lambda a, b, n: p.advance(task),
+            on_download=lambda names, where: console.print(
+                f"downloading {len(names)} weight files into {where} "
+                "(53 MB; SuperPoint's are Magic Leap's, noncommercial research use only)"),
         )
     io.write_manifest(run, "match", cfg, extra={"n_pairs": len(written), "device": device},
                       config_path=args.config)

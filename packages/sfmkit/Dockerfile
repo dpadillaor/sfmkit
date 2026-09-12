@@ -17,9 +17,13 @@ RUN pip install --no-cache-dir --no-deps -r requirements-${DEVICE}.txt
 COPY packages/sfmkit/requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
-# NN Weights
+# Where the weights go. They are not baked in: SuperPoint's are Magic Leap's,
+# for noncommercial research and not ours to pass on, so the first `match`
+# downloads them into whatever is mounted here -- a volume, by compose's
+# default -- and whoever runs it takes those terms on themselves. Any user can
+# write there: the container runs as the caller, not as root.
 ENV TORCH_HOME=/opt/torch
-RUN python -c "from lightglue import LightGlue, SuperPoint; SuperPoint(); LightGlue(features='superpoint')"
+RUN mkdir -p /opt/torch/hub/checkpoints && chmod -R 777 /opt/torch
 
 # Valencia example: photos, configs and a saved run, the one this image can
 # reproduce: the CPU one, or the GPU one with its dense cloud.

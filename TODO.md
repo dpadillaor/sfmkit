@@ -49,22 +49,21 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   plain `docker run` is not root and is right for the common UID 1000; compose
   keeps overriding it from `.env` (optional: without it compose uses 1000). Then
   document it in the README's "Try it".
-- [ ] **The SuperPoint weights may not be redistributed: checked 2026-09-12.**
-  Magic Leap licenses them "ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL
-  RESEARCH USE ONLY": use by an academic, a non-profit or oneself, no
-  commercial use, and "You may not distribute, copy or use the Software except
-  as explicitly permitted" — the weights included. Our images bake two files
-  (`/opt/torch/hub/checkpoints/`): `superpoint_v1.pth`, 5.2 MB, Magic Leap's,
-  and `superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB, from cvg/LightGlue, whose
-  code is Apache-2.0 (its weights' terms not stated separately; check before
-  relying on it). Building the image yourself is fine — you download them under
-  the licence, as we do. **Publishing that image to a registry is distribution
-  and is not.** To publish one: leave the weights out of the image and let the
-  first run fetch them, so whoever runs it accepts Magic Leap's terms; say so
-  in the README, and offer a permissive detector beside SuperPoint —
-  `sfm.features`, with ALIKED (BSD-3-Clause, in the same LightGlue package) or
-  OpenCV's SIFT — for anyone who cannot take those terms.
-- [ ] **Publish the image** to a registry, so nobody has to build it.
+- [x] **The SuperPoint weights are no longer in the image** (2026-09-12). Magic
+  Leap licenses them "ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL
+  RESEARCH USE ONLY", and "You may not distribute, copy or use the Software
+  except as explicitly permitted": using them is fine, publishing an image that
+  carries them is not. So the image ships without them and `match` downloads
+  them on first use, into `$TORCH_HOME` (`/opt/torch` in the image, a volume by
+  compose's default), which is how that licence says it is accepted. Missing and
+  with no network, the error says where they go and how to point at them, in
+  compose's terms inside a container. The LightGlue file beside them
+  (`superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB) comes from cvg/LightGlue,
+  whose code is Apache-2.0; its weights' terms are not stated separately.
+- [ ] **Publish the image** to a registry, so nobody has to build it. Nothing
+  stands in the way now that the weights are not in it; what is left is the
+  choosing of a registry, the tags (`:cpu`, `:gpu`, the commit) and a CI job
+  that builds both.
 - [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
   UID has no entry in the image's `/etc/passwd`. Permissions are unaffected. The
   full fix is an entrypoint script (start as root, `useradd` with `PUID`/`PGID`,
