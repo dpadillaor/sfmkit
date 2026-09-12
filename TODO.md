@@ -92,11 +92,10 @@ the contract, the API and the architecture.
   have meant the scene API carrying, per model, which points each camera
   observes (both models keep it: sfmkit's `track_images`, COLMAP's tracks).
   The frustum drawn out to the scene already answers what a photo covers.
-- [ ] **sfmkit's points have no colour.** `reconstruction.npz` holds K, poses,
-  points and tracks; COLMAP's model has colours, ours none. The viewer draws
-  each sparse model in one colour anyway, to tell them apart, but a "true
-  colours" switch would need them: sample each point's colour from an image that
-  observes it and save it as `colors` (the viewer already reads the key).
+- [x] **True colours for sfmkit's points: cancelled** (2026-09-12). Each point
+  could take the colour of a pixel that sees it (the viewer already reads a
+  `colors` key, and COLMAP's model carries them), but one colour a model is
+  what tells the two apart on screen, which is the point of drawing both.
 - [ ] **A documentation site**, MkDocs Material from `docs/*.md`, on GitHub
   Pages through Actions once the repo is public: Mermaid diagrams, the viewer's
   OpenAPI embedded, mkdocstrings for sfmkit's reference, and ADRs for the
@@ -143,10 +142,10 @@ the contract, the API and the architecture.
   variable file a family, 0.14 MB, both OFL), so the page needs no network and
   tells Google and jsDelivr nothing. Checked with every outside host blocked:
   it asks for its own server only.
-- [ ] **The page's JavaScript has no tests.** `web/js/geometry.js` is pure (camera
-  outlines, robust bounds) and could be tested with `node --test` if Node joins
-  the toolchain; for now the page is checked by screenshots from headless Chrome
-  driven over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
+- [x] **Tests for the page's JavaScript: cancelled** (2026-09-12). `geometry.js`
+  is pure and would test well, but only with Node in the toolchain, which is
+  otherwise Python alone. The page is checked by screenshots from headless
+  Chrome over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
   `--screenshot` does not wait for WebSockets).
 - [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
   the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
