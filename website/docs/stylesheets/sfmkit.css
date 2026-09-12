@@ -1,0 +1,241 @@
+/* The docs, dressed as the viewer: a dense tool panel in the manner of Blender
+   and Rerun. Neutral dark greys, square corners, hairlines, IBM Plex Sans with
+   Roboto Mono for every figure and label, one signal colour, international
+   orange. Material's own chrome is overridden hard, since COLMAP's site is
+   Material too and the default would look just like it. */
+
+:root {
+  --sfm-ground: #161616;
+  --sfm-panel: #202020;
+  --sfm-header: #262626;
+  --sfm-row-hover: #2a2a2a;
+  --sfm-line: #333333;
+  --sfm-line-strong: #474747;
+  --sfm-text: #d8d8d8;
+  --sfm-muted: #8c8c8c;
+  --sfm-faint: #5f5f5f;
+  --sfm-signal: #ff4f00;
+  --sfm-amber: #f2a93b;   /* sfmkit's data colour */
+  --sfm-blue: #56a8f5;    /* COLMAP's data colour */
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 0;
+  --md-default-bg-color: var(--sfm-ground);
+  --md-default-fg-color: var(--sfm-text);
+  --md-default-fg-color--light: var(--sfm-muted);
+  --md-default-fg-color--lighter: var(--sfm-muted);
+  --md-default-fg-color--lightest: var(--sfm-line);
+
+  --md-primary-fg-color: var(--sfm-header);
+  --md-primary-bg-color: var(--sfm-text);
+
+  --md-accent-fg-color: var(--sfm-signal);
+  --md-typeset-a-color: var(--sfm-amber);
+
+  --md-code-bg-color: var(--sfm-panel);
+  --md-code-fg-color: var(--sfm-text);
+
+  --md-footer-bg-color: var(--sfm-panel);
+  --md-footer-bg-color--dark: var(--sfm-ground);
+}
+
+body { font-size: 0.8rem; }
+
+/* Square corners everywhere. */
+.md-typeset code, .md-typeset pre > code, .md-typeset .highlight,
+.md-typeset .admonition, .md-typeset details, .md-typeset table:not([class]),
+.md-search__form, .md-search__output, .md-button,
+.md-nav__link, .sfm-panel, .sfm-metrics {
+  border-radius: 0 !important;
+}
+
+/* ---- header: hairline, mono wordmark led by the signal square ---------- */
+
+.md-header {
+  background: var(--sfm-header);
+  border-bottom: 1px solid var(--sfm-line);
+  box-shadow: none;
+  height: 44px;
+}
+.md-header__inner { min-height: 44px; }
+.md-header__button.md-logo { display: none; }   /* the square in the wordmark is the mark */
+.md-header__title { font-family: "Roboto Mono", monospace; }
+.md-header__topic .md-ellipsis {
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+}
+.md-header__topic .md-ellipsis::before {   /* the viewer's signal square */
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  background: var(--sfm-signal);
+  flex: none;
+}
+.md-search__form { background: var(--sfm-panel); box-shadow: none; }
+.md-search__form:hover { background: var(--sfm-row-hover); }
+
+/* ---- left nav: the tool panel ----------------------------------------- */
+
+.md-sidebar--primary { background: var(--sfm-panel); }
+.md-nav { font-family: "Roboto Mono", monospace; font-size: 0.72rem; }
+.md-nav__title {
+  color: var(--sfm-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* top-level items are section headers, like the viewer's collapsible panels */
+.md-nav--primary > .md-nav__list > .md-nav__item {
+  border-bottom: 1px solid var(--sfm-line);
+}
+.md-nav__link {
+  color: var(--sfm-text);
+  margin: 0 !important;
+  padding: 0 12px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  border-left: 2px solid transparent;
+}
+.md-nav__item .md-nav__link:hover { background: var(--sfm-row-hover); color: var(--sfm-text); }
+.md-nav__link--active, .md-nav__link[data-md-state="active"] {
+  color: var(--sfm-text) !important;
+  background: var(--sfm-row-hover);
+  border-left-color: var(--sfm-signal);
+}
+.md-nav__item--section > .md-nav__link {
+  background: var(--sfm-header);
+  color: var(--sfm-text);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+/* right-hand table of contents, quieter */
+.md-sidebar--secondary .md-nav__title { color: var(--sfm-faint); }
+.md-sidebar--secondary .md-nav__link { height: 24px; color: var(--sfm-muted); }
+.md-sidebar--secondary .md-nav__link--active { color: var(--sfm-signal) !important; border-left-color: var(--sfm-signal); }
+
+/* ---- prose ------------------------------------------------------------- */
+
+.md-typeset h1, .md-typeset h2 {
+  font-family: "Roboto Mono", monospace;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--sfm-text);
+}
+.md-typeset h2 {
+  border-bottom: 1px solid var(--sfm-line);
+  padding-bottom: 0.3rem;
+}
+.md-typeset table:not([class]) { border: 1px solid var(--sfm-line); font-size: 0.72rem; }
+.md-typeset table:not([class]) th {
+  background: var(--sfm-header);
+  font-family: "Roboto Mono", monospace;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.66rem;
+  color: var(--sfm-muted);
+}
+.md-typeset table:not([class]) td, .md-typeset table:not([class]) th { border-color: var(--sfm-line); }
+.md-typeset table:not([class]) tr:hover { background: var(--sfm-row-hover); }
+.md-typeset code { font-size: 0.72em; }
+
+.md-typeset .admonition, .md-typeset details {
+  border: 1px solid var(--sfm-line-strong);
+  box-shadow: none;
+  background: var(--sfm-panel);
+}
+
+.md-footer-meta { background: var(--sfm-ground); border-top: 1px solid var(--sfm-line); }
+
+/* ---- the home page: a panel readout ----------------------------------- */
+
+.sfm-panel {
+  border: 1px solid var(--sfm-line);
+  background: var(--sfm-panel);
+  margin: 0 0 1.4rem;
+}
+.sfm-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 28px;
+  padding: 0 12px;
+  background: var(--sfm-header);
+  border-bottom: 1px solid var(--sfm-line);
+  font: 500 0.68rem "Roboto Mono", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sfm-muted);
+}
+.sfm-panel__head .num { margin-left: auto; color: var(--sfm-faint); }
+.sfm-panel__body { padding: 1.1rem 1.2rem; }
+
+.sfm-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font: 500 2rem "Roboto Mono", monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sfm-text);
+  margin: 0;
+}
+.sfm-wordmark::before {
+  content: "";
+  width: 0.72em;
+  height: 0.72em;
+  background: var(--sfm-signal);
+  flex: none;
+}
+.sfm-tagline {
+  font: 0.8rem "Roboto Mono", monospace;
+  color: var(--sfm-muted);
+  margin: 0.5rem 0 1.1rem;
+  padding-left: calc(0.72em + 0.7rem);
+}
+.sfm-lead { color: var(--sfm-text); margin: 0 0 1.2rem; max-width: 46rem; }
+
+.sfm-cta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.sfm-cta .md-button {
+  border: 1px solid var(--sfm-line-strong);
+  color: var(--sfm-text);
+  font: 0.75rem "Roboto Mono", monospace;
+  letter-spacing: 0.04em;
+  padding: 0.35em 0.9em;
+}
+.sfm-cta .md-button--primary { background: var(--sfm-signal); color: var(--sfm-ground); border-color: var(--sfm-signal); font-weight: 500; }
+.sfm-cta .md-button:hover { border-color: var(--sfm-signal); color: var(--sfm-signal); background: transparent; }
+.sfm-cta .md-button--primary:hover { background: var(--sfm-ground); }
+
+/* the metric readout, the viewer's .info grid */
+.sfm-metrics {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0;
+}
+.sfm-metrics > div {
+  display: contents;
+}
+.sfm-metrics dt, .sfm-metrics dd {
+  padding: 7px 12px;
+  border-top: 1px solid var(--sfm-line);
+  margin: 0;
+}
+.sfm-metrics dt { color: var(--sfm-muted); font-size: 0.78rem; }
+.sfm-metrics dd { font-family: "Roboto Mono", monospace; text-align: right; color: var(--sfm-text); }
+.sfm-metrics dd.signal { color: var(--sfm-signal); }
+.sfm-metrics dd .unit { color: var(--sfm-faint); margin-left: 0.3em; }
+
+/* the two data colours, as tiny swatches in prose when named */
+.sfm-dot { display: inline-block; width: 9px; height: 9px; vertical-align: baseline; margin-right: 4px; }
+.sfm-dot.amber { background: var(--sfm-amber); }
+.sfm-dot.blue { background: var(--sfm-blue); }

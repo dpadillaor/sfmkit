@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 426" width="920" height="426" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .panel { fill: #f8fafc; stroke: #e2e8f0; }
+      .card { fill: #ffffff; stroke-width: 1.2; }
+      .name { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 14px; font-weight: 600; }
+      .desc { font-size: 12px; fill: #475569; }
+      .title { font-size: 14px; font-weight: 600; fill: #0f172a; }
+      .badge { font-size: 12px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
+      .flow { fill: none; stroke: #64748b; stroke-width: 1.6; marker-end: url(#arrow); }
+      .b1 { stroke: #93c5fd; } .n1 { fill: #1d4ed8; }
+      .b2 { stroke: #f2c46d; } .n2 { fill: #92400e; }
+      .b3 { stroke: #6ee7b7; } .n3 { fill: #047857; }
+    </style>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="919" height="425" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+
+  <!-- Inputs -->
+  <text x="20" y="112" font-size="10.5" letter-spacing="1" fill="#64748b" font-weight="600">YOU PROVIDE</text>
+  <rect x="20" y="122" width="146" height="40" rx="20" fill="#eef2f7" stroke="#94a3b8"/>
+  <text x="93" y="147" font-size="13" fill="#0f172a" text-anchor="middle">Modern photos</text>
+  <rect x="20" y="172" width="146" height="40" rx="20" fill="#f3ead8" stroke="#b08d57"/>
+  <text x="93" y="197" font-size="13" fill="#3b2f1e" text-anchor="middle">Old photo</text>
+
+  <!-- 1 · Build the 3D model -->
+  <rect class="panel" x="190" y="24" width="710" height="220" rx="12"/>
+  <circle cx="216" cy="222" r="11" fill="#2563eb"/>
+  <text class="badge" x="216" y="226">1</text>
+  <text class="title" x="234" y="227">Build the 3D model</text>
+
+  <rect class="card b1" x="566" y="42" width="150" height="62" rx="8"/>
+  <text class="name n1" x="580" y="66">calibrate</text>
+  <text class="desc" x="580" y="84">focal length and</text>
+  <text class="desc" x="580" y="98">image centre</text>
+
+  <rect class="card b1" x="214" y="126" width="150" height="62" rx="8"/>
+  <text class="name n1" x="228" y="150">match</text>
+  <text class="desc" x="228" y="168">pair up points</text>
+  <text class="desc" x="228" y="182">between photos</text>
+
+  <rect class="card b1" x="390" y="126" width="150" height="62" rx="8"/>
+  <text class="name n1" x="404" y="150">verify</text>
+  <text class="desc" x="404" y="168">drop the pairs</text>
+  <text class="desc" x="404" y="182">that don't fit</text>
+
+  <rect class="card b1" x="566" y="126" width="150" height="62" rx="8"/>
+  <text class="name n1" x="580" y="150">reconstruct</text>
+  <text class="desc" x="580" y="168">3D points and</text>
+  <text class="desc" x="580" y="182">camera positions</text>
+
+  <!-- 2 · Use the old photo -->
+  <rect class="panel" x="190" y="276" width="345" height="128" rx="12"/>
+  <circle cx="216" cy="382" r="11" fill="#b45309"/>
+  <text class="badge" x="216" y="386">2</text>
+  <text class="title" x="234" y="387">Use the old photo</text>
+
+  <rect class="card b2" x="214" y="296" width="140" height="62" rx="8"/>
+  <text class="name n2" x="228" y="320">changes</text>
+  <text class="desc" x="228" y="338">overlay it on</text>
+  <text class="desc" x="228" y="352">a modern photo</text>
+
+  <rect class="card b2" x="380" y="296" width="140" height="62" rx="8"/>
+  <text class="name n2" x="394" y="320">localize</text>
+  <text class="desc" x="394" y="338">where it was</text>
+  <text class="desc" x="394" y="352">taken from</text>
+
+  <!-- 3 · Check the result -->
+  <rect class="panel" x="555" y="276" width="345" height="128" rx="12"/>
+  <circle cx="581" cy="382" r="11" fill="#047857"/>
+  <text class="badge" x="581" y="386">3</text>
+  <text class="title" x="599" y="387">Check the result</text>
+
+  <rect class="card b3" x="579" y="296" width="140" height="62" rx="8"/>
+  <text class="name n3" x="593" y="320">colmap</text>
+  <text class="desc" x="593" y="338">reference model</text>
+  <text class="desc" x="593" y="352">to compare with</text>
+
+  <rect class="card b3" x="745" y="296" width="140" height="62" rx="8"/>
+  <text class="name n3" x="759" y="320">evaluate</text>
+  <text class="desc" x="759" y="338">our cameras</text>
+  <text class="desc" x="759" y="352">vs COLMAP's</text>
+
+  <!-- Flow -->
+  <path class="flow" d="M166,142 L211,150"/>
+  <path class="flow" d="M166,192 L211,166"/>
+  <path class="flow" d="M364,157 H387"/>
+  <path class="flow" d="M540,157 H563"/>
+  <path class="flow" d="M641,104 V123"/>
+  <path class="flow" d="M465,188 V256 H284 V293"/>
+  <path class="flow" d="M641,188 V264 H450 V293"/>
+  <path class="flow" d="M690,188 V256 H815 V293"/>
+  <path class="flow" d="M719,327 H742"/>
+</svg>

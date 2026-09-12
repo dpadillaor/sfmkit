@@ -1,0 +1,29 @@
+# Everything here is pinned, deliberately, so something has to propose the
+# updates. Monthly, one pull request per group, so CI says whether a bump is
+# safe before anyone touches an environment by hand.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pip
+    directories:
+      - /packages/sfmkit
+      - /packages/viewer
+      - /website
+    schedule:
+      interval: monthly
+    groups:
+      python:
+        patterns: ["*"]
+    # torch and pycolmap are the environment, not a dependency to bump blindly:
+    # a new build changes the matches, and every measurement with them.
+    ignore:
+      - dependency-name: torch
+      - dependency-name: torchvision
+      - dependency-name: pycolmap

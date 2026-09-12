@@ -1,0 +1,70 @@
+site_name: sfmkit
+site_description: A small, tested Structure-from-Motion library, with a live 3D viewer.
+# The published address. GitHub Pages serves a project site under the repository
+# name; change both of these when the repository has a home.
+site_url: https://example.github.io/sfmkit/
+# repo_url: https://github.com/<owner>/<repo>
+# repo_name: <owner>/<repo>
+# edit_uri: edit/main/website/docs/
+docs_dir: docs
+site_dir: site
+strict: true                 # a broken link fails the build, and so the deploy
+
+theme:
+  name: material
+  language: en
+  font:
+    text: IBM Plex Sans
+    code: Roboto Mono
+  palette:
+    scheme: slate            # dark only, like the viewer
+    primary: black
+    accent: deep orange
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+extra_css:
+  - stylesheets/sfmkit.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Install:
+      - With conda: install/conda.md
+      - With Docker: install/docker.md
+  - Guide:
+      - The pipeline: guide/pipeline.md
+      - CLI reference: guide/cli.md
+      - Configuration: guide/config.md
+      - What a run holds: guide/runs.md
+  - Viewer:
+      - Using it: viewer/index.md
+      - HTTP API: viewer/api.md
+      - Live messages: viewer/live.md
+  - Project:
+      - Results: project/results.md
+      - Development: project/development.md

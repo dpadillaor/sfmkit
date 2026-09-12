@@ -207,17 +207,24 @@ the contract, the API and the architecture.
 
 ## Docs website
 
-- [ ] **MkDocs + Material site in `website/`**, styled to match the viewer
-  (dark greys, square corners, IBM Plex Sans / Roboto Mono, orange `#ff4f00`
-  signal) via `website/docs/stylesheets/sfmkit.css`. Pages: home, install,
-  pipeline, viewer, HTTP API. Build output `website/site/` is gitignored.
-  Runs local with `conda activate sfmview && cd website && mkdocs serve`
-  (mkdocs-material added to the `sfmview` env; not yet in a requirements file).
-- [ ] **Add mkdocs-material to a `website/requirements.txt`** (or a docs extra)
-  so the site's deps are pinned like the packages', not left ad hoc in `sfmview`.
-- [ ] **Publish to GitHub Pages.** Needs the repo on github.com and a workflow
-  (or `mkdocs gh-deploy`) that builds `website/` on push. Deferred until the
-  repo is public.
+- [x] **MkDocs + Material site in `website/`**, styled to match the viewer, with
+  install (conda and Docker), the pipeline, a CLI reference, the configuration,
+  what a run holds, the viewer, its HTTP API, its live messages, the results and
+  development. `website/requirements.txt` pins it. `mkdocs serve -f
+  website/mkdocs.yml`, in an environment of its own or in `sfmview`.
+- [ ] **Turn the site on.** `.github/workflows/docs.yml` builds and deploys it
+  already; what is left needs the repository to exist on github.com: set
+  Settings -> Pages -> Source to "GitHub Actions", and put the address Pages
+  gives back into `site_url` in `website/mkdocs.yml`, along with `repo_url`,
+  `repo_name` and `edit_uri`, which are commented out there.
+- [ ] **Publish the images.** `.github/workflows/images.yml` pushes
+  `ghcr.io/<owner>/sfmkit:cpu` and `ghcr.io/<owner>/sfmview` on a `v*` tag.
+  When they are up, replace the "Published images" note in
+  `website/docs/install/docker.md` with the real `docker pull` lines, and give
+  `compose.yaml` an `image:` that can be pulled rather than built.
+- [ ] **The GPU image is not built in CI**: CUDA PyTorch and COLMAP's CUDA build
+  do not fit a hosted runner's disk. Either build it on a self-hosted runner or
+  keep publishing it by hand with `make image DEVICE=gpu`.
 - [ ] Keep the site content in sync with the README once the README rework
   lands: install steps and the stages table are duplicated for now.
 

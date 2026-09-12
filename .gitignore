@@ -24,9 +24,13 @@ runs/
 !data/**
 !examples/**
 !docs/figures/**
+!website/docs/figures/**
 !packages/*/tests/**/*.npz
 
 .DS_Store
 .vscode/
 .idea/
 legacy/
+
+# MkDocs build output
+website/site/
