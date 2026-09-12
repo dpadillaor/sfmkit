@@ -1,105 +1,105 @@
 {
-  "scale": 0.45639468923568904,
-  "scale_image": "Img18",
-  "reference": "Img02",
+  "scale": 0.4589178207470281,
+  "scale_image": "Img09",
+  "reference": "Img01",
   "n_cameras": 14,
-  "mean_rotation_error_deg": 0.29335335907104876,
-  "max_rotation_error_deg": 1.3282205873159292,
-  "mean_position_error": 0.013219872891555188,
+  "mean_rotation_error_deg": 0.299756573233957,
+  "max_rotation_error_deg": 1.3359912633577093,
+  "mean_position_error": 0.013730270228327335,
   "cameras": [
     {
-      "camera": "Img02",
+      "camera": "Img01",
       "rotation_error_deg": 0.0,
-      "position_error": 4.0535991384488405e-16,
+      "position_error": 2.1007269795017754e-16,
       "distance_from_reference": 0.0
     },
     {
-      "camera": "Img13",
-      "rotation_error_deg": 0.07753300174306008,
-      "position_error": 0.019107430280332748,
+      "camera": "Img04",
+      "rotation_error_deg": 0.07666579562733773,
+      "position_error": 0.018942575721985964,
       "distance_from_reference": 0.5321770381789732
     },
     {
-      "camera": "Img25",
-      "rotation_error_deg": 0.052843615834438105,
-      "position_error": 0.01166407990263907,
+      "camera": "Img14",
+      "rotation_error_deg": 0.04843027930849622,
+      "position_error": 0.011051188544456591,
       "distance_from_reference": 0.9999999999999973
     },
     {
-      "camera": "Img14",
-      "rotation_error_deg": 0.15496435215437496,
-      "position_error": 0.011259986800768585,
+      "camera": "Img05",
+      "rotation_error_deg": 0.15465570028430536,
+      "position_error": 0.011526892246769518,
       "distance_from_reference": 1.0326523752995918
     },
     {
-      "camera": "Img24",
-      "rotation_error_deg": 0.045047978415225884,
-      "position_error": 0.003754766420955796,
+      "camera": "Img13",
+      "rotation_error_deg": 0.04943461246014029,
+      "position_error": 0.002992257004490703,
       "distance_from_reference": 1.3118316135013086
     },
     {
-      "camera": "Img23",
-      "rotation_error_deg": 0.18355478185734522,
-      "position_error": 0.004897683102034529,
+      "camera": "Img12",
+      "rotation_error_deg": 0.17618313562609927,
+      "position_error": 0.00481934021041638,
       "distance_from_reference": 1.701727105502833
     },
     {
-      "camera": "Img15",
-      "rotation_error_deg": 0.1026685363312792,
-      "position_error": 0.011187736489128667,
+      "camera": "Img06",
+      "rotation_error_deg": 0.1090390383781846,
+      "position_error": 0.011159684243570722,
       "distance_from_reference": 1.890076382618044
     },
     {
-      "camera": "Img11",
-      "rotation_error_deg": 0.15582821383838294,
-      "position_error": 0.010741925892621232,
+      "camera": "Img02",
+      "rotation_error_deg": 0.12587389736064514,
+      "position_error": 0.012144436467634294,
       "distance_from_reference": 2.5390857920775036
     },
     {
-      "camera": "Img16",
-      "rotation_error_deg": 0.3346797983536184,
-      "position_error": 0.010497774479590207,
+      "camera": "Img07",
+      "rotation_error_deg": 0.3464184041921645,
+      "position_error": 0.01058147468642213,
       "distance_from_reference": 3.108412797720078
     },
     {
-      "camera": "Img20",
-      "rotation_error_deg": 0.2166985004703787,
-      "position_error": 0.008031168079449567,
+      "camera": "Img11",
+      "rotation_error_deg": 0.22272556300058216,
+      "position_error": 0.00814769618837128,
       "distance_from_reference": 3.273670769691481
     },
     {
-      "camera": "Img12",
-      "rotation_error_deg": 0.16057835213279295,
-      "position_error": 0.023456813958980985,
+      "camera": "Img03",
+      "rotation_error_deg": 0.31349728911538194,
+      "position_error": 0.033090106278349345,
       "distance_from_reference": 3.639355912019304
     },
     {
-      "camera": "Img19",
-      "rotation_error_deg": 0.4912876520498296,
-      "position_error": 0.03023546721952973,
+      "camera": "Img10",
+      "rotation_error_deg": 0.4759145125437135,
+      "position_error": 0.02689276798133916,
       "distance_from_reference": 3.883935737535988
     },
     {
-      "camera": "Img17",
-      "rotation_error_deg": 0.5096882974269786,
-      "position_error": 0.00977042507826669,
+      "camera": "Img08",
+      "rotation_error_deg": 0.46200596078668094,
+      "position_error": 0.011316044776612195,
       "distance_from_reference": 4.026027671667835
     },
     {
-      "camera": "Img18",
-      "rotation_error_deg": 1.3282205873159292,
-      "position_error": 0.01725308988591964,
+      "camera": "Img09",
+      "rotation_error_deg": 1.3359912633577093,
+      "position_error": 0.01582904861783707,
       "distance_from_reference": 4.317897975933591
     }
   ],
   "query": {
-    "camera": "Img00",
-    "rotation_error_deg": 0.6630195174177739,
-    "position_error": 0.03917992178920603,
+    "camera": "Img_Old",
+    "rotation_error_deg": 0.6036860054144239,
+    "position_error": 0.04051050395805541,
     "distance_from_reference": 0.11415561194648431
   },
   "intrinsics": {
-    "Img02": {
+    "Img01": {
       "sfmkit": {
         "fx": 3028.663071389751,
         "fy": 3028.663071389751,
@@ -107,13 +107,13 @@
         "cy": 1133.5
       },
       "colmap": {
-        "fx": 3037.1107596868183,
-        "fy": 3037.1107596868183,
+        "fx": 3037.718578727357,
+        "fy": 3037.718578727357,
         "cx": 2016.0,
         "cy": 1134.0
       }
     },
-    "Img00": {
+    "Img_Old": {
       "sfmkit": {
         "fx": 554.9809142071855,
         "fy": 559.7546463349154,
@@ -121,10 +121,10 @@
         "cy": 327.8425660541973
       },
       "colmap": {
-        "fx": 553.6931329620539,
-        "fy": 553.6931329620539,
-        "cx": 243.92123112664447,
-        "cy": 332.628634028937
+        "fx": 553.8222963203914,
+        "fy": 553.8222963203914,
+        "cx": 243.54943077279245,
+        "cy": 331.98929380136366
       }
     }
   }

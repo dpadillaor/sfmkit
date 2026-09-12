@@ -10,9 +10,9 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   run (1.4-1.8°, the rest 0.02-0.42°). 3029 x 1.17 = 3543.5, the course's
   chessboard K to 0.1 px: the chessboard was photographed zoomed, and was
   right for zoomed photos. `calibrate.exif` now reads the zoom and refuses
-  photos whose zoomed focal lengths differ. Img28 is gone from the scene; Img16
+  photos whose zoomed focal lengths differ. Img28 is gone from the scene; Img07
   (unused before) and five photos of the same session, same setting, are in:
-  Img11 and Img17-Img20, named by capture time. Seven more of that session, at
+  Img02 and Img08-Img11, named by capture time. Seven more of that session, at
   64 MP (9248x5204, 5.9 mm, 27 mm equivalent: another of the phone's cameras,
   f ~7214 px), and one more zoomed 1.17x, were left out: they need a K each.
 - [ ] **Check the K with a chessboard.** K comes from the photos' EXIF
@@ -200,7 +200,7 @@ the contract, the API and the architecture.
     (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
 - [ ] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
-- [ ] **Figures for the README**: `changes/overlay_Img00_on_Img02.png` (the old photo
+- [ ] **Figures for the README**: `changes/overlay_Img_Old_on_Img01.png` (the old photo
   set into today's square, near-perfect alignment) is the strongest image the
   project makes; with the dense cloud, the two to lead with. Copy reduced
   versions into `docs/figures/` (the full PNGs are ~17 MB).

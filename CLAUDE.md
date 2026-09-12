@@ -30,12 +30,12 @@ mkdir -p /tmp/check/valencia && cp -r examples/valencia/cpu /tmp/check/valencia/
 for s in verify reconstruct localize evaluate; do
   SFMKIT_RUNS=/tmp/check sfmkit $s --config configs/valencia/cpu.yaml
 done
-# 14 cameras, 2850 points, mean rotation error 0.348°, the old photo 1.32°
+# 14 cameras, 2850 points, mean rotation error 0.338°, the old photo 1.32°
 ```
 
 Its COLMAP model is the example's, so the check scores against a fixed
 reference. A full run from scratch on a GPU (`configs/valencia/gpu-dense.yaml`),
-whose matches differ, gives 14 cameras, 2830 points, 0.293° and 0.66°; it runs
+whose matches differ, gives 14 cameras, 2830 points, 0.300° and 0.60°; it runs
 COLMAP again too, which varies a little between runs, the old photo most.
 
 ## Layout

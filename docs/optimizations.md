@@ -185,7 +185,7 @@ bundle stopped short, and so were the thresholds of 1.6, searched with it.
 
 With the EXIF K (`9cameras-exif`, same matches, same COLMAP model) the mean
 barely moves, 0.312° to 0.322°, but its make-up does: seven of the eight
-cameras scored improve (Img12 0.547° to 0.146°, Img25 0.354° to 0.085°; median
+cameras scored improve (Img03 0.547° to 0.146°, Img14 0.354° to 0.085°; median
 ~0.19° to ~0.11°; the old photo 1.20° to 0.96°), and Img28 worsens, 0.692° to
 1.805°, its position error ten times the others'. Not yet explained.
 
@@ -203,11 +203,11 @@ expected:
 |---|---|---|---|---|
 | Original set | 4 | 675 | **0.65 deg** | 1.16 deg |
 | COLMAP's set | 9 | 1041 | 0.96 deg | 2.77 deg |
-| + Img16 | 10 | 1041 | 0.97 deg | 2.83 deg |
+| + Img07 | 10 | 1041 | 0.97 deg | 2.83 deg |
 
 **More cameras did not improve accuracy — it slightly degraded it.** Coverage and
 point count improved (the camera baseline more than doubled, reaching the far
-viewpoints Img12 and Img28), but per-camera error rose.
+viewpoints Img03 and Img28), but per-camera error rose.
 
 The prediction that a wider baseline would close much of the gap with COLMAP was
 wrong. The limiting factor is not the number of cameras: it is the topology of
@@ -220,7 +220,7 @@ tied to the reference and to nothing else.
 The reconstruction thresholds were chosen by exhaustive search over 27
 combinations, each scored against COLMAP (`tools/sweep.py`), rather than by
 intuition. This moved the mean rotation error further than any structural
-change in this document: **1.603 -> 0.981 degrees**, and `Img12` from 7.20 to
+change in this document: **1.603 -> 0.981 degrees**, and `Img03` from 7.20 to
 2.84.
 
 Only 8 of 27 combinations register all nine cameras. The best:
@@ -359,13 +359,13 @@ initial count, this raises `UnboundLocalError`.
 
 ## 3. Pair quality gating — hypothesis tested and refuted
 
-Pair `Img02-Img16` yields 27 inliers from 130 matches (ratio 0.21) with 14 px
-mean epipolar error, by far the worst of the 23. COLMAP rejects `Img16` outright:
+Pair `Img01-Img07` yields 27 inliers from 130 matches (ratio 0.21) with 14 px
+mean epipolar error, by far the worst of the 23. COLMAP rejects `Img07` outright:
 it registers 10 of 11 images, and `init_min_num_inliers=100` in
 `sparse/0/project.ini` explains why. The custom pipeline has no such filter.
 
 That looked like an obvious defect worth fixing. **It is not.** Running the
-reconstruction with and without `Img16` gives the same 1041 3D points and camera
+reconstruction with and without `Img07` gives the same 1041 3D points and camera
 errors identical to two decimal places (0.97 vs 0.96 deg mean, 2.83 vs 2.77 max).
 With 27 inliers the pair contributes nothing and breaks nothing.
 
@@ -403,13 +403,13 @@ difference is which pairs it may use.
 
 Per camera, over the seven both reconstruct:
 
-| | Img25 | Img13 | Img15 | Img24 | Img28 | Img14 | Img23 | **mean** |
+| | Img14 | Img04 | Img06 | Img13 | Img28 | Img05 | Img12 | **mean** |
 |---|---|---|---|---|---|---|---|---|
 | star | 0.249 | 0.206 | 0.395 | 0.569 | 1.143 | 1.206 | 1.510 | **0.754** |
 | complete | 0.271 | 0.291 | 0.496 | 0.640 | 1.118 | 1.242 | 1.570 | **0.804** |
 
 **The two agree to within 6% on every shared camera.** The complete graph's worse
-headline number is entirely one camera: it additionally registers `Img12`, the
+headline number is entirely one camera: it additionally registers `Img03`, the
 most distant and most weakly connected, at 7.20 deg.
 
 ### Why the hypothesis was wrong
@@ -429,19 +429,19 @@ reconstructable points on synthetic data (`tests/test_tracks.py`).
 
 Adding cross-pairs is still worth doing: more scene coverage for the same
 images, and the extra camera is a genuine registration rather than a failure.
-The open problem it exposed is `Img12`, the most distant camera, registered on
+The open problem it exposed is `Img03`, the most distant camera, registered on
 few PnP inliers.
 
 Threshold calibration turned out to help far more than any structural change
 (section 1.6): tuning the three reconstruction thresholds by grid search took the
-mean from 1.603 to 0.981 degrees and `Img12` from 7.20 to 2.84.
+mean from 1.603 to 0.981 degrees and `Img03` from 7.20 to 2.84.
 
 **A null result worth recording.** Re-running PnP for every camera after the
 global refinement, against the improved 3D points, seemed obviously right:
 cameras registered early were fixed against a fraction of the points that
 eventually exist. Implemented, guarded so a pose is only replaced when it lowers
 that camera's median reprojection error, it made things slightly *worse* --
-0.981 to 1.001 degrees mean, `Img12` 2.835 to 3.004. Reprojection error on a
+0.981 to 1.001 degrees mean, `Img03` 2.835 to 3.004. Reprojection error on a
 camera's own observations is a local criterion, and improving it does not imply
 a better pose against an external reference. The code was reverted rather than
 kept behind a flag.
@@ -564,7 +564,7 @@ plausible ones did not survive, and are kept as such.
 | 2 | Pin scipy/BLAS (1.0) | **38x**, no code change | environment | pending |
 | 3 | `jac_sparsity` + `lsmr` (1.1) | **7.4x at 9 cameras** | one argument | **done** |
 | 4 | Complete match graph (4) | +53% points, +1 camera; **no accuracy gain** | moderate | **done** |
-| 5 | Guard weak registrations (4) | `Img12` at 2.8 deg; re-PnP tried, no gain | small | open |
+| 5 | Guard weak registrations (4) | `Img03` at 2.8 deg; re-PnP tried, no gain | small | open |
 | 6 | Batched RANSAC on GPU (2) | **24x**, across all pairs | moderate | pending |
 | 7 | Analytic Jacobian (1.3) | cuts ~1800 lsmr iterations | large | pending |
 | 8 | Sparse Schur (1.4) | only if #7 falls short | large | pending |

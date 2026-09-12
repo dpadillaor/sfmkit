@@ -5,8 +5,8 @@ import numpy as np
 
 HEIGHT, GAP = 400, 8
 
-old = cv2.imread("data/valencia/scene/Img00.jpg")
-new = cv2.imread("data/valencia/scene/Img02.jpg")
+old = cv2.imread("data/valencia/scene/Img_Old.jpg")
+new = cv2.imread("data/valencia/scene/Img01.jpg")
 old, new = (cv2.resize(i, (round(i.shape[1] * HEIGHT / i.shape[0]), HEIGHT),
                        interpolation=cv2.INTER_AREA) for i in (old, new))
 gap = np.full((HEIGHT, GAP, 3), 255, np.uint8)

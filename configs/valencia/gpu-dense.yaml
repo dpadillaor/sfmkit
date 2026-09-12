@@ -11,9 +11,9 @@ calibrate:
   sensor_aspect: [4, 3]     # the phone's whole sensor; the photos are a 16:9 cut
 
 sfm:
-  images: [Img02, Img11, Img12, Img13, Img14, Img15, Img16, Img17, Img18, Img19, Img20,
-           Img23, Img24, Img25]
-  reference: Img02
+  images: [Img01, Img02, Img03, Img04, Img05, Img06, Img07, Img08, Img09, Img10, Img11,
+           Img12, Img13, Img14]
+  reference: Img01
   exhaustive: true          # every pair, not just those touching the reference
   max_keypoints: 2048
   device: cuda              # auto | cpu | cuda: CPU and GPU give slightly different matches
@@ -26,7 +26,7 @@ sfm:
   pnp_threshold: 6.0
 
 localize:
-  query: Img00
+  query: Img_Old
 
 colmap:
   matches: colmap   # colmap: COLMAP's own features | sfmkit: this run's verify/

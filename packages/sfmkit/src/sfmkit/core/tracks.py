@@ -10,7 +10,7 @@ from sfmkit.core.types import ImageName, KeypointIndex, Matches, Track
 
 __all__ = ["Node", "UnionFind", "build_tracks", "track_statistics"]
 
-#: One keypoint of one image: ``("Img02", 41)`` is keypoint 41 of image Img02.
+#: One keypoint of one image: ``("Img01", 41)`` is keypoint 41 of image Img01.
 Node = tuple[ImageName, KeypointIndex]
 
 

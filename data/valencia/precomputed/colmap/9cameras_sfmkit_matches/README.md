@@ -1,5 +1,9 @@
 # COLMAP model: 9 cameras, sfmkit matches
 
+**The names here are the course's**, from before the photographs were
+renumbered; `../../../README.md` has the table. `Img00` is `Img_Old`,
+`Img02` is `Img01`, and `Img28` was dropped from the set.
+
 COLMAP's mapper run on keypoints and matches it was given, not on its own: the
 reconstruction alone, from the same kind of input sfmkit uses. It is what
 `colmap.matches: sfmkit` is meant to reproduce.

@@ -51,14 +51,14 @@ model of the same images.
 
 | camera | rotation error | position error | distance from reference |
 |---|---|---|---|
-| Img13 | 0.34° | 0.064 | 0.53 |
-| Img25 | 0.37° | 0.079 | 1.00 |
-| Img14 | 1.26° | 0.078 | 1.04 |
-| Img24 | 0.54° | 0.106 | 1.29 |
-| Img23 | 1.65° | 0.109 | 1.79 |
-| Img15 | 0.30° | 0.134 | 2.08 |
+| Img04 | 0.34° | 0.064 | 0.53 |
+| Img14 | 0.37° | 0.079 | 1.00 |
+| Img05 | 1.26° | 0.078 | 1.04 |
+| Img13 | 0.54° | 0.106 | 1.29 |
+| Img12 | 1.65° | 0.109 | 1.79 |
+| Img06 | 0.30° | 0.134 | 2.08 |
 | Img28 | 0.55° | 0.089 | 2.47 |
-| Img12 | 2.84° | 0.133 | 3.86 |
+| Img03 | 2.84° | 0.133 | 3.86 |
 
 **Mean 0.98°, max 2.84°**, over nine cameras and 1699 points. The recovered scale
 against COLMAP is **0.458**.
@@ -76,7 +76,7 @@ Against the original course pipeline on the same nine images:
 Equivalent accuracy on 63% more points — and, unlike the original, the same
 inputs now give the same outputs.
 
-`Img12`, the most distant camera, remains the weakest at 2.84°. Re-running PnP
+`Img03`, the most distant camera, remains the weakest at 2.84°. Re-running PnP
 for every camera after the global refinement was tried and made things slightly
 worse (0.981° to 1.001°); the result is recorded in
 [docs/optimizations.md](docs/optimizations.md) rather than kept behind a flag.
@@ -129,7 +129,7 @@ reconstruction may use. This was the headline hypothesis of the rewrite, and
 | mean rotation error | **0.754°** | 1.603° |
 
 But averaged over the seven cameras *both* reconstruct, the two agree to within
-6% (0.754° vs 0.804°). The complete graph's worse headline is entirely `Img12`,
+6% (0.754° vs 0.804°). The complete graph's worse headline is entirely `Img03`,
 the extra camera it registers badly. It buys **reach, not accuracy**: 78% more
 tracks, 53% more points, one more camera.
 
@@ -177,7 +177,7 @@ and where the reconstruction projects against where the keypoints actually are.
 
 ![Matches, inliers and outliers](docs/figures/matches.png)
 
-*`Img02`–`Img13`: 772 matches, 627 inliers (81%), 145 outliers. The rejected
+*`Img01`–`Img04`: 772 matches, 627 inliers (81%), 145 outliers. The rejected
 matches are not random — they concentrate in the sky and on the repeated
 arcades, which is the signature of repeated structure rather than of a failing
 matcher.*

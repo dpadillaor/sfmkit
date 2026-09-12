@@ -1,8 +1,8 @@
 {
   "stage": "colmap",
   "config_path": "configs/valencia/cpu.yaml",
-  "timestamp": "2026-09-11T22:15:56.676023+00:00",
-  "git_commit": "cd71762277ee854ced01f6b616477b5b18914793",
+  "timestamp": "2026-09-12T16:44:29.553693+00:00",
+  "git_commit": "82e4ac97f2a1c7ebd6d876e292d406147f0440e8",
   "config": {
     "dataset": "valencia",
     "name": "cpu",
@@ -22,22 +22,22 @@
     },
     "sfm": {
       "images": [
+        "Img01",
         "Img02",
+        "Img03",
+        "Img04",
+        "Img05",
+        "Img06",
+        "Img07",
+        "Img08",
+        "Img09",
+        "Img10",
         "Img11",
         "Img12",
         "Img13",
-        "Img14",
-        "Img15",
-        "Img16",
-        "Img17",
-        "Img18",
-        "Img19",
-        "Img20",
-        "Img23",
-        "Img24",
-        "Img25"
+        "Img14"
       ],
-      "reference": "Img02",
+      "reference": "Img01",
       "max_keypoints": 2048,
       "exhaustive": true,
       "device": "cpu",
@@ -52,7 +52,8 @@
       "bundle_solver": "schur"
     },
     "localize": {
-      "query": "Img00"
+      "query": "Img_Old",
+      "refine": "camera"
     },
     "colmap": {
       "precomputed": "",
@@ -75,25 +76,25 @@
   "camera": "self",
   "device": "cpu",
   "registered": [
+    "Img01",
     "Img02",
+    "Img03",
+    "Img04",
+    "Img05",
+    "Img06",
+    "Img07",
+    "Img08",
+    "Img09",
+    "Img10",
     "Img11",
     "Img12",
     "Img13",
-    "Img14",
-    "Img15",
-    "Img16",
-    "Img17",
-    "Img18",
-    "Img19",
-    "Img20",
-    "Img23",
-    "Img24",
-    "Img25"
+    "Img14"
   ],
   "missing": [],
-  "n_points": 5483,
-  "reprojection_error": 1.0856041727895969,
-  "query": "Img00",
+  "n_points": 5465,
+  "reprojection_error": 1.0818321220090967,
+  "query": "Img_Old",
   "query_registered": true,
   "query_points": 37
 }

@@ -11,7 +11,7 @@ image the pipeline treats differently at every stage.
 It was taken by another camera, of unknown focal length, perhaps cropped, a
 century before the rest. So:
 
-| Stage | The nine modern photos | `Img00`, the old one |
+| Stage | The fourteen modern photos | `Img_Old`, the old one |
 |---|---|---|
 | `match` | every pair | the reference only: it shares few features with any of them |
 | `reconstruct` | registered | left out, so a shaky camera cannot bend the map |
@@ -65,7 +65,7 @@ pixels instead, under a Huber loss, over the inliers it found:
 | Reprojection, median over 20 seeds | 14.1 px | **2.0 px** |
 | Spread of the camera's centre over those seeds | 0.235 | **0.031** |
 | Against COLMAP, `cpu` | 1.60° | **1.32°** |
-| Against COLMAP, `gpu-dense` | 0.91° | **0.66°** |
+| Against COLMAP, `gpu-dense` | 0.91° | **0.60°** |
 
 The instability is what mattered: eleven unknowns from a handful of
 correspondences used to land somewhere slightly different on every seed.

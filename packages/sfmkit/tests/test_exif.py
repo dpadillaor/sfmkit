@@ -37,7 +37,7 @@ def test_a_photo_without_the_equivalent_focal_length_is_refused(tmp_path):
         read_camera(photo(tmp_path / "a.jpg", focal=5.4))
 
 
-@pytest.mark.skipif(not (SCENE / "Img02.jpg").is_file(), reason="no Valencia photos")
+@pytest.mark.skipif(not (SCENE / "Img01.jpg").is_file(), reason="no Valencia photos")
 def test_the_valencia_photos():
-    shot = read_camera(SCENE / "Img02.jpg")
+    shot = read_camera(SCENE / "Img01.jpg")
     assert (shot.model, shot.focal_35mm, shot.size) == ("SM-G996B", 26, (4032, 2268))

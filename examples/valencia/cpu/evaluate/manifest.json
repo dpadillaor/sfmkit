@@ -1,8 +1,8 @@
 {
   "stage": "evaluate",
   "config_path": "configs/valencia/cpu.yaml",
-  "timestamp": "2026-09-11T23:15:19.622859+00:00",
-  "git_commit": "75e5adbf6940cf3f1d90a4221d90df926f2f27f9",
+  "timestamp": "2026-09-12T16:44:29.581367+00:00",
+  "git_commit": "82e4ac97f2a1c7ebd6d876e292d406147f0440e8",
   "config": {
     "dataset": "valencia",
     "name": "cpu",
@@ -22,22 +22,22 @@
     },
     "sfm": {
       "images": [
+        "Img01",
         "Img02",
+        "Img03",
+        "Img04",
+        "Img05",
+        "Img06",
+        "Img07",
+        "Img08",
+        "Img09",
+        "Img10",
         "Img11",
         "Img12",
         "Img13",
-        "Img14",
-        "Img15",
-        "Img16",
-        "Img17",
-        "Img18",
-        "Img19",
-        "Img20",
-        "Img23",
-        "Img24",
-        "Img25"
+        "Img14"
       ],
-      "reference": "Img02",
+      "reference": "Img01",
       "max_keypoints": 2048,
       "exhaustive": true,
       "device": "cpu",
@@ -52,7 +52,7 @@
       "bundle_solver": "schur"
     },
     "localize": {
-      "query": "Img00",
+      "query": "Img_Old",
       "refine": "camera"
     },
     "colmap": {
@@ -72,10 +72,10 @@
     "scipy": "1.17.1",
     "python": "3.11.16"
   },
-  "mean_rotation_error_deg": 0.34798765011496136,
-  "max_rotation_error_deg": 1.5106283342436142,
-  "scale": 0.4566208630942468,
+  "mean_rotation_error_deg": 0.3382837616037929,
+  "max_rotation_error_deg": 1.3276185988236417,
+  "scale": 0.45545059052767606,
   "n_cameras": 14,
-  "query_rotation_error_deg": 1.3155429306104542,
-  "query_position_error": 0.06820960909947289
+  "query_rotation_error_deg": 1.3210045840525064,
+  "query_position_error": 0.06876020250405321
 }
