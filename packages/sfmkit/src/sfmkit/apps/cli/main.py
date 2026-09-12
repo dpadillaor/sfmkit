@@ -24,6 +24,7 @@ from sfmkit.apps.cli import (
     verify,
 )
 from sfmkit.apps.cli._common import console
+from sfmkit.data.features import WeightsUnavailable
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -80,6 +81,9 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)
+    except WeightsUnavailable as e:  # its message is the instructions
+        console.print(f"[red]{e}[/red]")
+        return 1
     except FileNotFoundError as e:
         console.print(f"[red]missing file:[/red] {e}")
         return 1

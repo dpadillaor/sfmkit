@@ -14,9 +14,13 @@ from sfmkit.data.exif import read_orientation
 from sfmkit.data.io import image_file, read_image, save_matches
 
 __all__ = [
-    "DEVICES", "WEIGHTS", "match_pairs", "missing_weights", "pick_device", "resolve_device",
-    "weights_dir", "weights_help",
+    "DEVICES", "WEIGHTS", "WeightsUnavailable", "match_pairs", "missing_weights", "pick_device",
+    "resolve_device", "weights_dir", "weights_help",
 ]
+
+
+class WeightsUnavailable(RuntimeError):
+    """Matching's weights are neither downloaded nor reachable. Its message says what to do."""
 
 DEVICES = ("auto", "cpu", "cuda")
 
@@ -125,7 +129,7 @@ def match_pairs(
         extractor = SuperPoint(max_num_keypoints=max_keypoints).eval().to(dev)
         matcher = LightGlue(features="superpoint").eval().to(dev)
     except OSError as no_weights:  # no network, or nowhere to write them
-        raise RuntimeError(weights_help()) from no_weights
+        raise WeightsUnavailable(weights_help()) from no_weights
 
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

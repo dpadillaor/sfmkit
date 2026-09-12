@@ -17,6 +17,7 @@ services:
       - ./data:/app/data:ro
       - ./configs:/app/configs:ro
       - ./runs:/app/runs
+      - ${SFMKIT_WEIGHTS:-weights}:/opt/torch
 
   cli-gpu:
     extends: cli
@@ -52,3 +53,6 @@ services:
       retries: 3
       start_period: 10s
       start_interval: 1s
+
+volumes:
+  weights:
