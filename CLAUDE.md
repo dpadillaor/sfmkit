@@ -26,14 +26,17 @@ The regression check for anything touching the pipeline reruns our stages on
 the saved example, whose matches and COLMAP model came from a CPU:
 
 ```bash
-mkdir -p /tmp/check/valencia && cp -r examples/valencia/9cameras /tmp/check/valencia/
-SFMKIT_RUNS=/tmp/check sfmkit run --config configs/valencia/9cameras.yaml --from verify
-# 14 cameras, 2850 points, mean rotation error 0.348°
+mkdir -p /tmp/check/valencia && cp -r examples/valencia/cpu /tmp/check/valencia/
+for s in verify reconstruct localize evaluate; do
+  SFMKIT_RUNS=/tmp/check sfmkit $s --config configs/valencia/cpu.yaml
+done
+# 14 cameras, 2850 points, mean rotation error 0.348°, the old photo 1.32°
 ```
 
-A full run from scratch on a GPU (`configs/valencia/gpu-dense.yaml`), whose
-matches differ, gives 14 cameras, 2830 points and 0.296°; it also runs COLMAP
-again, which varies a little between runs.
+Its COLMAP model is the example's, so the check scores against a fixed
+reference. A full run from scratch on a GPU (`configs/valencia/gpu-dense.yaml`),
+whose matches differ, gives 14 cameras, 2830 points, 0.293° and 0.66°; it runs
+COLMAP again too, which varies a little between runs, the old photo most.
 
 ## Layout
 
