@@ -75,3 +75,15 @@ def test_stops_at_the_first_failure(monkeypatch, tmp_path):
     monkeypatch.setattr("sfmkit.apps.cli.run.STAGES", patched)
     assert cmd_run(_Args(tmp_path)) == 3
     assert order == ["match", "verify"], "must not continue past a failure"
+
+
+def test_run_help_lists_the_stages_in_order(capsys):
+    """A newcomer cannot tell the order from `sfmkit --help`; here it is."""
+    from sfmkit.apps.cli.main import build_parser
+
+    with pytest.raises(SystemExit):
+        build_parser().parse_args(["run", "--help"])
+    printed = capsys.readouterr().out
+    at = [printed.index(f"\n  {name:<12}") for name, _ in STAGES]
+    assert at == sorted(at), "the stages are listed out of order"
+    assert "calibrate   intrinsics" in printed  # each with what it does

@@ -27,14 +27,23 @@ from sfmkit.apps.cli._common import console
 from sfmkit.data.features import WeightsUnavailable
 
 
+def _stages(helps: dict[str, str]) -> str:
+    """The pipeline's stages in order, for ``run``'s help: the order is run.STAGES's."""
+    lines = ["stages, in the order `run` does them:"]
+    lines += [f"  {name:<12}{helps.get(name, '')}" for name, _ in run.STAGES]
+    return "\n".join(lines)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="sfmkit",
         description="Structure from Motion: match, reconstruct, localise, evaluate.",
     )
     sub = p.add_subparsers(dest="command", required=True)
+    helps: dict[str, str] = {}
 
     def stage(name, fn, help_):
+        helps[name] = help_
         s = sub.add_parser(name, help=help_)
         s.add_argument("--config", required=True, help="YAML experiment config")
         s.add_argument("--out", help="run directory (default: runs/<dataset>/<config>)")
@@ -70,6 +79,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--skip-done", action="store_true",
                    help="skip stages whose manifest already exists")
     r.add_argument("--trials", type=int, default=20, help="seeds for localize")
+    r.formatter_class = argparse.RawDescriptionHelpFormatter
+    r.epilog = _stages(helps)
 
     u = sub.add_parser("ui", help="browse and compare runs in a terminal interface")
     u.add_argument("--runs", default="runs", help="directory holding run outputs")

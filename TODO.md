@@ -30,13 +30,6 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the same reconstruction read 0.379°. COLMAP varies between runs, but
   negligibly on the scene's cameras (±0.002°, over 3 runs); its placement of
   the old photo does not, as `docs/old-photo.md` says.
-- [ ] **The course never limited keypoints; we do.** Its `matchingPipeline.py`
-  passed `{"max_keypoints": 2048}` to SuperPoint, whose parameter is
-  `max_num_keypoints`: the unknown name is kept and ignored, so there was no
-  limit (4600-5700 keypoints per modern photo, 5073 in Img02). The rewrite used
-  the right name, so our runs, and the 0.981°, use 2048. To reproduce the course
-  model with `matches: sfmkit`, allow `sfm.max_keypoints: null` (no limit).
-  Worth an experiment: does a higher limit change the result, or save Img12?
 - [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
@@ -212,6 +205,22 @@ the contract, the API and the architecture.
   project makes; with the dense cloud, the two to lead with. Copy reduced
   versions into `docs/figures/` (the full PNGs are ~17 MB).
 
+## Docs website
+
+- [ ] **MkDocs + Material site in `website/`**, styled to match the viewer
+  (dark greys, square corners, IBM Plex Sans / Roboto Mono, orange `#ff4f00`
+  signal) via `website/docs/stylesheets/sfmkit.css`. Pages: home, install,
+  pipeline, viewer, HTTP API. Build output `website/site/` is gitignored.
+  Runs local with `conda activate sfmview && cd website && mkdocs serve`
+  (mkdocs-material added to the `sfmview` env; not yet in a requirements file).
+- [ ] **Add mkdocs-material to a `website/requirements.txt`** (or a docs extra)
+  so the site's deps are pinned like the packages', not left ad hoc in `sfmview`.
+- [ ] **Publish to GitHub Pages.** Needs the repo on github.com and a workflow
+  (or `mkdocs gh-deploy`) that builds `website/` on push. Deferred until the
+  repo is public.
+- [ ] Keep the site content in sync with the README once the README rework
+  lands: install steps and the stages table are duplicated for now.
+
 ## Later
 
 - [x] **Set aside (2026-09-12): everything downstream of exporting to COLMAP's
@@ -219,15 +228,10 @@ the contract, the API and the architecture.
   Gaussian splatting, be densified by COLMAP, or be meshed by it
   (`pycolmap.poisson_meshing`). None of that is what this project is for: it
   reconstructs, localises an old photograph and measures itself.
-- [ ] **Review the imports inside functions.** Several modules import inside
-  functions (torch in `data/features.py`, cv2 and core modules in the CLI
-  commands) so they would load without optional packages. Every supported
-  install now has them all. Keep the lazy ones only where they save start-up
-  time worth having (torch costs 0.6 s, pycolmap 0.1 s).
-- [ ] **A figure of the dense cloud.** The `dense` stage writes `dense/fused.ply`
-  (137 650 points on Valencia, 3 min on an RTX 4090); `figures` does not draw it
-  yet, and it would make the README's best picture. The viewer draws it
-  (`docs/figures/viewer.png`); it could also feed Gaussian splatting.
+- [x] **Imports are at the top now**, except torch's (a second), matplotlib's
+  and the TUI's, each with a line saying why (2026-09-12).
+- [x] **The dense cloud is drawn** by the `figures` stage, from the reference
+  photo and from beside it (`render/viz.plot_dense`, `orbit`), 2026-09-12.
 - [x] **The threshold grid search, redone** with the Schur solver, the EXIF K
   and fourteen photographs (64 combinations, 2026-09-12): the chosen values
   came out as good as anything on the grid, so nothing changed.
