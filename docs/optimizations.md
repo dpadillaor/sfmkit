@@ -218,7 +218,7 @@ tied to the reference and to nothing else.
 ### 1.6 Threshold calibration by grid search
 
 The reconstruction thresholds were chosen by exhaustive search over 27
-combinations, each scored against COLMAP (`scripts/sweep.py`), rather than by
+combinations, each scored against COLMAP (`tools/sweep.py`), rather than by
 intuition. This moved the mean rotation error further than any structural
 change in this document: **1.603 -> 0.981 degrees**, and `Img12` from 7.20 to
 2.84.

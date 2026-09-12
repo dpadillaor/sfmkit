@@ -19,7 +19,10 @@ __all__ = [
     "plot_matches", "plot_epipolar", "plot_residuals", "plot_dense", "render_points", "orbit",
 ]
 
-OURS, THEIRS = "#2e7d32", "#1565c0"
+# The viewer's own colours (web/js/palette.js), so a figure and the viewer
+# name the same model the same way; on white they carry a dark outline.
+OURS, THEIRS, ERROR = "#f2a93b", "#56a8f5", "#ff6b5a"
+EDGE = "#37474f"
 
 
 def _scaled_centres(
@@ -85,38 +88,95 @@ def plot_comparison(rec, gt_model, reference, out_path, title="Reconstruction vs
     return out_path
 
 
+def _place_labels(ax, points: dict[str, np.ndarray], a: int, b: int) -> None:
+    """One grey label per camera, on whichever side of it is emptiest."""
+    at = {n: np.array([c[a], c[b]]) for n, c in points.items()}
+    span = max(np.ptp([q[0] for q in at.values()]), np.ptp([q[1] for q in at.values()]), 1e-9)
+    offsets = [(7, 5), (7, -13), (-7, 5), (-7, -13)]
+    taken = list(at.values())
+    for n, q in sorted(at.items(), key=lambda kv: -kv[1][1]):
+        def crowding(o, q=q):
+            spot = q + np.array([o[0], o[1] + 4]) * span / 260
+            return sum(1 / (np.linalg.norm(spot - t) + 1e-3) for t in taken if t is not q)
+        best = min(offsets, key=crowding)
+        ax.annotate(n, q, fontsize=7.5, color="#607d8b", xytext=best,
+                    ha="left" if best[0] > 0 else "right", textcoords="offset points")
+        taken.append(q + np.array([best[0], best[1] + 4]) * span / 260)
+
+
 def plot_camera_layout(rec, gt_model, reference, out_path):
-    """Camera positions in two orthogonal planes, with per-camera error segments."""
+    """Camera positions in two planes, and how far each sits from COLMAP's."""
     s = _common_scale(rec, gt_model["poses"], reference)
     c_ours = _scaled_centres(rec.poses, reference)
     c_gt = _scaled_centres(gt_model["poses"], reference, s)
+    shared = [n for n in c_ours if n in c_gt]
+    errors = {n: float(np.linalg.norm(c_ours[n] - c_gt[n])) for n in shared}
+    span = max(np.linalg.norm(c) for c in c_gt.values()) or 1.0
 
-    fig, axes = plt.subplots(1, 2, figsize=(15, 7))
-    for ax, (a, b, la, lb) in zip(axes, [(0, 1, "X", "Y"), (0, 2, "X", "Z")], strict=True):
+    planes = [(0, 1, "X", "Y"), (0, 2, "X", "Z")]
+    every = np.array(list(c_gt.values()) + list(c_ours.values()))
+    # Each plane gets the width its own data asks for, so neither is a sliver
+    # of ink in a white field.
+    ratios = [max(0.45, np.ptp(every[:, a]) / max(np.ptp(every[:, b]), 1e-9))
+              for a, b, _, _ in planes]
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.8), layout="constrained",
+                             width_ratios=[*ratios, 0.6 * max(ratios)])
+    for ax, (a, b, la, lb) in zip(axes[:2], planes, strict=True):
         for n, c in c_gt.items():
             used = n in c_ours
             ax.scatter(c[a], c[b], s=110, marker="o",
                        facecolors=THEIRS if used else "none",
-                       edgecolors=THEIRS, linewidths=1.6, zorder=3)
-            ax.annotate(n, (c[a], c[b]), fontsize=8, color=THEIRS,
-                        xytext=(4, 4), textcoords="offset points")
+                       edgecolors=EDGE if used else THEIRS, linewidths=1.0 if used else 1.6,
+                       zorder=3)
         for n, c in c_ours.items():
-            ax.scatter(c[a], c[b], s=150, marker="^", color=OURS, zorder=4)
+            ax.scatter(c[a], c[b], s=150, marker="^", color=OURS,
+                       edgecolors=EDGE, linewidths=1.0, zorder=4)
             if n in c_gt:
-                ax.plot([c[a], c_gt[n][a]], [c[b], c_gt[n][b]], "-", color="#c62828", lw=1.3)
+                ax.plot([c[a], c_gt[n][a]], [c[b], c_gt[n][b]], "-", color=ERROR, lw=1.3, zorder=5)
+        _place_labels(ax, {**c_gt, **c_ours}, a, b)
         ax.set_xlabel(la)
         ax.set_ylabel(lb)
-        ax.grid(alpha=0.3)
+        ax.grid(alpha=0.18, lw=0.7)
+        ax.set_axisbelow(True)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
         ax.set_aspect("equal")
-        ax.set_title(f"{la}–{lb}")
-    axes[0].scatter([], [], marker="o", facecolors="none", edgecolors=THEIRS,
-                    label="COLMAP (not registered here)")
-    axes[0].scatter([], [], marker="o", color=THEIRS, label="COLMAP")
-    axes[0].scatter([], [], marker="^", color=OURS, label="sfmkit")
-    axes[0].plot([], [], "-", color="#c62828", label="position error")
-    axes[0].legend(fontsize=8)
-    fig.suptitle(f"Camera positions  —  aligned to {reference}, scale {s:.3f}", fontsize=13)
-    fig.tight_layout()
+        ax.margins(0.14)
+        ax.set_title(f"{la}–{lb}", fontsize=10)
+
+    # The red segments are shorter than the markers that hide them, so the same
+    # distances are drawn again as bars, where they can be read.
+    ax = axes[2]
+    order = sorted(errors, key=errors.get)
+    ax.barh(np.arange(len(order)), [errors[n] for n in order], color=ERROR, alpha=0.55, height=0.5)
+    ax.set_yticks(np.arange(len(order)), order, fontsize=8)
+    for i, n in enumerate(order):
+        ax.annotate(f" {100 * errors[n] / span:.1f}%", (errors[n], i), fontsize=7.5,
+                    color="#455a64", va="center")
+    ax.set_xlabel("distance to COLMAP's centre, in scene units", fontsize=9)
+    ax.set_title("Position error", fontsize=10)
+    ax.grid(axis="x", alpha=0.18, lw=0.7)
+    ax.set_axisbelow(True)
+    ax.margins(x=0.22)
+    for side in ("top", "right", "left"):
+        ax.spines[side].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+
+    handles = [
+        plt.Line2D([], [], ls="", marker="^", mfc=OURS, mec=EDGE, label="sfmkit"),
+        plt.Line2D([], [], ls="", marker="o", mfc=THEIRS, mec=EDGE, label="COLMAP"),
+        plt.Line2D([], [], color=ERROR, label="position error"),
+    ]
+    if any(n not in c_ours for n in c_gt):  # only when one is actually drawn
+        handles.insert(2, plt.Line2D([], [], ls="", marker="o", mfc="none", mec=THEIRS,
+                                     label="COLMAP only"))
+    fig.legend(handles=handles, loc="outside lower center", ncol=4, frameon=False, fontsize=9)
+    median = float(np.median(list(errors.values()))) if errors else float("nan")
+    fig.suptitle("Camera positions against COLMAP's", fontsize=13, x=0.008, ha="left")
+    fig.text(0.008, 0.915, f"aligned to {reference} and scaled by {s:.3f} onto COLMAP's scene; "
+             f"half the cameras land within {100 * median / span:.1f}% of its size "
+             f"({span:.2f} units from {reference} to the farthest camera)",
+             fontsize=9.5, color="#546e7a")
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=140)
     plt.close(fig)

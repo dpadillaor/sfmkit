@@ -82,7 +82,7 @@ worse (0.981° to 1.001°); the result is recorded in
 [docs/optimizations.md](docs/optimizations.md) rather than kept behind a flag.
 
 These three thresholds (`pnp_threshold`, `min_triangulation_angle_deg`,
-`max_reprojection_error`) were chosen by the grid search in `scripts/sweep.py`,
+`max_reprojection_error`) were chosen by the grid search in `tools/sweep.py`,
 scored against COLMAP. Two of its results are counter-intuitive and worth
 knowing: a *tighter* reprojection threshold makes things worse, because it
 discards points a later bundle adjustment would have pulled into line, and a
