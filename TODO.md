@@ -88,7 +88,7 @@ the contract, the API and the architecture.
   down` loses the streams kept in its anonymous one and so every finished run's
   timeline. Put off: a small loss for now, 240 KB a run (see "Streams never
   expire").
-- [ ] **Lighting up the points a camera sees: cancelled** (2026-09-12). It would
+- [x] **Lighting up the points a camera sees: cancelled** (2026-09-12). It would
   have meant the scene API carrying, per model, which points each camera
   observes (both models keep it: sfmkit's `track_images`, COLMAP's tracks).
   The frustum drawn out to the scene already answers what a photo covers.
@@ -156,7 +156,7 @@ the contract, the API and the architecture.
 - [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
   the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
   httpx2 is stable, and drop the filter.
-- [ ] **A K a camera: weighed and set aside** (2026-09-12). Photos of another
+- [x] **A K a camera: weighed and set aside** (2026-09-12). Photos of another
   setting (Img28, zoomed 1.17x; the seven 64 MP ones, another of the phone's
   cameras) would need their own K through reconstruct, the bundle, localize and
   evaluate, and COLMAP with a camera a setting rather than `CameraMode.SINGLE`.
@@ -204,7 +204,7 @@ the contract, the API and the architecture.
 
 ## Later
 
-- [ ] **Set aside (2026-09-12): everything downstream of exporting to COLMAP's
+- [x] **Set aside (2026-09-12): everything downstream of exporting to COLMAP's
   format.** A COLMAP-format exporter would let a reconstruction of ours feed
   Gaussian splatting, be densified by COLMAP, or be meshed by it
   (`pycolmap.poisson_meshing`). None of that is what this project is for: it
