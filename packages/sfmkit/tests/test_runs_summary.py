@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from sfmkit.apps.tui.model import RunSummary, compare, load_runs
+from sfmkit.data.runs import RunSummary, compare, load_runs
 
 
 def _write_run(root, name, stages: dict):

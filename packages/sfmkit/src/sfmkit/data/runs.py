@@ -1,4 +1,9 @@
-"""Reading runs off disk. No Textual imports here, so it stays testable."""
+"""Reading finished runs off disk: what each one is, and what it scored.
+
+One summary per run directory, from the stage manifests. It is what the
+reporting tools read; the viewer has its own reader, on the other side of
+the contract.
+"""
 
 from __future__ import annotations
 

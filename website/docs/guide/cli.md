@@ -1,6 +1,6 @@
 # CLI reference
 
-One command, `sfmkit`, with one subcommand per stage plus `run` and `ui`. Every
+One command, `sfmkit`, with one subcommand per stage, plus `run`. Every
 stage takes the same two options, and each stage reads what the one before it
 wrote, so they can be run one at a time, re-run, or resumed.
 
@@ -130,15 +130,6 @@ overlay, the difference and the change mask into `changes/`.
 The plots for a finished run: the two reconstructions side by side, the camera
 positions against COLMAP's, matches, epipolar lines, residuals, track lengths,
 and the dense cloud when there is one. Writes `figures/`.
-
-## `sfmkit ui`
-
-A terminal interface for browsing and comparing runs, and launching them.
-
-```bash
-pip install --no-deps -e 'packages/sfmkit[tui]'
-sfmkit ui --runs runs
-```
 
 ## Exit codes and errors
 

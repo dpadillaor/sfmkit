@@ -20,7 +20,6 @@ from sfmkit.apps.cli import (
     match,
     reconstruct,
     run,
-    ui,
     verify,
 )
 from sfmkit.apps.cli._common import console
@@ -82,9 +81,6 @@ def build_parser() -> argparse.ArgumentParser:
     r.formatter_class = argparse.RawDescriptionHelpFormatter
     r.epilog = _stages(helps)
 
-    u = sub.add_parser("ui", help="browse and compare runs in a terminal interface")
-    u.add_argument("--runs", default="runs", help="directory holding run outputs")
-    u.set_defaults(func=ui.cmd_ui)
     return p
 
 

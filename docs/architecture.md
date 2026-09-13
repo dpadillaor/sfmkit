@@ -27,7 +27,6 @@ packages/sfmkit/src/sfmkit/
     viz.py          figures; the only matplotlib import
   apps/           the composition root
     cli/            one module per subcommand
-    tui/            terminal UI
 ```
 
 Imports may only point downwards: `apps` → `render` → `data` → `core`, and
@@ -39,7 +38,7 @@ import-linter contracts, run by `lint-imports` in pre-commit and in CI:
 | Contract | What it forbids |
 |---|---|
 | Layered architecture | any import pointing upwards |
-| The core does no I/O and draws nothing | `core` importing matplotlib, torch, yaml, rich, textual |
+| The core does no I/O and draws nothing | `core` importing matplotlib, torch, yaml, rich |
 | Only the render layer imports matplotlib | `core` or `data` importing matplotlib |
 | Only the data layer imports torch | `core`, `render` or `apps` importing torch directly |
 | Only the data layer imports pycolmap | `core`, `render` or `apps` importing pycolmap directly |
