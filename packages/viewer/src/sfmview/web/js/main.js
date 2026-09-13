@@ -48,11 +48,16 @@ function open(id) {
   ui.selectRun(id);
   ui.renderTimeline([], -1);
   // The feed starts at once: the timeline need not wait for a dense cloud.
-  if (liveOn) {
-    session.feed = new LiveFeed(liveUrl(id), (event) => onLive(token, event),
-      (now) => { if (token === session.token) session.connectedAt = now; }).start();
-  }
+  if (liveOn) startFeed(token);
   showScene(token);
+}
+
+// The open run's live feed. Separate from open() because a broker can arrive
+// after the run was opened.
+function startFeed(token) {
+  session.feed?.stop();
+  session.feed = new LiveFeed(liveUrl(session.id), (event) => onLive(token, event),
+    (now) => { if (token === session.token) session.connectedAt = now; }).start();
 }
 
 // The run's finished results, if it has any yet, with its current step on top.
@@ -246,10 +251,16 @@ async function refresh() {
     say(session.token, 'The run stopped without a word: sfmkit is no longer at work.', true);
     scheduleDraw();
   }
+  // A broker can appear after the page did -- compose starting Redis, or the
+  // server restarted with one -- and a page that only asked at load would
+  // follow no steps until it was reloaded. While there is none, ask again.
+  if (!liveOn) {
+    liveOn = await health().then((h) => h.live, () => false);
+    if (liveOn && session.id && !session.feed) startFeed(session.token);
+  }
   if (!session.id && runs.length) {
     // The page came up before any run, or before the server: start now.
     ui.status('');
-    liveOn = await health().then((h) => h.live, () => liveOn);
     go(initial());
   } else if (run && run.updated !== session.updated) {
     session.updated = run.updated;

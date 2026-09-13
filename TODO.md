@@ -118,11 +118,11 @@ the contract, the API and the architecture.
   stream `sfmkit:steps:<run>`, the WebSocket `/live`), who publishes and who
   listens, reusing `step.schema.json`; and a Mermaid sequence diagram of
   browser, viewer, Redis and sfmkit in `docs/viewer.md`.
-- [ ] **A page opened while the server had no broker never goes live.** The
-  page asks `/api/health` once, at load; restart the server with a broker (as
-  when adding Redis to compose) and the open page follows no steps until it is
-  reloaded. Seen in the Docker lesson. Fix: while `liveOn` is false, `refresh()`
-  asks `/api/health` again and, once live, opens the feed of the open run.
+- [x] **A page opened while the server had no broker goes live when one
+  appears.** It asked `/api/health` once, at load, so adding Redis to compose
+  left the open page following nothing until it was reloaded. `refresh()` asks
+  again while there is no broker, and opens the feed of the run on screen the
+  moment one answers.
 - [ ] **Streams never expire.** A run's stream stays in Redis until the run is
   repeated (a `start` empties it), which is what lets a finished run be
   rewound; with many runs, set an `EXPIRE` after the `end` (a week?). Size,
