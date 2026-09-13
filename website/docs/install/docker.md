@@ -16,9 +16,13 @@ container toolkit).
 
     ```bash
     # Coming, once there is a release
-    # docker compose pull                    # both, by the names compose already uses
-    # docker pull ghcr.io/dpadillaor/sfmkit:cpu
+    # docker compose pull                         # both, by the names compose already uses
+    # docker pull ghcr.io/dpadillaor/sfmkit:cpu   # docker pull padidavid/sfmkit:cpu
+    # docker pull ghcr.io/dpadillaor/sfmview      # docker pull padidavid/sfmview
     ```
+
+    GitHub's registry is the one compose names; Docker Hub carries the same
+    images under `padidavid/`, for anyone whose network is happier with it.
 
     Until then, the commands below build the same images locally, under those
     same names.

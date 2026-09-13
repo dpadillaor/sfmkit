@@ -11,7 +11,7 @@ IMAGE    ?= $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
 COMMIT   := $(shell git rev-parse HEAD)
 SHORT    := $(shell git rev-parse --short HEAD)
 
-.PHONY: help run view test lint env image push check clean-run
+.PHONY: help run view test lint env image push shell check clean-run
 
 help:
 	@echo "make run     CONFIG=configs/<dataset>/<config>.yaml   run the whole pipeline"
