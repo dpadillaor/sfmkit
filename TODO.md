@@ -35,38 +35,12 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Docker
 
-- [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
-  `.env` (`make env`); without compose, files written to a mounted `runs/` belong
-  to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
-  default non-root user in the Dockerfile (`sfmkit`, UID 1000, with a home), so
-  plain `docker run` is not root and is right for the common UID 1000; compose
-  keeps overriding it from `.env` (optional: without it compose uses 1000). Then
-  document it in the README's "Try it".
-- [x] **The SuperPoint weights are no longer in the image** (2026-09-12). Magic
-  Leap licenses them "ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL
-  RESEARCH USE ONLY", and "You may not distribute, copy or use the Software
-  except as explicitly permitted": using them is fine, publishing an image that
-  carries them is not. So the image ships without them and `match` downloads
-  them on first use, into `$TORCH_HOME` (`/opt/torch` in the image, a volume by
-  compose's default), which is how that licence says it is accepted. Missing and
-  with no network, the error says where they go and how to point at them, in
-  compose's terms inside a container. The LightGlue file beside them
-  (`superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB) comes from cvg/LightGlue,
-  whose code is Apache-2.0; its weights' terms are not stated separately.
-- [x] **Publish the image** to a registry, so nobody has to build it. Nothing
-  stands in the way now that the weights are not in it; what is left is the
-  choosing of a registry, the tags (`:cpu`, `:gpu`, the commit) and a CI job
-  that builds both.
-- [x] **`I have no name!` in a container's shell: left alone** (2026-09-13). The
-  host's UID has no entry in the image's `/etc/passwd`, so bash cannot put a
-  name on the prompt. Nothing else is affected — permissions, writes and runs
-  are all by number. Every fix costs more than the symptom: mounting the host's
-  `/etc/passwd` shows the container the machine's user list and does nothing on
-  Windows unless compose is run from inside WSL; baking a user in assumes a UID
-  the host may not have; an entrypoint that adds the line needs that file
-  writable and replaces `user:` altogether. Revisit only if the image is handed
-  to people who live in its shell.
-- [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
+- [x] **Plain `docker run` runs as uid 1000**, not as root: both images create
+  the user and switch to it, and `/app` belongs to it. Compose still overrides
+  it with the caller's own uid, so runs written to a mounted `runs/` belong to
+  whoever started them.
+- [x] **`make shell`**: a shell inside the image with a run's mounts,
+  `DEVICE=gpu` for the other one.
 - [x] **Name of the compose service.** It was in doubt because `cli` also ran
   the TUI; with the TUI gone, `cli` is exact again.
 
@@ -206,9 +180,17 @@ the contract, the API and the architecture.
   The published image's version goes up when there is a release to name.
 - [x] **The README leads with what the project is for** — the old photograph
   and what changed — instead of burying them in a table of ten stages.
-- [ ] **`compose.yaml` should be able to pull rather than build**, once the
-  images are published: someone who only wants to look at the viewer waits ten
-  minutes for a build they did not ask for.
+- [x] **`compose.yaml` names the images as they are published**
+  (`ghcr.io/dpadillaor/...`), so `docker compose pull` fetches them and nobody
+  waits for a build they did not ask for. Builds write the same names.
+- [x] **Failures are heard in Discord, not in the inbox** (2026-09-13).
+  `.github/workflows/notify.yml` watches the three workflows and posts the ones
+  that fail to a Discord channel, with the branch, the commit and a link; it
+  says nothing about a green run. It wants the repository secret
+  `DISCORD_WEBHOOK` (`gh secret set DISCORD_WEBHOOK`) and passes without it, so
+  a fork is not failed by a secret it cannot have. Still to do by hand, and
+  only the account's owner can: turn the email off at
+  <https://github.com/settings/notifications>, Actions -> Email.
 - [ ] **Rehearse the newcomer's path against the published repository**: clone,
   the conda instructions as written, `no-colmap.yaml`, the viewer. It was
   rehearsed against the image; the instructions on the site have not been.

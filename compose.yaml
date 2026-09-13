@@ -1,3 +1,6 @@
+# The images are named as they are published, so `docker compose pull` fetches
+# them instead of building: someone who only wants to look at a run should not
+# wait for a build. `docker compose build` still builds into the same names.
 name: sfmkit
 
 services:
@@ -8,7 +11,7 @@ services:
       args:
         GIT_COMMIT: ${GIT_COMMIT:-unknown}
         DEVICE: cpu
-    image: sfmkit:cpu
+    image: ghcr.io/dpadillaor/sfmkit:cpu
     user: "${UID:-1000}:${GID:-1000}"
     environment:
       HOME: /tmp
@@ -25,14 +28,14 @@ services:
       args:
         DEVICE: gpu
         EXAMPLE: gpu-dense
-    image: sfmkit:gpu
+    image: ghcr.io/dpadillaor/sfmkit:gpu
     gpus: all
 
   viewer:
     build:
       context: .
       dockerfile: packages/viewer/Dockerfile
-    image: sfmview
+    image: ghcr.io/dpadillaor/sfmview
     environment:
       SFMVIEW_BROKER: redis://redis:6379
     volumes:

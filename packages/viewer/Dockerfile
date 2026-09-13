@@ -28,5 +28,9 @@ LABEL org.opencontainers.image.title="sfmview" \
       org.opencontainers.image.revision="$GIT_COMMIT" \
       org.opencontainers.image.licenses="MIT"
 
+# It only ever reads runs and photographs, so it has no reason to be root.
+RUN useradd --create-home --uid 1000 sfmview && chown -R 1000:1000 /app
+USER 1000:1000
+
 # Entrypoint
 ENTRYPOINT ["sfmview"]
