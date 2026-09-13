@@ -15,6 +15,45 @@ sfmview --runs runs --broker redis://localhost:6379
 
 With Docker both are set for you; see [Install with Docker](../install/docker.md#watching-a-run-as-it-is-built).
 
+## How it goes
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant K as sfmkit run
+    participant R as Redis
+    participant V as sfmview
+    participant B as the browser
+
+    B->>V: GET /api/runs
+    B->>V: WS /api/runs/valencia/cpu/live
+    V->>R: XRANGE (history)
+    R-->>V: what the last run left, if anything
+    V-->>B: {"now": "<stream id>"}, then each entry
+
+    K->>R: DEL, then XADD stage match start
+    Note over K,R: the first message of a run empties the stream
+    R-->>V: stage match start
+    V-->>B: relayed unchanged
+    K->>R: SET alive, renewed every 5 s
+    K->>R: XADD stage match end (41.2 s)
+    K->>R: XADD start (K, images, reference)
+    loop one per camera registered
+        K->>R: XADD step (cameras and points as they stand)
+        R-->>V: step
+        V-->>B: relayed
+    end
+    K->>R: XADD end, EXPIRE in a week
+    K->>R: DEL alive
+    R-->>V: end
+    V-->>B: relayed
+    B->>V: GET .../scene (the files are complete now)
+```
+
+Nothing in that diagram is a request from one program to the other: sfmkit
+writes to Redis and the viewer reads from it, and neither would notice the
+other being replaced.
+
 ## The keys
 
 | Key | What it is |
@@ -128,6 +167,22 @@ leaves a stream that says what happened rather than one that simply stops.
 ```json
 {"v": 1, "kind": "failed", "run": "valencia/cpu", "error": "KeyboardInterrupt"}
 ```
+
+## The contract, as a file
+
+The message format is [`contracts/step.schema.json`][schema], which both test
+suites validate against — a change on one side breaks a test on the other. What
+JSON Schema cannot say is who publishes what, where, and who listens; that is
+[`contracts/asyncapi.yaml`][asyncapi], an AsyncAPI 3 document that names the
+two channels (the stream and the heartbeat), the WebSocket the viewer relays
+them on, and points each message at the schema rather than repeating it.
+
+  [schema]: https://github.com/dpadillaor/sfmkit/blob/main/contracts/step.schema.json
+  [asyncapi]: https://github.com/dpadillaor/sfmkit/blob/main/contracts/asyncapi.yaml
+
+It is the same idea as the OpenAPI that FastAPI serves for the HTTP side at
+[`/docs`](api.md): the interface written down in the form its tools understand,
+so it can be read, diffed and generated from.
 
 ## Reading them yourself
 

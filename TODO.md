@@ -116,12 +116,13 @@ the contract, the API and the architecture.
   vendored three.js 0.9 MB, a run's scene 245 KB, the dense cloud 5.9 MB
   (220k points, worth thinning to ~50k), a photo 3.9 MB as it is and ~300 KB
   resized, fetched only when one is looked through.
-- [ ] **Document the interfaces with the standards.** HTTP is covered: FastAPI
-  serves OpenAPI at `/docs` and `/redoc` (say so in `docs/viewer.md`). The
-  messages are not: an AsyncAPI file in `contracts/` for the channels (the
-  stream `sfmkit:steps:<run>`, the WebSocket `/live`), who publishes and who
-  listens, reusing `step.schema.json`; and a Mermaid sequence diagram of
-  browser, viewer, Redis and sfmkit in `docs/viewer.md`.
+- [x] **The interfaces are written down in their own standards.** HTTP was
+  already: FastAPI serves OpenAPI at `/docs` and `/redoc`. The messages now have
+  `contracts/asyncapi.yaml` (AsyncAPI 3: the stream, the heartbeat, the
+  WebSocket, who sends and who listens), pointing at `step.schema.json` rather
+  than repeating it — for which the schema's branches were given names under
+  `$defs`. And a Mermaid sequence diagram of sfmkit, Redis, the viewer and the
+  browser, in `docs/viewer.md` and on the site.
 - [ ] **A page opened while the server had no broker never goes live.** The
   page asks `/api/health` once, at load; restart the server with a broker (as
   when adding Redis to compose) and the open page follows no steps until it is

@@ -104,6 +104,46 @@ stream that stopped without an `end`. Both packages test
 against the schema and its examples, with the checker in `contracts/check.py`,
 so a change on one side breaks a test on the other, not a run.
 
+### How it goes
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant K as sfmkit run
+    participant R as Redis
+    participant V as sfmview
+    participant B as the browser
+
+    B->>V: GET /api/runs
+    B->>V: WS /api/runs/valencia/cpu/live
+    V->>R: XRANGE (history)
+    R-->>V: what the last run left, if anything
+    V-->>B: {"now": "<stream id>"}, then each entry
+
+    K->>R: DEL, then XADD stage match start
+    Note over K,R: the first message of a run empties the stream
+    R-->>V: stage match start
+    V-->>B: relayed unchanged
+    K->>R: SET alive, renewed every 5 s
+    K->>R: XADD stage match end (41.2 s)
+    K->>R: XADD start (K, images, reference)
+    loop one per camera registered
+        K->>R: XADD step (cameras and points as they stand)
+        R-->>V: step
+        V-->>B: relayed
+    end
+    K->>R: XADD end, EXPIRE in a week
+    K->>R: DEL alive
+    R-->>V: end
+    V-->>B: relayed
+    B->>V: GET .../scene (the files are complete now)
+```
+
+The message format is `contracts/step.schema.json`; who publishes what and who
+listens is `contracts/asyncapi.yaml`, an AsyncAPI 3 document that points at
+that schema rather than repeating it. The HTTP side's equivalent is the
+OpenAPI FastAPI serves at `/docs`.
+
 ## One frame for two reconstructions
 
 Each reconstruction has its own origin, orientation and scale. The viewer
@@ -125,7 +165,7 @@ one place (`web/js/scene.js`).
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
 | `WS /api/runs/{project}/{config}/live?after=<id>` | `{"now"}`, the server's clock, then the run's stream as `{"id", "message"}`: history first, then as it comes |
-| `GET /docs` | the API, from FastAPI |
+| `GET /docs`, `GET /redoc` | the API's OpenAPI, from FastAPI, two ways |
 
 Names are checked as single path components, and a run directory must lie
 inside the runs root, symlinks included. A refused WebSocket is accepted and
