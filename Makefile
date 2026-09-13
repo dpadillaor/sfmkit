@@ -9,7 +9,7 @@ REGISTRY ?= ghcr.io
 OWNER    ?= dpadillaor
 COMMIT   := $(shell git rev-parse HEAD)
 
-.PHONY: help run view test lint env image push check clean-run
+.PHONY: help run view test lint env-check env image push check clean-run
 
 help:
 	@echo "make run     CONFIG=configs/<dataset>/<config>.yaml   run the whole pipeline"
@@ -30,12 +30,28 @@ run:
 view:
 	sfmview --runs runs
 
-test:
-	cd packages/$(PKG) && pytest -q
+# Everything runs through `python -m`, so the tools are the ones belonging to
+# the interpreter that is active. Calling `pytest` or `ruff` by name picks
+# whatever is first on PATH, which in a half-activated shell is another
+# environment's, and the failure that follows blames the code.
+PYTHON ?= python
 
-lint:
-	ruff check .
-	cd packages/$(PKG) && lint-imports
+test: env-check
+	cd packages/$(PKG) && $(PYTHON) -m pytest -q
+
+lint: env-check
+	$(PYTHON) -m ruff check .
+	# import-linter has no __main__: its console script is this one call.
+	cd packages/$(PKG) && \
+		$(PYTHON) -c "from importlinter.cli import lint_imports_command; lint_imports_command()"
+
+# Says which environment is missing rather than failing on a missing command.
+env-check:
+	@$(PYTHON) -c "import pytest, ruff, importlinter" 2>/dev/null || { \
+		echo "the checks need the development tools of the $(PKG) environment."; \
+		echo "conda activate $(if $(filter viewer,$(PKG)),sfmview,sfmkit)"; \
+		echo "pip install --no-deps -r packages/$(PKG)/requirements-dev.txt"; \
+		exit 1; }
 
 env:
 	@printf 'UID=%s\nGID=%s\n' "$$(id -u)" "$$(id -g)" > .env
