@@ -229,6 +229,14 @@ the contract, the API and the architecture.
 - [ ] **`compose.yaml` should be able to pull rather than build**, once the
   images are published: someone who only wants to look at the viewer waits ten
   minutes for a build they did not ask for.
+- [x] **Failures are heard in Discord, not in the inbox** (2026-09-13).
+  `.github/workflows/notify.yml` watches the three workflows and posts the ones
+  that fail to a Discord channel, with the branch, the commit and a link; it
+  says nothing about a green run. It wants the repository secret
+  `DISCORD_WEBHOOK` (`gh secret set DISCORD_WEBHOOK`) and passes without it, so
+  a fork is not failed by a secret it cannot have. Still to do by hand, and
+  only the account's owner can: turn the email off at
+  <https://github.com/settings/notifications>, Actions -> Email.
 - [ ] **Rehearse the newcomer's path against the published repository**: clone,
   the conda instructions as written, `no-colmap.yaml`, the viewer. It was
   rehearsed against the image; the instructions on the site have not been.

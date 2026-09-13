@@ -1,0 +1,55 @@
+# One place for "something went red". GitHub's own route is email, which puts
+# every failed run in the same inbox as everything else; this posts it to a
+# Discord channel instead, so the noise can be muted, read later, or left to
+# the phone. Turn the email off at https://github.com/settings/notifications
+# (Actions -> Email), and this stays as the only route.
+#
+# It needs one repository secret, DISCORD_WEBHOOK: in Discord, the channel's
+# Edit Channel -> Integrations -> Webhooks -> New Webhook, Copy Webhook URL;
+# in GitHub, `gh secret set DISCORD_WEBHOOK`. Without it the job says so and
+# succeeds, so a fork or a clone is not failed by a secret it cannot have.
+name: Notify
+
+on:
+  workflow_run:
+    workflows: [Checks, Documentation, Docker images]
+    types: [completed]
+
+# It reads the event it was given and posts it elsewhere; it needs nothing of
+# the repository itself.
+permissions: {}
+
+jobs:
+  discord:
+    name: Say it in Discord
+    # Only failures. A green run that nobody has to act on is not news.
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the failure to the webhook
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WORKFLOW: ${{ github.event.workflow_run.name }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          COMMIT: ${{ github.event.workflow_run.head_sha }}
+          TITLE: ${{ github.event.workflow_run.display_title }}
+          URL: ${{ github.event.workflow_run.html_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "no DISCORD_WEBHOOK secret is set: nothing to post"
+            exit 0
+          fi
+          # jq builds the JSON, so a commit message with a quote in it cannot
+          # break the payload. 15158332 is Discord's red.
+          jq -n \
+            --arg name "$WORKFLOW failed on $REPO" \
+            --arg title "${TITLE:-no title}" \
+            --arg url "$URL" \
+            --arg branch "$BRANCH" \
+            --arg commit "${COMMIT:0:7}" \
+            '{embeds: [{title: $name, url: $url, color: 15158332,
+                        description: $title,
+                        fields: [{name: "branch", value: $branch, inline: true},
+                                 {name: "commit", value: $commit, inline: true}]}]}' \
+          | curl -sS --fail-with-body -X POST -H 'Content-Type: application/json' -d @- "$WEBHOOK"
