@@ -7,7 +7,9 @@ RUN    ?= runs/$(notdir $(patsubst %/,%,$(dir $(CONFIG))))/$(notdir $(basename $
 # Where images are published. OWNER is the GitHub account the packages hang off.
 REGISTRY ?= ghcr.io
 OWNER    ?= dpadillaor
+IMAGE    ?= $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
 COMMIT   := $(shell git rev-parse HEAD)
+SHORT    := $(shell git rev-parse --short HEAD)
 
 .PHONY: help run view test lint env image push check clean-run
 
@@ -20,6 +22,7 @@ help:
 	@echo "make env                                  .env with your UID/GID, for docker compose"
 	@echo "make image  [DEVICE=cpu]                   docker image sfmkit:$(DEVICE), stamped with the commit"
 	@echo "make push   [DEVICE=gpu]                   publish it to $(REGISTRY)/$(OWNER), commit and all"
+	@echo "make shell  [DEVICE=cpu]                   a shell inside the image, mounts and all"
 	@echo ""
 	@echo "individual stages: sfmkit <stage> --config ..."
 	@echo "                   sfmkit run --help"
@@ -54,11 +57,15 @@ image:
 push: image
 	@test -z "$$(git status --porcelain)" || \
 		{ echo "the working tree is dirty: commit first, so the image names real code"; exit 1; }
-	docker tag sfmkit:$(DEVICE) $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
-	docker tag sfmkit:$(DEVICE) $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)-$(shell git rev-parse --short HEAD)
-	docker push $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
-	docker push $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)-$(shell git rev-parse --short HEAD)
-	@echo "published $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE) from $(COMMIT)"
+	docker tag $(IMAGE) $(IMAGE)-$(SHORT)
+	docker push $(IMAGE)
+	docker push $(IMAGE)-$(SHORT)
+	@echo "published $(IMAGE) from $(COMMIT)"
+
+# The image's own environment, with the same mounts a run gets: for reading a
+# traceback from inside, or checking what the container can actually see.
+shell:
+	docker compose run --rm --entrypoint bash $(if $(filter gpu,$(DEVICE)),cli-gpu,cli)
 
 check: lint test
 

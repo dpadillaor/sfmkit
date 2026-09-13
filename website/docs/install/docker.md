@@ -16,11 +16,12 @@ container toolkit).
 
     ```bash
     # Coming, once there is a release
-    # docker pull ghcr.io/dpadillaor/sfmkit:cpu     docker pull padidavid/sfmkit:cpu
-    # docker pull ghcr.io/dpadillaor/sfmview        docker pull padidavid/sfmview
+    # docker compose pull                    # both, by the names compose already uses
+    # docker pull ghcr.io/dpadillaor/sfmkit:cpu
     ```
 
-    Until then, the commands below build the same images locally.
+    Until then, the commands below build the same images locally, under those
+    same names.
 
 ## First, your user
 
@@ -34,14 +35,24 @@ make env        # writes UID= and GID= into .env
 ## Build
 
 ```bash
-make image                    # sfmkit:cpu
-make image DEVICE=gpu         # sfmkit:gpu
-docker compose build viewer   # sfmview
+make image                    # ghcr.io/dpadillaor/sfmkit:cpu
+make image DEVICE=gpu         # ghcr.io/dpadillaor/sfmkit:gpu
+docker compose build viewer   # ghcr.io/dpadillaor/sfmview
+```
+
+The images are named as they are published, so once there is a release the same
+compose file pulls them instead:
+
+```bash
+docker compose pull
 ```
 
 `make image` passes the current commit in as a build argument, and every run
 made inside the image records it in its manifest: a result can be traced to the
 code that produced it.
+
+Both images run as an ordinary user, uid 1000, rather than as root — compose
+overrides that with your own uid so the runs it writes belong to you.
 
 ## Run the pipeline
 
@@ -58,6 +69,17 @@ repository as usual.
 Each image ships the example run it can reproduce: `sfmkit:cpu` carries
 `runs/valencia/cpu`, `sfmkit:gpu` carries `runs/valencia/gpu-dense` with its
 dense cloud. You can open the viewer on them before running anything yourself.
+
+## A shell inside
+
+```bash
+make shell            # or: make shell DEVICE=gpu
+```
+
+The image's own environment with the same mounts a run gets: for reading a
+traceback from inside, or for seeing what the container can actually reach. Its
+prompt greets `I have no name!`, because the uid it runs as has no entry in the
+image's `/etc/passwd`; nothing else is affected, since permissions go by number.
 
 ## The feature weights
 
@@ -119,9 +141,9 @@ the run goes ahead either way. `down` removes Redis's container and the next
 
 | Service | Image | What it is |
 |---|---|---|
-| `cli` | `sfmkit:cpu` | the pipeline, CPU only; entry point `sfmkit` |
-| `cli-gpu` | `sfmkit:gpu` | the same with CUDA PyTorch and COLMAP; `gpus: all` |
-| `viewer` | `sfmview` | the web viewer on port 8000 |
+| `cli` | `ghcr.io/dpadillaor/sfmkit:cpu` | the pipeline, CPU only; entry point `sfmkit` |
+| `cli-gpu` | `ghcr.io/dpadillaor/sfmkit:gpu` | the same with CUDA PyTorch and COLMAP; `gpus: all` |
+| `viewer` | `ghcr.io/dpadillaor/sfmview` | the web viewer on port 8000 |
 | `redis` | `redis:7-alpine` | live progress, internal to the compose network |
 
 ## Publishing an image

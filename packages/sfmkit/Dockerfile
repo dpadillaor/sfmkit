@@ -47,6 +47,12 @@ LABEL org.opencontainers.image.title="sfmkit" \
       org.opencontainers.image.revision="$GIT_COMMIT" \
       org.opencontainers.image.licenses="MIT"
 
+# A plain `docker run` should not be root either. Compose overrides this with
+# the caller's own UID so that the runs it writes on a mounted directory belong
+# to them; without compose, this is who runs, and /app is theirs to write in.
+RUN useradd --create-home --uid 1000 sfmkit && chown -R 1000:1000 /app
+USER 1000:1000
+
 # Entrypoint
 ENTRYPOINT ["sfmkit"]
 CMD ["--help"]
