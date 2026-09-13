@@ -1,0 +1,22 @@
+# What is not covered by the MIT licence
+
+The licence covers the code. Three things in or around this repository are not
+ours to license, and each is named where it is used:
+
+**The photographs of the Plaza de la Virgen** in `data/valencia/scene/` are the
+author's own, except `Img_Old.jpg`, an undated historical photograph of the
+square whose authorship could not be established; it is included for study of
+the place it shows.
+
+**SuperPoint and LightGlue weights** are not in this repository nor in its
+images. `match` downloads them at first use into whatever `TORCH_HOME` points
+at. SuperPoint's are Magic Leap's, released for non-commercial research;
+whoever downloads them accepts those terms.
+
+**COLMAP**, called through `pycolmap` by the `colmap` and `dense` stages, is a
+separate project under its own licence (new BSD).
+
+**IBM Plex Sans and Roboto Mono**, vendored in the viewer under
+`packages/viewer/src/sfmview/web/vendor/fonts/`, are under the SIL Open Font
+License 1.1, whose text is kept beside them. **three.js**, in the same
+directory, is MIT.

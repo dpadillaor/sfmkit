@@ -205,6 +205,21 @@ the contract, the API and the architecture.
   project makes; with the dense cloud, the two to lead with. Copy reduced
   versions into `docs/figures/` (the full PNGs are ~17 MB).
 
+## Going public
+
+- [x] **MIT licence**, with a `NOTICE` for what it does not cover: the
+  photographs, SuperPoint's weights, COLMAP, the vendored fonts and three.js.
+- [x] **The history is the author's own**, under the GitHub no-reply address,
+  and carries no co-author trailers. Backups of both states are outside the
+  repository: `../MGRCV-history-backup-2026-09-10.bundle` (the course's code,
+  tag `baseline-original`) and `../MGRCV-backup-before-rewrite-2026-09-13.bundle`.
+- [ ] **Create the repository and push.** `main` does not exist yet: the work
+  is on `feature/viewer`, and `master` holds only the initial commit. Decide the
+  name (`sfmkit` is what `website/mkdocs.yml` assumes), rename the branch to
+  `main`, push, then turn Pages on.
+- [ ] **Badges in the README** once there is a repository: the CI's state and
+  the published image's version. They are the first thing a reader checks.
+
 ## Docs website
 
 - [x] **MkDocs + Material site in `website/`**, styled to match the viewer, with

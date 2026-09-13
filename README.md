@@ -38,6 +38,12 @@ order.
 | `changes` | Overlays the old photo on a modern one and marks what differs | 7.6% of the overlap |
 | `figures` | Draws the plots for a finished run | |
 
+## Licence
+
+MIT, in [LICENSE](LICENSE). The photographs, the feature weights it downloads
+and the tools it calls are not ours to license: [NOTICE](NOTICE) says what each
+one is.
+
 ---
 
 *This README is being rewritten for people who want to use the tool. The

@@ -44,7 +44,8 @@ ARG GIT_COMMIT=unknown
 ENV SFMKIT_GIT_COMMIT=$GIT_COMMIT
 LABEL org.opencontainers.image.title="sfmkit" \
       org.opencontainers.image.description="Structure from Motion: the pipeline and its CLI" \
-      org.opencontainers.image.revision="$GIT_COMMIT"
+      org.opencontainers.image.revision="$GIT_COMMIT" \
+      org.opencontainers.image.licenses="MIT"
 
 # Entrypoint
 ENTRYPOINT ["sfmkit"]
