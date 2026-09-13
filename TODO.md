@@ -242,9 +242,9 @@ the contract, the API and the architecture.
   website/mkdocs.yml`, in an environment of its own or in `sfmview`.
 - [x] **The site is live** at `dpadillaor.github.io/sfmkit`, deployed by
   `Documentation` on every push to main.
-- [ ] **`repo_url`, `repo_name` and `edit_uri`** are still commented out in
-  `website/mkdocs.yml`: filling them puts the repository's link, its star count
-  and an "edit this page" pencil in the site's header.
+- [x] **`site_url`, `repo_url`, `repo_name` and `edit_uri` are filled in**
+  (2026-09-13): the header carries the repository and its stars, and every page
+  an "edit this page" pencil onto `main`.
 - [ ] **Publish the images.** `.github/workflows/images.yml` pushes to GHCR and
   to Docker Hub when a release is published; Docker Hub waits on the secrets
   `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, which could not be set on
