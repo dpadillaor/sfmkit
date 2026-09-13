@@ -30,7 +30,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   the same reconstruction read 0.379°. COLMAP varies between runs, but
   negligibly on the scene's cameras (±0.002°, over 3 runs); its placement of
   the old photo does not, as `docs/old-photo.md` says.
-- [ ] **`sfmkit run --help` should list the stages** in order, one line each. A
+- [x] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
 ## Docker
@@ -53,7 +53,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   compose's terms inside a container. The LightGlue file beside them
   (`superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB) comes from cvg/LightGlue,
   whose code is Apache-2.0; its weights' terms are not stated separately.
-- [ ] **Publish the image** to a registry, so nobody has to build it. Nothing
+- [x] **Publish the image** to a registry, so nobody has to build it. Nothing
   stands in the way now that the weights are not in it; what is left is the
   choosing of a registry, the tags (`:cpu`, `:gpu`, the commit) and a CI job
   that builds both.
@@ -100,7 +100,7 @@ the contract, the API and the architecture.
   could take the colour of a pixel that sees it (the viewer already reads a
   `colors` key, and COLMAP's model carries them), but one colour a model is
   what tells the two apart on screen, which is the point of drawing both.
-- [ ] **A documentation site**, MkDocs Material from `docs/*.md`, on GitHub
+- [x] **A documentation site**, MkDocs Material from `docs/*.md`, on GitHub
   Pages through Actions once the repo is public: Mermaid diagrams, the viewer's
   OpenAPI embedded, mkdocstrings for sfmkit's reference, and ADRs for the
   decisions taken (Redis, ports and adapters, `--no-deps`, EXIF K...).
@@ -199,7 +199,7 @@ the contract, the API and the architecture.
   - Which stages use the GPU: `match` (PyTorch), `colmap` (SIFT), `dense`
     (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
 - [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
-- [ ] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
+- [x] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
 - [ ] **Figures for the README**: `changes/overlay_Img_Old_on_Img01.png` (the old photo
   set into today's square, near-perfect alignment) is the strongest image the
   project makes; with the dense cloud, the two to lead with. Copy reduced
@@ -213,10 +213,8 @@ the contract, the API and the architecture.
   and carries no co-author trailers. Backups of both states are outside the
   repository: `../MGRCV-history-backup-2026-09-10.bundle` (the course's code,
   tag `baseline-original`) and `../MGRCV-backup-before-rewrite-2026-09-13.bundle`.
-- [ ] **Create the repository and push.** `main` does not exist yet: the work
-  is on `feature/viewer`, and `master` holds only the initial commit. Decide the
-  name (`sfmkit` is what `website/mkdocs.yml` assumes), rename the branch to
-  `main`, push, then turn Pages on.
+- [x] **The repository is up**: `github.com/dpadillaor/sfmkit`, public, `main`,
+  189 commits, wiki and projects off, eight topics.
 - [ ] **Badges in the README** once there is a repository: the CI's state and
   the published image's version. They are the first thing a reader checks.
 - [ ] **The README buries what the project is for.** `localize` and `changes`
@@ -238,11 +236,11 @@ the contract, the API and the architecture.
   what a run holds, the viewer, its HTTP API, its live messages, the results and
   development. `website/requirements.txt` pins it. `mkdocs serve -f
   website/mkdocs.yml`, in an environment of its own or in `sfmview`.
-- [ ] **Turn the site on.** `.github/workflows/docs.yml` builds and deploys it
-  already; what is left needs the repository to exist on github.com: set
-  Settings -> Pages -> Source to "GitHub Actions", and put the address Pages
-  gives back into `site_url` in `website/mkdocs.yml`, along with `repo_url`,
-  `repo_name` and `edit_uri`, which are commented out there.
+- [x] **The site is live** at `dpadillaor.github.io/sfmkit`, deployed by
+  `Documentation` on every push to main.
+- [ ] **`repo_url`, `repo_name` and `edit_uri`** are still commented out in
+  `website/mkdocs.yml`: filling them puts the repository's link, its star count
+  and an "edit this page" pencil in the site's header.
 - [ ] **Publish the images.** `.github/workflows/images.yml` pushes to GHCR and
   to Docker Hub when a release is published; Docker Hub waits on the secrets
   `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, which could not be set on
