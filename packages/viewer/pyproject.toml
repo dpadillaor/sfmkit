@@ -27,8 +27,7 @@ sfmview = [
 testpaths = ["tests"]
 markers = ["redis: needs a Redis server at SFMVIEW_TEST_REDIS"]
 filterwarnings = [
-    # starlette's TestClient warning about its own dependencies, not about ours
-    "ignore:Using `httpx` with `starlette.testclient`",
+    # starlette's own use of anyio, not ours
     "ignore:The anyio.abc.BlockingPortal alias:DeprecationWarning",
 ]
 

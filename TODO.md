@@ -155,17 +155,22 @@ the contract, the API and the architecture.
   otherwise Python alone. The page is checked by screenshots from headless
   Chrome over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
   `--screenshot` does not wait for WebSockets).
-- [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
-  the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
-  one joins.
+- [x] **`contracts/check.py` stays as it is** (2026-09-13). Eighty-two lines
+  covering the part of JSON Schema the contracts actually use, against a
+  dependency in both packages' environments -- and in both images -- for five
+  message shapes. Revisit only if `jsonschema` arrives for some other reason,
+  or if the schemas start using what it does not cover.
 - [x] **pre-commit checks both packages' layering** (2026-09-13), through
   `tools/lint-imports`: import-linter has to import a package to follow its
   imports, and the hooks run in whichever environment the commit is made from,
   so each package is checked when it is installed there and skipped, out loud,
   when it is not. CI builds both environments, so nothing is skipped twice.
-- [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
-  the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
-  httpx2 is stable, and drop the filter.
+- [x] **The viewer's tests are on httpx2** (2026-09-13), so the warning is
+  gone rather than filtered. httpx2 2.12.0 brings `httpcore2` and `truststore`
+  and drops `certifi`; all four are pinned in `requirements-dev.txt` and the
+  80 tests pass in an environment built from it alone. Rebuild `sfmview` (or
+  `pip install --no-deps -r packages/viewer/requirements-dev.txt`) after
+  pulling this. Only the tests used httpx: nothing the viewer serves changed.
 - [x] **A K a camera: weighed and set aside** (2026-09-12). Photos of another
   setting (Img28, zoomed 1.17x; the seven 64 MP ones, another of the phone's
   cameras) would need their own K through reconstruct, the bundle, localize and
