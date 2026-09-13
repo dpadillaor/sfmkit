@@ -22,7 +22,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `calibrate` still takes chessboard photos (tested on synthetic boards) or a
   K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
   `data/valencia/calibration/` would check the EXIF K.
-- [ ] **Say in the README what the error is measured against.** Both configs
+- [x] **The README says what the error is measured against** (2026-09-13). Both configs
   score the reconstruction against COLMAP run from scratch on the same photos,
   its own features and matching: the two share the photographs and nothing
   else, which is what makes 0.35° (cpu) and 0.29° (gpu-dense) worth quoting.
@@ -186,10 +186,16 @@ the contract, the API and the architecture.
   answers, gives the old photograph and the change map a section of their own
   rather than two rows in a table of ten, and carries Try it, the viewer, what
   is inside, the badges and the links to the site.
-- [ ] **`README.old.md`**: the results-first version it replaced. Keep while it
-  still holds numbers the site does not, then fold those in and delete it.
-- [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches
-  — it is in the site's install page, not in the README.
+- [x] **`README.old.md` is folded in and gone** (2026-09-13). What it held and
+  the site did not: the camera estimated for the old plate against COLMAP's own
+  estimate of it, now in `docs/old-photo.md` and measured again on today's run
+  (f 552.0/555.8 against 553.8, six pixels apart in the centre, and the course's
+  3.8:1 K beside them); how far the change figure can be read, now on the
+  results page; and the diagnostics figures, now in the run guide with the
+  reading that made them worth showing. `matches`, `epipolar`, `residuals` and
+  `changes` went from 1-2.5 MB PNGs to resized JPEGs on the way.
+- [x] **The README mentions `sfm.device`** (2026-09-13), and that a CPU and a
+  GPU find slightly different matches and so give slightly different numbers.
 
 ## Going public
 
@@ -239,6 +245,12 @@ the contract, the API and the architecture.
   A self-hosted runner with a GPU would fold it back into `images.yml`.
 - [ ] Keep the site content in sync with the README once the README rework
   lands: install steps and the stages table are duplicated for now.
+- [ ] **The figures are kept twice**, in `docs/figures/` for the README and in
+  `website/docs/figures/` for the site, copied by hand: 9 MB of duplicates, and
+  one of the two goes stale the first time only one is updated. MkDocs will not
+  read outside its own docs directory; the ways out are a build step that
+  copies them, a symlink, or moving the figures under `website/` and pointing
+  the README at raw URLs.
 - [x] **A tutorial**, the page COLMAP's site has and ours did not: one pass
   from a clone to a reconstruction in the viewer, then the same on photographs
   of your own. It is where most readers start.

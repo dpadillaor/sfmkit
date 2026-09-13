@@ -123,6 +123,17 @@ Ten stages, each a command; `sfmkit run` does them in order.
 Every stage writes a manifest with the commit, the versions and the whole
 config, so a figure can name the code that produced it.
 
+**What the 0.30° is measured against.** COLMAP, run from scratch on the same
+photographs, with its own features and its own matching: the two programs share
+the photographs and nothing else, which is what makes the number worth quoting.
+Scored instead against a model that had been fed matches like ours, the same
+reconstruction reads 0.379°.
+
+Matching runs where `sfm.device` says. A CPU and a GPU do not find quite the
+same matches, so they do not give quite the same model: 14 cameras and 2 850
+points at 0.338° on a CPU, 14 and 2 830 at 0.300° on a GPU. Both are in
+[the configuration](https://dpadillaor.github.io/sfmkit/guide/config/).
+
 ## What is inside
 
 The parts worth a look, and why they are there:

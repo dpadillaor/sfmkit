@@ -5,8 +5,9 @@
 | `then_and_now.jpg` | The historical photo beside a modern one | `python tools/then_and_now.py`, from the repo root | README |
 | `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python tools/changes_animation.py --layout side --format webp --width 1000 --quality 55` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `pipeline.svg` | The stages, grouped in three blocks | Written by hand; see below | README |
-| `cameras.png`, `comparison.png`, `matches.png`, `epipolar.png`, `residuals.png`, `tracks.png` | Diagnostics of a finished run | Copied from a run's `figures/` (`sfmkit figures`) | README.old.md |
-| `changes.png` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`) | README.old.md |
+| `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
+| `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
+| `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
 
 ## `pipeline.svg`
 
