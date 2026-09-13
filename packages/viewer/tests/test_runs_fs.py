@@ -117,10 +117,10 @@ def test_the_valencia_example():
     """The saved run: sfmkit and an independent COLMAP model, the old photo in both."""
     scene = FsRunStore(EXAMPLES).scene(RunId("valencia", "cpu"))
     ours, theirs = scene.models
-    assert scene.reference == "Img02"
+    assert scene.reference == "Img01"
     assert len([c for c in ours.cameras if not c.query]) == 14
-    assert [c.name for c in ours.cameras if c.query] == ["Img00"]
-    assert [c.name for c in theirs.cameras if c.query] == ["Img00"]
+    assert [c.name for c in ours.cameras if c.query] == ["Img_Old"]
+    assert [c.name for c in theirs.cameras if c.query] == ["Img_Old"]
     # evaluate scales by the farthest camera's distance from the reference: in
     # the shared frame the two sit at the same distance, and the rest close by.
     def centre(model, name):
