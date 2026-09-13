@@ -148,7 +148,14 @@ without replaying the ones before it.
 | `rmse_before`, `rmse_after` | reprojection error in pixels, around this step's bundle adjustment; `null` where there is nothing to report |
 | `bundle_seconds` | what that bundle adjustment took |
 | `cameras` | every registered camera, `name`, `R`, `t` |
-| `points` | flat `x y z`, the triangulated points only |
+| `points` | flat `x y z`, the triangulated points only, at most 20 000 of them |
+
+**A step's points are capped.** Carrying the whole model is what lets any step
+be drawn without replaying the ones before it, but it costs steps times points
+of the broker's memory, and a step is kept for as long as the stream is. Past
+20 000 points sfmkit sends a stride through them instead — the whole model
+thinned, not a corner of it — while `n_points` goes on reporting the true
+count. Valencia, at 2 830 points, never reaches it; a few hundred cameras would.
 
 ### `end`
 

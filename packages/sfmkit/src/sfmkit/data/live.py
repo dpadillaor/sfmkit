@@ -28,6 +28,7 @@ from sfmkit.core.reconstruct import Snapshot
 VERSION = 1
 BROKER_ENV = "SFMKIT_BROKER"
 MAXLEN = 1000  # entries a stream keeps: far more than a run's steps
+MAX_STEP_POINTS = 20_000  # points a step carries; beyond that it carries a sample
 ALIVE_SECONDS = 15  # how long the alive key outlives its last renewal
 RENEW_SECONDS = 5
 
@@ -46,7 +47,7 @@ def start_message(run: str, K: np.ndarray, images: list[str]) -> dict:
     return {"v": VERSION, "kind": "start", "run": run, "K": _matrix(K), "images": list(images)}
 
 
-def step_message(run: str, snapshot: Snapshot) -> dict:
+def step_message(run: str, snapshot: Snapshot, limit: int = MAX_STEP_POINTS) -> dict:
     r = snapshot.report
     return {
         "v": VERSION, "kind": "step", "run": run,
@@ -56,7 +57,7 @@ def step_message(run: str, snapshot: Snapshot) -> dict:
         "bundle_seconds": float(r.bundle_seconds),
         "cameras": [{"name": n, "R": _matrix(p.R), "t": _vector(p.t)}
                     for n, p in snapshot.poses.items()],
-        "points": [round(float(v), 5) for v in np.asarray(snapshot.points).ravel()],
+        "points": _points(snapshot.points, limit),
     }
 
 
@@ -214,6 +215,23 @@ def heartbeat(run: str) -> contextlib.AbstractContextManager:
 def _number(x: float) -> float | None:
     x = float(x)
     return x if math.isfinite(x) else None  # JSON has no NaN
+
+
+def _points(points, limit: int) -> list[float]:
+    """The model's points, flat, thinned to at most ``limit`` of them.
+
+    A step carries the whole model rather than what changed, which is what lets
+    a viewer draw any step without replaying the ones before it -- but it grows
+    with steps times points, and all of it sits in the broker's memory. Valencia
+    is 2 830 points and never reaches the limit; a few hundred cameras and 100k
+    points would put hundreds of MB there without one. The sample is a stride
+    through the array, so it covers the whole model rather than a corner of it,
+    and ``n_points`` still reports how many there really are.
+    """
+    xyz = np.asarray(points).reshape(-1, 3)
+    if limit and len(xyz) > limit:
+        xyz = xyz[::-(-len(xyz) // limit)]
+    return [round(float(v), 5) for v in xyz.ravel()]
 
 
 def _vector(v) -> list[float]:

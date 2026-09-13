@@ -48,6 +48,16 @@ def test_a_step_carries_the_model_as_it_stood(snapshot):
     assert m["cameras"][1]["t"] == [-1.0, 0.0, 0.0]
 
 
+def test_a_big_model_is_thinned_but_still_counted(snapshot):
+    many = np.arange(3 * 50_000, dtype=float).reshape(-1, 3)
+    big = Snapshot(snapshot.report, snapshot.poses, many)
+    m = live.step_message(RUN, big, limit=1000)
+    assert step_errors(m) == []
+    assert len(m["points"]) // 3 <= 1000
+    assert m["n_points"] == big.report.n_points  # the model, not the sample
+    assert m["points"][:3] == [0.0, 1.0, 2.0]  # a stride, from the first point on
+
+
 def test_a_failure_says_why():
     assert live.failed_message(RUN, KeyboardInterrupt())["error"] == "KeyboardInterrupt"
     assert live.failed_message(RUN, RuntimeError("no F"))["error"] == "RuntimeError: no F"

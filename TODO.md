@@ -173,6 +173,15 @@ the contract, the API and the architecture.
   Redis 7.4, under RSALv2/SSPLv1 (free to use, not to resell as a hosted
   service); Redis 8 adds AGPLv3; redis-py is MIT. Valkey is the BSD fork, same
   protocol and a drop-in image, if that ever matters.
+- [x] **A step's points are capped** (2026-09-13), at `live.MAX_STEP_POINTS`,
+  20 000. A step carries the whole model rather than what changed, which is
+  what lets the timeline draw any step on its own, but the cost is steps times
+  points and it sits in the broker's memory for as long as the stream does.
+  Past the cap sfmkit sends a stride through the points -- the model thinned,
+  not a corner of it -- and `n_points` still says how many there really are.
+  Valencia's 2 830 never reach it. The alternative, a step carrying only the
+  points that moved, was not taken: it would make every reader stateful, and
+  a viewer that arrives late would have to replay the run to draw it.
 
 ## README
 

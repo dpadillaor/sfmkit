@@ -92,7 +92,8 @@
           "type": "integer"
         },
         "n_points": {
-          "type": "integer"
+          "type": "integer",
+          "description": "points in the model, which is not always how many 'points' carries"
         },
         "rmse_before": {
           "type": [
@@ -137,7 +138,8 @@
           "type": "array",
           "items": {
             "type": "number"
-          }
+          },
+          "description": "the model's points, flat; a stride through them when there are more than 20000, so that a long run does not fill the broker's memory"
         }
       }
     },

@@ -93,7 +93,8 @@ Live steps are the other half: a Redis stream per run,
 field. [`contracts/step.schema.json`](../contracts/step.schema.json) defines
 them: a `start` (the run's K and images; the stream is emptied first), a `step`
 after each camera registered and each global refinement (the cameras and the
-triangulated points as they stood, flat), and an `end`, or `failed` with the
+triangulated points as they stood, flat, thinned past 20 000 points), and an
+`end`, or `failed` with the
 reason when the run stops short, Ctrl-C included. The stream is named after the
 run's directory, as the viewer names runs, so `--out` does not write into
 another run's stream. Beside it, while `reconstruct` works, sfmkit keeps
