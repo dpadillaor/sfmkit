@@ -46,6 +46,11 @@ services:
 
   redis:
     image: redis:7-alpine
+    # A named volume, so `down` no longer takes the streams with it: a finished
+    # run's timeline survives the containers being recreated, until its own
+    # week is up.
+    volumes:
+      - redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -56,3 +61,4 @@ services:
 
 volumes:
   weights:
+  redis-data:

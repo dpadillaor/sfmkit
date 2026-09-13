@@ -56,15 +56,17 @@ docker compose down                 # when done: stops both
 `cli-gpu` works the same. Redis publishes no port: the containers find it by
 name, `redis`, on compose's network, and nothing outside reaches it. Only the
 viewer depends on it, so `docker compose run cli` alone starts no Redis and
-publishes nothing. `down` removes Redis's container, and the next `up` starts
-it on a new, empty volume, so the streams are lost; `stop` keeps them. Without Docker, run a Redis yourself and point both at it:
+publishes nothing. Its data lives in a named volume, `redis-data`, so `down`
+no longer takes the streams with it. Without Docker, run a Redis yourself and
+point both at it:
 `sfmview --broker redis://localhost:6379` and
 `SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct ...`.
 
 Neither knows the other: sfmkit writes to the broker and the viewer reads from
 it. The stream keeps a run's messages, so a page opened late, or reloaded,
-shows every step; a finished run's stream stays until the run is repeated, so
-its timeline can still be rewound. Without a broker sfmkit runs as before, and
+shows every step; a finished run's stream stays until the run is repeated or a
+week has passed, so its timeline can still be rewound. Without a broker sfmkit
+runs as before, and
 if the broker goes away mid-run it says so once and carries on. A run at work
 is marked live in the list, and a run whose heartbeat stops before its `end`
 (sfmkit killed, or the broker lost mid-run) is no longer shown as live.

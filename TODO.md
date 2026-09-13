@@ -88,10 +88,8 @@ Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
 set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
-- [ ] **A named volume for Redis** (`redis-data:/data`), as `docker compose
-  down` loses the streams kept in its anonymous one and so every finished run's
-  timeline. Put off: a small loss for now, 240 KB a run (see "Streams never
-  expire").
+- [x] **A named volume for Redis** (`redis-data:/data`): `down` no longer takes
+  the streams with it, and so a finished run's timeline survives.
 - [x] **Lighting up the points a camera sees: cancelled** (2026-09-12). It would
   have meant the scene API carrying, per model, which points each camera
   observes (both models keep it: sfmkit's `track_images`, COLMAP's tracks).
@@ -123,15 +121,12 @@ the contract, the API and the architecture.
   when adding Redis to compose) and the open page follows no steps until it is
   reloaded. Seen in the Docker lesson. Fix: while `liveOn` is false, `refresh()`
   asks `/api/health` again and, once live, opens the feed of the open run.
-- [ ] **Streams never expire.** A run's stream stays in Redis until the run is
-  repeated (a `start` empties it), which is what lets a finished run be
-  rewound; with many runs, set an `EXPIRE` after the `end` (a week?). Size,
-  measured: valencia/9cameras-exif's stream is 11 messages, 240 KB in Redis's
-  memory, 200 KB saved (the run's directory is 99 MB). But each step carries the
-  whole model as it stood, not what changed, so a run grows with steps times
-  points: a few hundred cameras and 100k points would be hundreds of MB, in
-  RAM. Then send the new points only (a `step` with the ids of what moved), or
-  cap the points a step carries.
+- [x] **Streams expire a week after the run ends** (`live.FINISHED_TTL`), set on
+  the `end` or `failed`. They are kept at all so a timeline can be rewound
+  afterwards; without an expiry a broker that sees many runs only grows, since
+  each step carries the whole model as it stood. Still open underneath: a step
+  could send what changed rather than everything, or cap the points it carries
+  — a few hundred cameras and 100k points would be hundreds of MB in RAM.
 - [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
   frame (the seed pair's first camera), not the reference camera's, as the
   transform comes from the finished model. Harmless, as nothing else is drawn

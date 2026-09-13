@@ -25,9 +25,12 @@ With Docker both are set for you; see [Install with Docker](../install/docker.md
 The stream is named after the run's directory, exactly as the viewer names
 runs, so `--out` cannot write into another run's stream. It is trimmed to a
 thousand entries — far more than any run's steps — and **emptied when a run
-starts**, so a repeat replaces its predecessor rather than appending to it. A
-finished run's stream stays, which is what lets its timeline be rewound after
-the fact.
+starts**, so a repeat replaces its predecessor rather than appending to it.
+
+A finished run's stream stays, which is what lets its timeline be rewound after
+the fact, but not for ever: the `end` (or the `failed`) sets an expiry of a
+week on it. Each step carries the whole model as it stood, so a broker that saw
+many runs and never forgot one would only grow.
 
 The heartbeat is the difference between a run at work and a run that died
 without a word: killed outright, sfmkit stops renewing the key and Redis lets
