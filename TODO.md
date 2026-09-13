@@ -1,6 +1,9 @@
 # TODO
 
-Open work, grouped by area. Move to GitHub Issues once the repository is public.
+Open work, grouped by area. The repository is public now, and the backlog
+stays here rather than moving to Issues: it is read beside the code, it travels
+with the history, and nothing about it needs a browser. An issue tracker can
+take from it the day someone else works on this.
 
 ## Pipeline
 
@@ -226,19 +229,19 @@ the contract, the API and the architecture.
   an "edit this page" pencil onto `main`.
 - [ ] **Publish the images.** `.github/workflows/images.yml` pushes to GHCR and
   to Docker Hub when a release is published; Docker Hub waits on the secrets
-  `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, which could not be set on
-  2026-09-13 because GitHub's secret API was answering 500 from both `gh` and
-  the web. Retry, then publish the first release.
-  When they are up, replace the "Published images" note in
-  `website/docs/install/docker.md` with the real `docker pull` lines, and give
-  `compose.yaml` an `image:` that can be pulled rather than built.
+  `DOCKERHUB_USERNAME` (`padidavid`) and `DOCKERHUB_TOKEN`. They could not be
+  set on 2026-09-13, while GitHub's secret API answered 500 from both `gh` and
+  the web; that outage is over, so: set them, tag `v0.1.0`, publish the
+  release. Then uncomment the `docker pull` lines in
+  `website/docs/install/docker.md`, which name the images already.
 - [ ] **The GPU image is published by hand**, `make push DEVICE=gpu`, because
   CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's disk. The
   target refuses a dirty tree and labels the image with its commit, so it stays
   as traceable as a CI-built one; it still has to be remembered at each release.
   A self-hosted runner with a GPU would fold it back into `images.yml`.
-- [ ] Keep the site content in sync with the README once the README rework
-  lands: install steps and the stages table are duplicated for now.
+- [ ] Keep the site and the README in step. The rework landed, and the two
+  still duplicate the install steps and the stages table; a change to one is a
+  change to both until they are cut down to a single home each.
 - [ ] **The figures are kept twice**, in `docs/figures/` for the README and in
   `website/docs/figures/` for the site, copied by hand: 9 MB of duplicates, and
   one of the two goes stale the first time only one is updated. MkDocs will not
