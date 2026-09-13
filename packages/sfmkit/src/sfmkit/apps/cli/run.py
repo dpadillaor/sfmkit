@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 from sfmkit.apps.cli import (
     calibrate,
     changes,
@@ -15,6 +17,7 @@ from sfmkit.apps.cli import (
     verify,
 )
 from sfmkit.apps.cli._common import console, run_dir
+from sfmkit.data import live
 from sfmkit.data.colmap import NO_CUDA, dense_available
 from sfmkit.data.config import Config, load_config
 
@@ -56,16 +59,37 @@ def cmd_run(args) -> int:
         console.print(f"[red]{problem}[/red]")
         return 1
 
+    # Whoever watches this run sees every stage, not only the one that has
+    # something to draw: `match` alone is minutes of silence, and a page with
+    # nothing on it looks like a run that died. The heartbeat covers the whole
+    # run for the same reason.
+    run_name = f"{out.parent.name}/{out.name}"
+    broker = live.publisher(run_name)
+
     skipped = []
-    for name, fn in stages:
-        if args.skip_done and (out / name / "manifest.json").is_file():
-            skipped.append(name)
-            continue
-        console.rule(f"[bold]{name}")
-        code = fn(_StageArgs(args, name))
-        if code != 0:
-            console.print(f"[red]{name} failed[/red] (exit {code}); stopping")
-            return code
+    with live.heartbeat(run_name):
+        for name, fn in stages:
+            if args.skip_done and (out / name / "manifest.json").is_file():
+                skipped.append(name)
+                continue
+            console.rule(f"[bold]{name}")
+            broker.publish(live.stage_message(run_name, name, "start"))
+            began = time.monotonic()
+            try:
+                code = fn(_StageArgs(args, name))
+            except BaseException as e:  # an interruption is a stage stopping too
+                broker.publish(live.stage_message(run_name, name, "failed",
+                                                  time.monotonic() - began,
+                                                  type(e).__name__))
+                raise
+            if code != 0:
+                broker.publish(live.stage_message(run_name, name, "failed",
+                                                  time.monotonic() - began,
+                                                  f"exit {code}"))
+                console.print(f"[red]{name} failed[/red] (exit {code}); stopping")
+                return code
+            broker.publish(live.stage_message(run_name, name, "end",
+                                              time.monotonic() - began))
 
     if skipped:
         console.print(f"[dim]skipped (already done): {', '.join(skipped)}[/dim]")

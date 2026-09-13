@@ -142,19 +142,12 @@ the contract, the API and the architecture.
   then; the `start` message could carry the reference to fix it.
 - [ ] **The end of a watched run reloads the whole scene**, dense cloud included
   (3.7 MB on Valencia), though only sfmkit's files changed.
-- [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
-  start and end too, so the page shows where a whole run is; the TUI could read
-  the same stream instead of parsing the CLI's output.
-- [x] **three.js and the fonts are in `web/vendor/`** (three 0.170.0, 0.74 MB
-  with OrbitControls and PLYLoader, MIT; IBM Plex Sans and Roboto Mono, one
-  variable file a family, 0.14 MB, both OFL), so the page needs no network and
-  tells Google and jsDelivr nothing. Checked with every outside host blocked:
-  it asks for its own server only.
-- [x] **Tests for the page's JavaScript: cancelled** (2026-09-12). `geometry.js`
-  is pure and would test well, but only with Node in the toolchain, which is
-  otherwise Python alone. The page is checked by screenshots from headless
-  Chrome over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
-  `--screenshot` does not wait for WebSockets).
+- [x] **Every stage says where the run is.** `sfmkit run` publishes a `stage`
+  message at the start and end of each one, and holds the heartbeat for the
+  whole run rather than for `reconstruct` alone: a page watching no longer
+  looks at nothing for the ten minutes `match` takes. The stream is emptied by
+  a run's first message instead of by the `start`, or the reconstruction would
+  wipe the stages before it.
 - [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
   the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
   one joins.

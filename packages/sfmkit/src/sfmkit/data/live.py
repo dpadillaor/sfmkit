@@ -65,10 +65,31 @@ def end_message(run: str, n_cameras: int, n_points: int) -> dict:
             "n_points": int(n_points)}
 
 
+def stage_message(run: str, stage: str, state: str, seconds: float | None = None,
+                  note: str | None = None) -> dict:
+    """A stage of a whole run beginning, finishing, or stopping it.
+
+    Only ``reconstruct`` has anything to say while it works; the rest are silent
+    for minutes at a time, and a page watching a run should not have to guess
+    whether it is matching or dead.
+    """
+    return {"v": VERSION, "kind": "stage", "run": run, "stage": stage, "state": state,
+            "seconds": None if seconds is None else round(float(seconds), 1), "note": note}
+
+
 def failed_message(run: str, error: BaseException) -> dict:
     """The run stopped short: an error, or the user interrupting it."""
     reason = f"{type(error).__name__}: {error}" if str(error) else type(error).__name__
     return {"v": VERSION, "kind": "failed", "run": run, "error": reason}
+
+
+#: Streams this process has already opened, so only the first message of a run
+#: empties one. Per process: a run is one process, whatever stages it does.
+_opened: set[str] = set()
+
+#: How many heartbeats are held on each key, so nested ones do not cut it short.
+_held: dict[str, int] = {}
+_held_lock = threading.Lock()
 
 
 class Publisher(Protocol):
@@ -104,11 +125,18 @@ class RedisPublisher:
         if self.failed:
             return
         try:
-            if message["kind"] == "start":
+            # allow_nan=False: a NaN would break every reader's JSON. Encoded
+            # before anything is touched, so a message that cannot be sent
+            # cannot empty a stream either.
+            data = json.dumps(message, allow_nan=False)
+            # The first message of a run replaces what the last one left, so a
+            # repeat does not follow its predecessor's steps. It is the first
+            # and not the `start` because a whole run speaks before the
+            # reconstruction does, and those stages would be wiped mid-run.
+            if self.key not in _opened:
+                _opened.add(self.key)
                 self.client.delete(self.key)
-            # allow_nan=False: a NaN would break every reader's JSON.
-            self.client.xadd(self.key, {"data": json.dumps(message, allow_nan=False)},
-                             maxlen=self.maxlen, approximate=True)
+            self.client.xadd(self.key, {"data": data}, maxlen=self.maxlen, approximate=True)
         except Exception as e:  # the broker's trouble is never the run's
             self.failed = True
             if self.on_error is not None:
@@ -129,6 +157,11 @@ class Heartbeat:
 
     A run killed outright stops renewing it and Redis lets it expire. Unlike the
     publisher it never gives up, so a broker back mid-run hears from it again.
+
+    They nest: `sfmkit run` holds one for the whole run and `reconstruct` holds
+    its own, and the key goes when the last of them leaves. Without the count,
+    the inner one leaving would delete the key mid-run and the run would look
+    dead until the outer one renewed it.
     """
 
     def __init__(self, client, run: str, ttl: float = ALIVE_SECONDS,
@@ -141,6 +174,8 @@ class Heartbeat:
         self._thread: threading.Thread | None = None
 
     def __enter__(self) -> Heartbeat:
+        with _held_lock:
+            _held[self.key] = _held.get(self.key, 0) + 1
         self._beat()
         self._thread = threading.Thread(target=self._loop, name="sfmkit-heartbeat", daemon=True)
         self._thread.start()
@@ -149,8 +184,14 @@ class Heartbeat:
     def __exit__(self, *exc) -> None:
         self._stop.set()
         self._thread.join()
-        with contextlib.suppress(Exception):
-            self.client.delete(self.key)
+        with _held_lock:
+            _held[self.key] -= 1
+            last = _held[self.key] <= 0
+            if last:
+                del _held[self.key]
+        if last:
+            with contextlib.suppress(Exception):
+                self.client.delete(self.key)
 
     def _loop(self) -> None:
         while not self._stop.wait(self.every):

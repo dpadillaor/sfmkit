@@ -24,8 +24,11 @@ With Docker both are set for you; see [Install with Docker](../install/docker.md
 
 The stream is named after the run's directory, exactly as the viewer names
 runs, so `--out` cannot write into another run's stream. It is trimmed to a
-thousand entries — far more than any run's steps — and **emptied when a run
-starts**, so a repeat replaces its predecessor rather than appending to it. A
+thousand entries — far more than any run's steps — and **emptied by the first
+message of a run**, so a repeat replaces its predecessor rather than appending
+to it. The first and not the `start`, because a whole run speaks about its
+earlier stages before the reconstruction opens, and those would be wiped
+mid-run. A
 finished run's stream stays, which is what lets its timeline be rewound after
 the fact.
 
@@ -35,10 +38,32 @@ it expire, so the viewer stops calling it live.
 
 ## The messages
 
-Four kinds, all carrying `v` (the version, `1`), `kind`, and `run`
+Five kinds, all carrying `v` (the version, `1`), `kind`, and `run`
 (`<project>/<config>`). Poses are world to camera, `x_cam = R X + t`, in
 OpenCV's axes; point arrays are flat and finite-only; any number that is not
 finite is sent as `null` where the schema allows it.
+
+### `stage`
+
+A stage of a whole run beginning, finishing, or stopping it. Only
+`reconstruct` has anything to draw; the rest are silent for minutes at a time,
+and a page watching a run should not have to guess whether it is matching or
+dead.
+
+```json
+{"v": 1, "kind": "stage", "run": "valencia/cpu", "stage": "match",
+ "state": "end", "seconds": 41.2, "note": "92 pairs on cuda"}
+```
+
+| Field | |
+|---|---|
+| `stage` | `calibrate`, `match`, `verify`, `reconstruct`, `localize`, `colmap`, `dense`, `evaluate`, `changes` or `figures` |
+| `state` | `start`, `end` or `failed` |
+| `seconds` | what it took, on `end` or `failed` |
+| `note` | a line of its own: why it stopped, or what it did |
+
+Only `sfmkit run` sends these: a single stage invoked on its own is its own
+whole run, and says nothing about the others.
 
 ### `start`
 
