@@ -219,6 +219,17 @@ the contract, the API and the architecture.
   `main`, push, then turn Pages on.
 - [ ] **Badges in the README** once there is a repository: the CI's state and
   the published image's version. They are the first thing a reader checks.
+- [ ] **The README buries what the project is for.** `localize` and `changes`
+  are two rows of a ten-row table, next to `figures`; placing a century-old
+  photograph in the model and saying what changed is the reason any of the
+  other eight exist. Lead with them when the README is rewritten, as the
+  website's home page already does.
+- [ ] **`compose.yaml` should be able to pull rather than build**, once the
+  images are published: someone who only wants to look at the viewer waits ten
+  minutes for a build they did not ask for.
+- [ ] **Rehearse the newcomer's path against the published repository**: clone,
+  the conda instructions as written, `no-colmap.yaml`, the viewer. It was
+  rehearsed against the image; the instructions on the site have not been.
 
 ## Docs website
 
