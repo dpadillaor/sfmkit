@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Both packages' import contracts, checked in whatever environment this runs in.
+#
+# pre-commit's hooks run in the environment the commit is made from, and each
+# package lives in its own: only one of them is importable at a time, and
+# import-linter has to import a package to follow its imports. So each is
+# checked when it is there and skipped when it is not, and CI, which builds
+# both environments, is what guarantees that neither is skipped for good.
+set -u
+
+status=0
+for pyproject in packages/*/pyproject.toml; do
+    root=$(python - "$pyproject" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], "rb") as f:
+    print(tomllib.load(f).get("tool", {}).get("importlinter", {}).get("root_package", ""))
+PY
+    )
+    [ -n "$root" ] || continue
+    if ! python -c "import importlib.util, sys; sys.exit(importlib.util.find_spec(sys.argv[1]) is None)" "$root" 2>/dev/null
+    then
+        echo "$root is not installed here: its contracts are checked by CI"
+        continue
+    fi
+    lint-imports --config "$pyproject" || status=1
+done
+exit $status
