@@ -13,7 +13,8 @@
         "kind": {"const": "start"},
         "run": {"type": "string", "description": "<project>/<config>"},
         "K": {"$ref": "#/$defs/matrix3"},
-        "images": {"type": "array", "items": {"type": "string"}, "description": "the images the run will try to register"}
+        "images": {"type": "array", "items": {"type": "string"}, "description": "the images the run will try to register"},
+        "reference": {"type": ["string", "null"], "description": "the camera the finished model is anchored to, so a step can be drawn in the same frame before there is a finished model"}
       }
     },
     {

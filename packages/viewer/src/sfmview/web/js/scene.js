@@ -5,7 +5,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 import {
-  cameraCentre, frustumDepth, frustumSegments, imageCorners, robustSphere, segmentDistance, viewDepth,
+  cameraCentre, frustumDepth, frustumSegments, imageCorners, referenceFrame, robustSphere,
+  segmentDistance, viewDepth,
 } from './geometry.js';
 import { colours, PALETTE, SIGNAL } from './palette.js';
 import { PhotoView } from './pov.js';
@@ -228,9 +229,15 @@ export class SceneView {
 
   // Draw the reconstruction as a live step left it, replacing the last step
   // drawn. Its coordinates are sfmkit's, so it takes sfmkit's transform when
-  // the run's finished model is shown. ``K`` is the run's, from its start.
-  showStep(step, K) {
-    this.#live ??= this.#frame(this.#frames.get('sfmkit') ?? IDENTITY);
+  // the run's finished model is shown. ``K`` is the run's, from its start, and
+  // ``reference`` the camera it will be anchored to: until there is a finished
+  // model to take the transform from, the step is placed by its own reference
+  // camera, so it does not sit in the seed pair's frame and jump later.
+  showStep(step, K, reference = null) {
+    const rows = this.#frames.get('sfmkit')
+      ?? referenceFrame(step.cameras, reference) ?? IDENTITY;
+    if (this.#live) this.#live.matrix.copy(matrix4(rows));
+    else this.#live = this.#frame(rows);
     for (const id of ['live-points', 'live-cameras']) { // the last step's, not a photo
       this.#layers.get(id)?.object.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
       this.#layers.get(id)?.object.removeFromParent();

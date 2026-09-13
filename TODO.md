@@ -99,10 +99,11 @@ the contract, the API and the architecture.
   each step carries the whole model as it stood. Still open underneath: a step
   could send what changed rather than everything, or cap the points it carries
   — a few hundred cameras and 100k points would be hundreds of MB in RAM.
-- [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
-  frame (the seed pair's first camera), not the reference camera's, as the
-  transform comes from the finished model. Harmless, as nothing else is drawn
-  then; the `start` message could carry the reference to fix it.
+- [x] **Live steps on a run with no finished model** were drawn in sfmkit's
+  world frame — the seed pair's first camera — because the transform came from
+  the finished model. The `start` carries the reference camera now, and a step
+  is placed by its own copy of it until a finished model has a transform to
+  take, so nothing jumps when the run ends.
 - [x] **The end of a watched run no longer refetches the dense cloud.** It
   reloaded the whole scene, COLMAP's several MB included, though only sfmkit's
   files had changed; the parsed cloud is now kept and reused while its URL is

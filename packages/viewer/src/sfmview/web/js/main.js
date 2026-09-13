@@ -43,7 +43,7 @@ function open(id) {
   session.feed?.stop();
   Object.assign(session, {
     id, feed: null, scene: null, updated: runOf(id).updated, connectedAt: Infinity,
-    K: null, steps: [], index: -1, running: false,
+    K: null, reference: null, steps: [], index: -1, running: false,
   });
   ui.selectRun(id);
   ui.renderTimeline([], -1);
@@ -104,7 +104,8 @@ function onLive(token, { id: entry, message }) {
     // Replayed, a start is at work only if its heartbeat said so; new, it is.
     const running = news || runOf(session.id)?.running !== false;
     Object.assign(session, {
-      K: message.K, steps: [], index: -1, running, startSeen: Date.now(),
+      K: message.K, reference: message.reference ?? null,
+      steps: [], index: -1, running, startSeen: Date.now(),
     });
   } else if (message.kind === 'step') {
     if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
@@ -152,7 +153,7 @@ function drawStep() {
   });
   if (index < 0) return;
   // sfmkit's points and cameras become the step's; the old photo stays.
-  view.showStep(steps[index], session.K);
+  view.showStep(steps[index], session.K, session.reference);
   if (!session.scene && !session.fitted) {
     view.fit();
     session.fitted = true;
