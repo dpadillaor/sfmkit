@@ -67,20 +67,14 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   writable and replaces `user:` altogether. Revisit only if the image is handed
   to people who live in its shell.
 - [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
-- [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?
+- [x] **Name of the compose service.** It was in doubt because `cli` also ran
+  the TUI; with the TUI gone, `cli` is exact again.
 
 ## Using it on your own project
 
 - [ ] **Three mounts per project** (`data/`, `configs/`, `runs/`). Easy to get one
   wrong; a project-first layout was floated, not decided.
 - [ ] **A project template**: the folder shape and a starting config.
-
-## TUI
-
-- [ ] **Start a new run from a config**, not only re-run a stage of an existing run.
-  Agreed boundary: it views, compares and launches existing configs through the
-  CLI, showing the exact command; it does not edit configs.
-- [ ] Some columns are still cut: `when` in the run list, `stages` in compare.
 
 ## Viewer
 
@@ -143,7 +137,8 @@ the contract, the API and the architecture.
 - [ ] **The end of a watched run reloads the whole scene**, dense cloud included
   (3.7 MB on Valencia), though only sfmkit's files changed.
 - [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
-  start and end too, so the page shows where a whole run is; the TUI could read
+  start and end too, so the page shows where a whole run is; a reporting tool
+  could read
   the same stream instead of parsing the CLI's output.
 - [x] **three.js and the fonts are in `web/vendor/`** (three 0.170.0, 0.74 MB
   with OrbitControls and PLYLoader, MIT; IBM Plex Sans and Roboto Mono, one
