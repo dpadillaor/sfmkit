@@ -22,7 +22,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `calibrate` still takes chessboard photos (tested on synthetic boards) or a
   K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
   `data/valencia/calibration/` would check the EXIF K.
-- [ ] **Say in the README what the error is measured against.** Both configs
+- [x] **The README says what the error is measured against** (2026-09-13). Both configs
   score the reconstruction against COLMAP run from scratch on the same photos,
   its own features and matching: the two share the photographs and nothing
   else, which is what makes 0.35° (cpu) and 0.29° (gpu-dense) worth quoting.
@@ -177,32 +177,20 @@ the contract, the API and the architecture.
 
 ## README
 
-- [ ] Sections still to write: **Try it** (the image with the Valencia example),
-  **Your own project**, **Development**. Write each once it works.
-- [ ] **Install section.** Conda and Docker are the only supported installs, each
-  in a CPU and a GPU flavour:
-  - Conda, CPU: `conda create -n sfmkit python=3.11`, then
-    `pip install --no-deps -r requirements-cpu.txt -r requirements.txt` and
-    `pip install --no-deps -e .`.
-  - Conda, GPU: the same with `requirements-gpu.txt` instead of
-    `requirements-cpu.txt`. Needs an NVIDIA driver for CUDA 12.1 or later (>= 530).
-  - Docker, CPU: `make image`, then `docker compose run --rm cli <stage> ...`.
-    On Linux, if your UID is not 1000, `make env` first, so the files written
-    to `runs/` are yours; a plain `docker run` needs
-    `--user "$(id -u):$(id -g)" -e HOME=/tmp` for the same reason.
-  - Docker, GPU: `make image DEVICE=gpu`, then `docker compose run --rm cli-gpu ...`.
-    The host needs, once: the NVIDIA driver, `nvidia-container-toolkit`
-    (from NVIDIA's repository), `sudo nvidia-ctk runtime configure --runtime=docker`
-    and a Docker restart. Without them the gpu image still runs, on the CPU,
-    and `dense` refuses.
-  - Which stages use the GPU: `match` (PyTorch), `colmap` (SIFT), `dense`
-    (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
-- [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
-- [x] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
-- [ ] **Figures for the README**: `changes/overlay_Img_Old_on_Img01.png` (the old photo
-  set into today's square, near-perfect alignment) is the strongest image the
-  project makes; with the dense cloud, the two to lead with. Copy reduced
-  versions into `docs/figures/` (the full PNGs are ~17 MB).
+- [x] **Rewritten** (2026-09-13): it opens with the question the project
+  answers, gives the old photograph and the change map a section of their own
+  rather than two rows in a table of ten, and carries Try it, the viewer, what
+  is inside, the badges and the links to the site.
+- [x] **`README.old.md` is folded in and gone** (2026-09-13). What it held and
+  the site did not: the camera estimated for the old plate against COLMAP's own
+  estimate of it, now in `docs/old-photo.md` and measured again on today's run
+  (f 552.0/555.8 against 553.8, six pixels apart in the centre, and the course's
+  3.8:1 K beside them); how far the change figure can be read, now on the
+  results page; and the diagnostics figures, now in the run guide with the
+  reading that made them worth showing. `matches`, `epipolar`, `residuals` and
+  `changes` went from 1-2.5 MB PNGs to resized JPEGs on the way.
+- [x] **The README mentions `sfm.device`** (2026-09-13), and that a CPU and a
+  GPU find slightly different matches and so give slightly different numbers.
 
 ## Going public
 
@@ -214,13 +202,10 @@ the contract, the API and the architecture.
   tag `baseline-original`) and `../MGRCV-backup-before-rewrite-2026-09-13.bundle`.
 - [x] **The repository is up**: `github.com/dpadillaor/sfmkit`, public, `main`,
   189 commits, wiki and projects off, eight topics.
-- [ ] **Badges in the README** once there is a repository: the CI's state and
-  the published image's version. They are the first thing a reader checks.
-- [ ] **The README buries what the project is for.** `localize` and `changes`
-  are two rows of a ten-row table, next to `figures`; placing a century-old
-  photograph in the model and saying what changed is the reason any of the
-  other eight exist. Lead with them when the README is rewritten, as the
-  website's home page already does.
+- [x] **Badges in the README**: the checks, the documentation and the licence.
+  The published image's version goes up when there is a release to name.
+- [x] **The README leads with what the project is for** — the old photograph
+  and what changed — instead of burying them in a table of ten stages.
 - [ ] **`compose.yaml` should be able to pull rather than build**, once the
   images are published: someone who only wants to look at the viewer waits ten
   minutes for a build they did not ask for.
@@ -255,6 +240,12 @@ the contract, the API and the architecture.
   A self-hosted runner with a GPU would fold it back into `images.yml`.
 - [ ] Keep the site content in sync with the README once the README rework
   lands: install steps and the stages table are duplicated for now.
+- [ ] **The figures are kept twice**, in `docs/figures/` for the README and in
+  `website/docs/figures/` for the site, copied by hand: 9 MB of duplicates, and
+  one of the two goes stale the first time only one is updated. MkDocs will not
+  read outside its own docs directory; the ways out are a build step that
+  copies them, a symlink, or moving the figures under `website/` and pointing
+  the README at raw URLs.
 - [x] **A tutorial**, the page COLMAP's site has and ours did not: one pass
   from a clone to a reconstruction in the viewer, then the same on photographs
   of your own. It is where most readers start.

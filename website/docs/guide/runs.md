@@ -62,6 +62,34 @@ The scored comparison: the scale between the two models, the per-camera
 rotation and position errors after alignment, and the query apart from the
 rest, since it is placed by a different stage against a different reference.
 
+## The figures
+
+`sfmkit figures` draws a finished run: the two models side by side
+(`cameras.png`, `comparison.png`), and the diagnostics of the stages that got
+there.
+
+![Matches, inliers and outliers](../figures/matches.jpg)
+
+*`Img01`-`Img04`: what the matcher produced, and what geometric verification
+kept. The rejected matches are not scattered at random -- they gather in the
+sky and on the repeated arcades, which is the signature of repeated structure
+rather than of a matcher failing.*
+
+![Epipolar lines](../figures/epipolar.jpg)
+
+*The epipolar geometry the verified pairs imply: a point in one photograph and
+the line it must lie on in the other.*
+
+![Reprojection residuals](../figures/residuals.jpg)
+
+*Where the reconstruction projects, against where the keypoints actually are.*
+
+There is also a before-and-after pair around the final global refinement, drawn
+from two reconstructions that genuinely existed --
+`reconstruction_before_refinement.npz` and `reconstruction.npz`. Expect little
+between them: by that point a bundle adjustment has already run after every
+camera, and most of the correction has been made.
+
 ## Reading a run without sfmkit
 
 The viewer does exactly that, through a fixed set of files —
