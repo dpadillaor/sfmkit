@@ -6,7 +6,7 @@ by hand, so they cannot drift away from what the pipeline actually did.
 import json
 from pathlib import Path
 
-from sfmkit.apps.tui.model import load_runs
+from sfmkit.data.runs import load_runs
 
 
 def fmt(v, nd=3):

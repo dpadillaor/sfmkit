@@ -22,7 +22,7 @@ Two things, deliberately separated:
   estimation, feature tracks, incremental reconstruction, bundle adjustment,
   visual localisation. Pure functions over numpy arrays; no file paths, no
   global state, no plotting. It knows nothing about Valencia.
-* **`apps/` (the `sfmkit` CLI and TUI), `data/` and `configs/`** — the case
+* **`apps/` (the `sfmkit` CLI), `data/` and `configs/`** — the case
   study. Three folders with the same shape:
 
   ```
@@ -162,12 +162,6 @@ data and runs roots (default `data/` and `runs/` in the working directory).
 
 `sfmkit run` also takes `--from <stage>`, `--only a,b` and `--skip-done`. Only
 `match` needs a GPU; everything downstream runs on numpy.
-
-A terminal interface for browsing, comparing and launching runs:
-
-```bash
-sfmkit ui                               # needs pip install 'sfmkit[tui]'
-```
 
 ### Diagnostics
 
