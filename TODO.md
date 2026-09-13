@@ -140,8 +140,10 @@ the contract, the API and the architecture.
   frame (the seed pair's first camera), not the reference camera's, as the
   transform comes from the finished model. Harmless, as nothing else is drawn
   then; the `start` message could carry the reference to fix it.
-- [ ] **The end of a watched run reloads the whole scene**, dense cloud included
-  (3.7 MB on Valencia), though only sfmkit's files changed.
+- [x] **The end of a watched run no longer refetches the dense cloud.** It
+  reloaded the whole scene, COLMAP's several MB included, though only sfmkit's
+  files had changed; the parsed cloud is now kept and reused while its URL is
+  the same, and dropped when a different run's is loaded.
 - [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
   start and end too, so the page shows where a whole run is; the TUI could read
   the same stream instead of parsing the CLI's output.

@@ -49,6 +49,10 @@ export class SceneView {
   #reach = new Map(); // camera key -> its view drawn out to the scene
   #cone = { show: 0.5, far: 1 }; // how strongly a view is drawn, and how far out
   #pointsOf = new Map(); // model source -> its sparse points, flat, in its own frame
+  // The dense cloud, kept across scenes: when a watched run ends, only sfmkit's
+  // files have changed, and fetching and parsing several MB of COLMAP's again
+  // to draw the same points is the most expensive thing the page can do.
+  #dense = { url: null, geometry: null };
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
 
@@ -270,11 +274,18 @@ export class SceneView {
   // another scene was shown meanwhile.
   async loadDense(dense, onProgress) {
     const generation = this.#generation;
-    const geometry = await new PLYLoader().loadAsync(dense.url, (e) => {
-      if (e.lengthComputable) onProgress?.(e.loaded / e.total);
-    });
-    if (generation !== this.#generation) {
-      geometry.dispose();
+    let geometry = this.#dense.url === dense.url ? this.#dense.geometry : null;
+    if (!geometry) {
+      geometry = await new PLYLoader().loadAsync(dense.url, (e) => {
+        if (e.lengthComputable) onProgress?.(e.loaded / e.total);
+      });
+      if (generation !== this.#generation) {
+        geometry.dispose();
+        return null;
+      }
+      this.#dense.geometry?.dispose(); // a different cloud: the old one goes
+      this.#dense = { url: dense.url, geometry };
+    } else if (generation !== this.#generation) {
       return null;
     }
     const cloud = new THREE.Points(geometry, new THREE.PointsMaterial({
@@ -366,7 +377,7 @@ export class SceneView {
     this.#photos.clear();
     this.#shots.clear();
     this.#world.traverse((o) => {
-      o.geometry?.dispose();
+      if (o.geometry !== this.#dense.geometry) o.geometry?.dispose(); // kept for the next scene
       o.material?.dispose();
     });
     this.#world.clear();
