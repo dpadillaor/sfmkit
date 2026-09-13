@@ -56,7 +56,7 @@ body { font-size: 0.8rem; }
   background: var(--sfm-header);
   border-bottom: 1px solid var(--sfm-line);
   box-shadow: none;
-  height: 44px;
+  min-height: 44px;
 }
 .md-header__inner { min-height: 44px; }
 .md-header__button.md-logo { display: none; }   /* the square in the wordmark is the mark */
@@ -98,8 +98,11 @@ body { font-size: 0.8rem; }
 .md-nav__link {
   color: var(--sfm-text);
   margin: 0 !important;
-  padding: 0 12px;
-  height: 26px;
+  padding: 5px 12px;
+  /* A row's height, but only as a minimum: a title that wraps to two lines
+     grows its row instead of spilling over the one below it. */
+  min-height: 26px;
+  line-height: 1.35;
   display: flex;
   align-items: center;
   border-left: 2px solid transparent;
@@ -119,7 +122,11 @@ body { font-size: 0.8rem; }
 
 /* right-hand table of contents, quieter */
 .md-sidebar--secondary .md-nav__title { color: var(--sfm-faint); }
-.md-sidebar--secondary .md-nav__link { height: 24px; color: var(--sfm-muted); }
+.md-sidebar--secondary .md-nav__link {
+  min-height: 24px;
+  padding: 4px 12px;
+  color: var(--sfm-muted);
+}
 .md-sidebar--secondary .md-nav__link--active { color: var(--sfm-signal) !important; border-left-color: var(--sfm-signal); }
 
 /* ---- prose ------------------------------------------------------------- */
@@ -167,8 +174,8 @@ body { font-size: 0.8rem; }
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 28px;
-  padding: 0 12px;
+  min-height: 28px;
+  padding: 4px 12px;
   background: var(--sfm-header);
   border-bottom: 1px solid var(--sfm-line);
   font: 500 0.68rem "Roboto Mono", monospace;

@@ -33,7 +33,7 @@ reconstructs from scratch each time with its own randomness.
 *Every frame is a step of a real run: our cameras, COLMAP's, and the gap
 between them closing.*
 
-## How far to trust the old photograph's number
+## How far to trust that number
 
 Not to the second decimal, and the honest reason is worth stating. COLMAP
 registers that one photograph in a second pass, from at best 32 matches, with
