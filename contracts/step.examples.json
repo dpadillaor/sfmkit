@@ -1,6 +1,24 @@
 [
   {
     "v": 1,
+    "kind": "stage",
+    "run": "valencia/9cameras",
+    "stage": "match",
+    "state": "start",
+    "seconds": null,
+    "note": null
+  },
+  {
+    "v": 1,
+    "kind": "stage",
+    "run": "valencia/9cameras",
+    "stage": "match",
+    "state": "end",
+    "seconds": 41.2,
+    "note": "92 pairs on cuda"
+  },
+  {
+    "v": 1,
     "kind": "start",
     "run": "valencia/9cameras",
     "K": [

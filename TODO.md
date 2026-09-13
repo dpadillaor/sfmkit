@@ -82,12 +82,13 @@ the contract, the API and the architecture.
   vendored three.js 0.9 MB, a run's scene 245 KB, the dense cloud 5.9 MB
   (220k points, worth thinning to ~50k), a photo 3.9 MB as it is and ~300 KB
   resized, fetched only when one is looked through.
-- [ ] **Document the interfaces with the standards.** HTTP is covered: FastAPI
-  serves OpenAPI at `/docs` and `/redoc` (say so in `docs/viewer.md`). The
-  messages are not: an AsyncAPI file in `contracts/` for the channels (the
-  stream `sfmkit:steps:<run>`, the WebSocket `/live`), who publishes and who
-  listens, reusing `step.schema.json`; and a Mermaid sequence diagram of
-  browser, viewer, Redis and sfmkit in `docs/viewer.md`.
+- [x] **The interfaces are written down in their own standards.** HTTP was
+  already: FastAPI serves OpenAPI at `/docs` and `/redoc`. The messages now have
+  `contracts/asyncapi.yaml` (AsyncAPI 3: the stream, the heartbeat, the
+  WebSocket, who sends and who listens), pointing at `step.schema.json` rather
+  than repeating it — for which the schema's branches were given names under
+  `$defs`. And a Mermaid sequence diagram of sfmkit, Redis, the viewer and the
+  browser, in `docs/viewer.md` and on the site.
 - [x] **A page opened while the server had no broker goes live when one
   appears.** It asked `/api/health` once, at load, so adding Redis to compose
   left the open page following nothing until it was reloaded. `refresh()` asks
@@ -96,9 +97,8 @@ the contract, the API and the architecture.
 - [x] **Streams expire a week after the run ends** (`live.FINISHED_TTL`), set on
   the `end` or `failed`. They are kept at all so a timeline can be rewound
   afterwards; without an expiry a broker that sees many runs only grows, since
-  each step carries the whole model as it stood. Still open underneath: a step
-  could send what changed rather than everything, or cap the points it carries
-  — a few hundred cameras and 100k points would be hundreds of MB in RAM.
+  each step carries the whole model as it stood. How big a step may get is
+  capped separately, below.
 - [x] **Live steps on a run with no finished model** were drawn in sfmkit's
   world frame — the seed pair's first camera — because the transform came from
   the finished model. The `start` carries the reference camera now, and a step
@@ -108,10 +108,12 @@ the contract, the API and the architecture.
   reloaded the whole scene, COLMAP's several MB included, though only sfmkit's
   files had changed; the parsed cloud is now kept and reused while its URL is
   the same, and dropped when a different run's is loaded.
-- [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
-  start and end too, so the page shows where a whole run is; a reporting tool
-  could read
-  the same stream instead of parsing the CLI's output.
+- [x] **Every stage says where the run is.** `sfmkit run` publishes a `stage`
+  message at the start and end of each one, and holds the heartbeat for the
+  whole run rather than for `reconstruct` alone: a page watching no longer
+  looks at nothing for the ten minutes `match` takes. The stream is emptied by
+  a run's first message instead of by the `start`, or the reconstruction would
+  wipe the stages before it.
 - [x] **three.js and the fonts are in `web/vendor/`** (three 0.170.0, 0.74 MB
   with OrbitControls and PLYLoader, MIT; IBM Plex Sans and Roboto Mono, one
   variable file a family, 0.14 MB, both OFL), so the page needs no network and
@@ -154,6 +156,15 @@ the contract, the API and the architecture.
   Redis 7.4, under RSALv2/SSPLv1 (free to use, not to resell as a hosted
   service); Redis 8 adds AGPLv3; redis-py is MIT. Valkey is the BSD fork, same
   protocol and a drop-in image, if that ever matters.
+- [x] **A step's points are capped** (2026-09-13), at `live.MAX_STEP_POINTS`,
+  20 000. A step carries the whole model rather than what changed, which is
+  what lets the timeline draw any step on its own, but the cost is steps times
+  points and it sits in the broker's memory for as long as the stream does.
+  Past the cap sfmkit sends a stride through the points -- the model thinned,
+  not a corner of it -- and `n_points` still says how many there really are.
+  Valencia's 2 830 never reach it. The alternative, a step carrying only the
+  points that moved, was not taken: it would make every reader stateful, and
+  a viewer that arrives late would have to replay the run to draw it.
 
 ## README
 

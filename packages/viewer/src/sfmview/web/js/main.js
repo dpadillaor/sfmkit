@@ -17,7 +17,7 @@ let liveOn = false;
 // open() takes a new token; work begun for an older one drops its results.
 const session = {
   token: 0, id: null, feed: null, scene: null, updated: null, connectedAt: Infinity,
-  K: null, steps: [], index: -1, running: false, fitted: false,
+  K: null, reference: null, stage: null, steps: [], index: -1, running: false, fitted: false,
 };
 
 const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
@@ -43,7 +43,7 @@ function open(id) {
   session.feed?.stop();
   Object.assign(session, {
     id, feed: null, scene: null, updated: runOf(id).updated, connectedAt: Infinity,
-    K: null, reference: null, steps: [], index: -1, running: false,
+    K: null, reference: null, stage: null, steps: [], index: -1, running: false,
   });
   ui.selectRun(id);
   ui.renderTimeline([], -1);
@@ -81,7 +81,8 @@ async function showScene(token) {
   showCameras();
   showPhotoBar();
   ui.renderInfo(runOf(id), scene);
-  say(token, scene ? '' : 'No results yet: waiting for the run.');
+  if (session.stage) say(token, `${session.stage.name}…`);
+  else say(token, scene ? '' : 'No results yet: waiting for the run.');
 
   if (scene?.dense) {
     try {
@@ -113,6 +114,14 @@ function onLive(token, { id: entry, message }) {
     const following = session.index === session.steps.length - 1;
     session.steps.push(message);
     if (following) session.index = session.steps.length - 1;
+  } else if (message.kind === 'stage') {
+    // The stages that draw nothing still say where the run is: `match` alone
+    // is minutes in which the page would otherwise look like a dead run.
+    if (news) markLive(message.state === 'start' || session.running);
+    session.stage = message.state === 'start'
+      ? { name: message.stage, since: Date.now() }
+      : null;
+    if (news) say(token, stageLine(message));
   } else if (message.kind === 'end') {
     markLive(false);
     if (news) refresh(); // its files are newer than those drawn
@@ -121,6 +130,16 @@ function onLive(token, { id: entry, message }) {
     if (news) say(token, `The run stopped: ${message.error}`, true);
   }
   scheduleDraw();
+}
+
+// What a stage message reads as in the status line.
+function stageLine({ stage, state, seconds, note }) {
+  const minutes = `${Math.round(seconds / 60)} min`;
+  const took = seconds ? ` in ${seconds < 60 ? `${seconds}s` : minutes}` : '';
+  const said = note ? ` (${note})` : '';
+  if (state === 'start') return `${stage}…`;
+  if (state === 'failed') return `${stage} stopped${said}`;
+  return `${stage} done${took}${said}`;
 }
 
 // At work, or no longer: the open run's own stream says so before the list,

@@ -48,6 +48,16 @@ def test_a_step_carries_the_model_as_it_stood(snapshot):
     assert m["cameras"][1]["t"] == [-1.0, 0.0, 0.0]
 
 
+def test_a_big_model_is_thinned_but_still_counted(snapshot):
+    many = np.arange(3 * 50_000, dtype=float).reshape(-1, 3)
+    big = Snapshot(snapshot.report, snapshot.poses, many)
+    m = live.step_message(RUN, big, limit=1000)
+    assert step_errors(m) == []
+    assert len(m["points"]) // 3 <= 1000
+    assert m["n_points"] == big.report.n_points  # the model, not the sample
+    assert m["points"][:3] == [0.0, 1.0, 2.0]  # a stride, from the first point on
+
+
 def test_a_failure_says_why():
     assert live.failed_message(RUN, KeyboardInterrupt())["error"] == "KeyboardInterrupt"
     assert live.failed_message(RUN, RuntimeError("no F"))["error"] == "RuntimeError: no F"
@@ -68,6 +78,15 @@ def test_a_message_that_is_not_json_is_refused_not_sent(snapshot):
     publisher = live.RedisPublisher(client, RUN, on_error=errors.append)
     publisher.publish({**live.step_message(RUN, snapshot), "bundle_seconds": float("nan")})
     assert client.calls == [] and isinstance(errors[0], ValueError)
+
+
+@pytest.fixture(autouse=True)
+def a_stream_never_opened():
+    """Each test is a process that has published nothing yet: the first message
+    of a run empties its stream, and that is remembered per process."""
+    live._opened.clear()
+    yield
+    live._opened.clear()
 
 
 class FakeRedis:
@@ -92,7 +111,7 @@ class FakeRedis:
         self.calls.append(("expire", key, seconds))
 
 
-def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
+def test_the_first_message_empties_the_stream_then_everything_is_appended(snapshot):
     client = FakeRedis()
     publisher = live.RedisPublisher(client, RUN)
     publisher.publish(live.start_message(RUN, np.eye(3), []))
@@ -100,6 +119,17 @@ def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
     key = "sfmkit:steps:valencia/9cameras"
     assert [c[:2] for c in client.calls] == [("delete", key), ("xadd", key), ("xadd", key)]
     assert client.calls[2][2]["kind"] == "step" and client.calls[2][3] == live.MAXLEN
+
+
+def test_the_reconstruction_does_not_wipe_the_stages_before_it():
+    """`sfmkit run` publishes stages before `reconstruct` says start; its own
+    publisher must not throw those away."""
+    client = FakeRedis()
+    run_publisher = live.RedisPublisher(client, RUN)
+    run_publisher.publish(live.stage_message(RUN, "match", "start"))
+    reconstruct_publisher = live.RedisPublisher(client, RUN)  # the stage builds its own
+    reconstruct_publisher.publish(live.start_message(RUN, np.eye(3), []))
+    assert [c[0] for c in client.calls] == ["delete", "xadd", "xadd"]
 
 
 def test_a_finished_run_starts_the_stream_clock(snapshot):

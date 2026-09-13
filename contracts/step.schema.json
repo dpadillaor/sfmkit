@@ -1,80 +1,271 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "sfmkit/step/v1",
-  "title": "A live message from sfmkit's reconstruct stage",
-  "description": "Published by sfmkit to a Redis stream, key 'sfmkit:steps:<project>/<config>', field 'data', one message per entry; read by sfmview. 'start' opens a run (the stream is emptied first), a 'step' follows each camera registered and each global refinement, 'end' closes it, or 'failed' when it stops short. Poses are world to camera, x_cam = R X + t, OpenCV axes: x right, y down, z forward. Arrays of points are flat, x0 y0 z0 x1 ..., finite only; every number is finite, one that is not is sent as null where the schema allows it.",
+  "title": "A live message from a run of sfmkit",
+  "description": "Published by sfmkit to a Redis stream, key 'sfmkit:steps:<project>/<config>', field 'data', one message per entry; read by sfmview. The first message of a run empties the stream. 'stage' brackets each stage of a whole run, 'start' opens the reconstruction, a 'step' follows each camera registered and each global refinement, 'end' closes it, or 'failed' when it stops short. Poses are world to camera, x_cam = R X + t, OpenCV axes: x right, y down, z forward. Arrays of points are flat, x0 y0 z0 x1 ..., finite only; every number is finite, one that is not is sent as null where the schema allows it.",
   "oneOf": [
     {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["v", "kind", "run", "K", "images"],
-      "properties": {
-        "v": {"const": 1},
-        "kind": {"const": "start"},
-        "run": {"type": "string", "description": "<project>/<config>"},
-        "K": {"$ref": "#/$defs/matrix3"},
-        "images": {"type": "array", "items": {"type": "string"}, "description": "the images the run will try to register"},
-        "reference": {"type": ["string", "null"], "description": "the camera the finished model is anchored to, so a step can be drawn in the same frame before there is a finished model"}
-      }
+      "$ref": "#/$defs/start"
     },
     {
+      "$ref": "#/$defs/step"
+    },
+    {
+      "$ref": "#/$defs/stage"
+    },
+    {
+      "$ref": "#/$defs/end"
+    },
+    {
+      "$ref": "#/$defs/failed"
+    }
+  ],
+  "$defs": {
+    "start": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["v", "kind", "run", "step", "image", "n_registered", "n_points",
-                   "rmse_before", "rmse_after", "bundle_seconds", "cameras", "points"],
+      "required": [
+        "v",
+        "kind",
+        "run",
+        "K",
+        "images"
+      ],
       "properties": {
-        "v": {"const": 1},
-        "kind": {"const": "step"},
-        "run": {"type": "string"},
-        "step": {"type": "integer"},
-        "image": {"type": "string", "description": "the camera added, or 'global refinement'"},
-        "n_registered": {"type": "integer"},
-        "n_points": {"type": "integer"},
-        "rmse_before": {"type": ["number", "null"], "description": "reprojection RMSE in pixels before this step's bundle adjustment"},
-        "rmse_after": {"type": ["number", "null"]},
-        "bundle_seconds": {"type": "number"},
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "start"
+        },
+        "run": {
+          "type": "string",
+          "description": "<project>/<config>"
+        },
+        "K": {
+          "$ref": "#/$defs/matrix3"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "the images the run will try to register"
+        },
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "the camera the finished model is anchored to, so a step can be drawn in the same frame before there is a finished model"
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v",
+        "kind",
+        "run",
+        "step",
+        "image",
+        "n_registered",
+        "n_points",
+        "rmse_before",
+        "rmse_after",
+        "bundle_seconds",
+        "cameras",
+        "points"
+      ],
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "step"
+        },
+        "run": {
+          "type": "string"
+        },
+        "step": {
+          "type": "integer"
+        },
+        "image": {
+          "type": "string",
+          "description": "the camera added, or 'global refinement'"
+        },
+        "n_registered": {
+          "type": "integer"
+        },
+        "n_points": {
+          "type": "integer",
+          "description": "points in the model, which is not always how many 'points' carries"
+        },
+        "rmse_before": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "reprojection RMSE in pixels before this step's bundle adjustment"
+        },
+        "rmse_after": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "bundle_seconds": {
+          "type": "number"
+        },
         "cameras": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name", "R", "t"],
+            "required": [
+              "name",
+              "R",
+              "t"
+            ],
             "properties": {
-              "name": {"type": "string"},
-              "R": {"$ref": "#/$defs/matrix3"},
-              "t": {"$ref": "#/$defs/vector3"}
+              "name": {
+                "type": "string"
+              },
+              "R": {
+                "$ref": "#/$defs/matrix3"
+              },
+              "t": {
+                "$ref": "#/$defs/vector3"
+              }
             }
           }
         },
-        "points": {"type": "array", "items": {"type": "number"}}
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "the model's points, flat; a stride through them when there are more than 20000, so that a long run does not fill the broker's memory"
+        }
       }
     },
-    {
+    "stage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["v", "kind", "run", "n_cameras", "n_points"],
+      "required": [
+        "v",
+        "kind",
+        "run",
+        "stage",
+        "state"
+      ],
       "properties": {
-        "v": {"const": 1},
-        "kind": {"const": "end"},
-        "run": {"type": "string"},
-        "n_cameras": {"type": "integer"},
-        "n_points": {"type": "integer"}
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "stage"
+        },
+        "run": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string",
+          "description": "calibrate, match, verify, reconstruct, localize, colmap, dense, evaluate, changes or figures"
+        },
+        "state": {
+          "enum": [
+            "start",
+            "end",
+            "failed"
+          ],
+          "description": "the stage beginning, finishing, or stopping the run"
+        },
+        "seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "what it took, on end or failed"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "a line of its own about what it did, or why it stopped"
+        }
       }
     },
-    {
+    "end": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["v", "kind", "run", "error"],
+      "required": [
+        "v",
+        "kind",
+        "run",
+        "n_cameras",
+        "n_points"
+      ],
       "properties": {
-        "v": {"const": 1},
-        "kind": {"const": "failed"},
-        "run": {"type": "string"},
-        "error": {"type": "string", "description": "why the run stopped, interrupted included"}
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "end"
+        },
+        "run": {
+          "type": "string"
+        },
+        "n_cameras": {
+          "type": "integer"
+        },
+        "n_points": {
+          "type": "integer"
+        }
       }
+    },
+    "failed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v",
+        "kind",
+        "run",
+        "error"
+      ],
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "kind": {
+          "const": "failed"
+        },
+        "run": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string",
+          "description": "why the run stopped, interrupted included"
+        }
+      }
+    },
+    "vector3": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "matrix3": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/vector3"
+      },
+      "minItems": 3,
+      "maxItems": 3
     }
-  ],
-  "$defs": {
-    "vector3": {"type": "array", "items": {"type": "number"}, "minItems": 3, "maxItems": 3},
-    "matrix3": {"type": "array", "items": {"$ref": "#/$defs/vector3"}, "minItems": 3, "maxItems": 3}
   }
 }

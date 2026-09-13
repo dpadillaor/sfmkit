@@ -2,7 +2,11 @@
 
 `sfmview` serves a small read-only JSON API under `/api`, and its own page is
 the first client of it. Base URL is wherever the viewer listens, by default
-`http://127.0.0.1:8000`. FastAPI's generated documentation is at `/docs`.
+`http://127.0.0.1:8000`.
+
+FastAPI describes it in OpenAPI, served at `/docs` and `/redoc`, and the
+messages on the live side have their own description in AsyncAPI — see
+[Live messages](live.md#the-contract-as-a-file).
 
 Arrays go out **flat** — `[x0, y0, z0, x1, …]` — because that is what a WebGL
 buffer wants, and matrices row-major. Coordinates keep OpenCV's axes (x right,
