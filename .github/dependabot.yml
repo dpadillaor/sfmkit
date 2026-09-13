@@ -21,9 +21,19 @@ updates:
     groups:
       python:
         patterns: ["*"]
+        # Minor and patch travel together; a major arrives on its own, because
+        # numpy 2 and OpenCV 5 are each a day's reading, not a line in a list
+        # of nineteen.
+        update-types: ["minor", "patch"]
     # torch and pycolmap are the environment, not a dependency to bump blindly:
-    # a new build changes the matches, and every measurement with them.
+    # a new build changes the matches, and every measurement with them. The
+    # CUDA wheels below are torch's own, pinned to the build it was chosen for
+    # (cu121): bumped on their own they would not match the torch installed
+    # beside them, since everything here goes in with --no-deps.
     ignore:
       - dependency-name: torch
       - dependency-name: torchvision
       - dependency-name: pycolmap
+      - dependency-name: triton
+      - dependency-name: cuda-toolkit
+      - dependency-name: nvidia-*

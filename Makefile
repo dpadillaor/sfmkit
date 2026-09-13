@@ -7,9 +7,11 @@ RUN    ?= runs/$(notdir $(patsubst %/,%,$(dir $(CONFIG))))/$(notdir $(basename $
 # Where images are published. OWNER is the GitHub account the packages hang off.
 REGISTRY ?= ghcr.io
 OWNER    ?= dpadillaor
+IMAGE    ?= $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
 COMMIT   := $(shell git rev-parse HEAD)
+SHORT    := $(shell git rev-parse --short HEAD)
 
-.PHONY: help run view test lint env image push check clean-run
+.PHONY: help run view test lint env-check env image push shell check clean-run
 
 help:
 	@echo "make run     CONFIG=configs/<dataset>/<config>.yaml   run the whole pipeline"
@@ -20,6 +22,7 @@ help:
 	@echo "make env                                  .env with your UID/GID, for docker compose"
 	@echo "make image  [DEVICE=cpu]                   docker image sfmkit:$(DEVICE), stamped with the commit"
 	@echo "make push   [DEVICE=gpu]                   publish it to $(REGISTRY)/$(OWNER), commit and all"
+	@echo "make shell  [DEVICE=cpu]                   a shell inside the image, mounts and all"
 	@echo ""
 	@echo "individual stages: sfmkit <stage> --config ..."
 	@echo "                   sfmkit run --help"
@@ -30,12 +33,28 @@ run:
 view:
 	sfmview --runs runs
 
-test:
-	cd packages/$(PKG) && pytest -q
+# Everything runs through `python -m`, so the tools are the ones belonging to
+# the interpreter that is active. Calling `pytest` or `ruff` by name picks
+# whatever is first on PATH, which in a half-activated shell is another
+# environment's, and the failure that follows blames the code.
+PYTHON ?= python
 
-lint:
-	ruff check .
-	cd packages/$(PKG) && lint-imports
+test: env-check
+	cd packages/$(PKG) && $(PYTHON) -m pytest -q
+
+lint: env-check
+	$(PYTHON) -m ruff check .
+	# import-linter has no __main__: its console script is this one call.
+	cd packages/$(PKG) && \
+		$(PYTHON) -c "from importlinter.cli import lint_imports_command; lint_imports_command()"
+
+# Says which environment is missing rather than failing on a missing command.
+env-check:
+	@$(PYTHON) -c "import pytest, ruff, importlinter" 2>/dev/null || { \
+		echo "the checks need the development tools of the $(PKG) environment."; \
+		echo "conda activate $(if $(filter viewer,$(PKG)),sfmview,sfmkit)"; \
+		echo "pip install --no-deps -r packages/$(PKG)/requirements-dev.txt"; \
+		exit 1; }
 
 env:
 	@printf 'UID=%s\nGID=%s\n' "$$(id -u)" "$$(id -g)" > .env
@@ -54,11 +73,15 @@ image:
 push: image
 	@test -z "$$(git status --porcelain)" || \
 		{ echo "the working tree is dirty: commit first, so the image names real code"; exit 1; }
-	docker tag sfmkit:$(DEVICE) $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
-	docker tag sfmkit:$(DEVICE) $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)-$(shell git rev-parse --short HEAD)
-	docker push $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)
-	docker push $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE)-$(shell git rev-parse --short HEAD)
-	@echo "published $(REGISTRY)/$(OWNER)/sfmkit:$(DEVICE) from $(COMMIT)"
+	docker tag $(IMAGE) $(IMAGE)-$(SHORT)
+	docker push $(IMAGE)
+	docker push $(IMAGE)-$(SHORT)
+	@echo "published $(IMAGE) from $(COMMIT)"
+
+# The image's own environment, with the same mounts a run gets: for reading a
+# traceback from inside, or checking what the container can actually see.
+shell:
+	docker compose run --rm --entrypoint bash $(if $(filter gpu,$(DEVICE)),cli-gpu,cli)
 
 check: lint test
 

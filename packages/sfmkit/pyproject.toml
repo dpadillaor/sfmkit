@@ -53,7 +53,7 @@ layers = [
 name = "The core does no I/O and draws nothing"
 type = "forbidden"
 source_modules = ["sfmkit.core"]
-forbidden_modules = ["matplotlib", "torch", "yaml", "rich", "textual"]
+forbidden_modules = ["matplotlib", "torch", "yaml", "rich"]
 
 [[tool.importlinter.contracts]]
 name = "Only the render layer imports matplotlib"

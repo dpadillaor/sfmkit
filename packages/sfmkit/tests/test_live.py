@@ -48,6 +48,16 @@ def test_a_step_carries_the_model_as_it_stood(snapshot):
     assert m["cameras"][1]["t"] == [-1.0, 0.0, 0.0]
 
 
+def test_a_big_model_is_thinned_but_still_counted(snapshot):
+    many = np.arange(3 * 50_000, dtype=float).reshape(-1, 3)
+    big = Snapshot(snapshot.report, snapshot.poses, many)
+    m = live.step_message(RUN, big, limit=1000)
+    assert step_errors(m) == []
+    assert len(m["points"]) // 3 <= 1000
+    assert m["n_points"] == big.report.n_points  # the model, not the sample
+    assert m["points"][:3] == [0.0, 1.0, 2.0]  # a stride, from the first point on
+
+
 def test_a_failure_says_why():
     assert live.failed_message(RUN, KeyboardInterrupt())["error"] == "KeyboardInterrupt"
     assert live.failed_message(RUN, RuntimeError("no F"))["error"] == "RuntimeError: no F"
@@ -70,6 +80,15 @@ def test_a_message_that_is_not_json_is_refused_not_sent(snapshot):
     assert client.calls == [] and isinstance(errors[0], ValueError)
 
 
+@pytest.fixture(autouse=True)
+def a_stream_never_opened():
+    """Each test is a process that has published nothing yet: the first message
+    of a run empties its stream, and that is remembered per process."""
+    live._opened.clear()
+    yield
+    live._opened.clear()
+
+
 class FakeRedis:
     def __init__(self, fail: bool = False) -> None:
         self.calls = []
@@ -88,8 +107,11 @@ class FakeRedis:
             raise redis.ConnectionError("no broker")
         self.calls.append(("xadd", key, json.loads(fields["data"]), maxlen))
 
+    def expire(self, key, seconds):
+        self.calls.append(("expire", key, seconds))
 
-def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
+
+def test_the_first_message_empties_the_stream_then_everything_is_appended(snapshot):
     client = FakeRedis()
     publisher = live.RedisPublisher(client, RUN)
     publisher.publish(live.start_message(RUN, np.eye(3), []))
@@ -97,6 +119,34 @@ def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
     key = "sfmkit:steps:valencia/9cameras"
     assert [c[:2] for c in client.calls] == [("delete", key), ("xadd", key), ("xadd", key)]
     assert client.calls[2][2]["kind"] == "step" and client.calls[2][3] == live.MAXLEN
+
+
+def test_the_reconstruction_does_not_wipe_the_stages_before_it():
+    """`sfmkit run` publishes stages before `reconstruct` says start; its own
+    publisher must not throw those away."""
+    client = FakeRedis()
+    run_publisher = live.RedisPublisher(client, RUN)
+    run_publisher.publish(live.stage_message(RUN, "match", "start"))
+    reconstruct_publisher = live.RedisPublisher(client, RUN)  # the stage builds its own
+    reconstruct_publisher.publish(live.start_message(RUN, np.eye(3), []))
+    assert [c[0] for c in client.calls] == ["delete", "xadd", "xadd"]
+
+
+def test_a_finished_run_starts_the_stream_clock(snapshot):
+    """The stream outlives the run so a timeline can be rewound, but not for ever."""
+    client = FakeRedis()
+    publisher = live.RedisPublisher(client, RUN)
+    publisher.publish(live.step_message(RUN, snapshot))
+    assert not [c for c in client.calls if c[0] == "expire"]  # still at work
+    publisher.publish(live.end_message(RUN, 2, 2))
+    assert client.calls[-1] == ("expire", live.stream_key(RUN), live.FINISHED_TTL)
+
+
+def test_a_failed_run_starts_it_too():
+    client = FakeRedis()
+    publisher = live.RedisPublisher(client, RUN, ttl=60)
+    publisher.publish(live.failed_message(RUN, KeyboardInterrupt()))
+    assert client.calls[-1] == ("expire", live.stream_key(RUN), 60)
 
 
 def test_an_unreachable_broker_is_reported_once_and_never_stops_the_run(snapshot):
@@ -157,4 +207,6 @@ def test_a_real_broker_keeps_the_messages_in_order(snapshot):
     entries = publisher.client.xrange(live.stream_key(run))
     assert [json.loads(fields[b"data"]) for _, fields in entries] == \
         [json.loads(json.dumps(m)) for m in messages]
+    # The end set the clock: kept for a week, not for ever.
+    assert 0 < publisher.client.ttl(live.stream_key(run)) <= live.FINISHED_TTL
     publisher.client.delete(live.stream_key(run))

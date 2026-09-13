@@ -56,15 +56,17 @@ docker compose down                 # when done: stops both
 `cli-gpu` works the same. Redis publishes no port: the containers find it by
 name, `redis`, on compose's network, and nothing outside reaches it. Only the
 viewer depends on it, so `docker compose run cli` alone starts no Redis and
-publishes nothing. `down` removes Redis's container, and the next `up` starts
-it on a new, empty volume, so the streams are lost; `stop` keeps them. Without Docker, run a Redis yourself and point both at it:
+publishes nothing. Its data lives in a named volume, `redis-data`, so `down`
+no longer takes the streams with it. Without Docker, run a Redis yourself and
+point both at it:
 `sfmview --broker redis://localhost:6379` and
 `SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct ...`.
 
 Neither knows the other: sfmkit writes to the broker and the viewer reads from
 it. The stream keeps a run's messages, so a page opened late, or reloaded,
-shows every step; a finished run's stream stays until the run is repeated, so
-its timeline can still be rewound. Without a broker sfmkit runs as before, and
+shows every step; a finished run's stream stays until the run is repeated or a
+week has passed, so its timeline can still be rewound. Without a broker sfmkit
+runs as before, and
 if the broker goes away mid-run it says so once and carries on. A run at work
 is marked live in the list, and a run whose heartbeat stops before its `end`
 (sfmkit killed, or the broker lost mid-run) is no longer shown as live.
@@ -91,9 +93,11 @@ z forward. A run missing some of these shows what it has.
 Live steps are the other half: a Redis stream per run,
 `sfmkit:steps:<project>/<config>`, one JSON message per entry in its `data`
 field. [`contracts/step.schema.json`](../contracts/step.schema.json) defines
-them: a `start` (the run's K and images; the stream is emptied first), a `step`
+them: a `start` (the run's K, its images and the reference camera; the stream
+is emptied first), a `step`
 after each camera registered and each global refinement (the cameras and the
-triangulated points as they stood, flat), and an `end`, or `failed` with the
+triangulated points as they stood, flat, thinned past 20 000 points), and an
+`end`, or `failed` with the
 reason when the run stops short, Ctrl-C included. The stream is named after the
 run's directory, as the viewer names runs, so `--out` does not write into
 another run's stream. Beside it, while `reconstruct` works, sfmkit keeps
@@ -103,6 +107,46 @@ killed outright stops renewing it, so the viewer can tell a run at work from a
 stream that stopped without an `end`. Both packages test
 against the schema and its examples, with the checker in `contracts/check.py`,
 so a change on one side breaks a test on the other, not a run.
+
+### How it goes
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant K as sfmkit run
+    participant R as Redis
+    participant V as sfmview
+    participant B as the browser
+
+    B->>V: GET /api/runs
+    B->>V: WS /api/runs/valencia/cpu/live
+    V->>R: XRANGE (history)
+    R-->>V: what the last run left, if anything
+    V-->>B: {"now": "<stream id>"}, then each entry
+
+    K->>R: DEL, then XADD stage match start
+    Note over K,R: the first message of a run empties the stream
+    R-->>V: stage match start
+    V-->>B: relayed unchanged
+    K->>R: SET alive, renewed every 5 s
+    K->>R: XADD stage match end (41.2 s)
+    K->>R: XADD start (K, images, reference)
+    loop one per camera registered
+        K->>R: XADD step (cameras and points as they stand)
+        R-->>V: step
+        V-->>B: relayed
+    end
+    K->>R: XADD end, EXPIRE in a week
+    K->>R: DEL alive
+    R-->>V: end
+    V-->>B: relayed
+    B->>V: GET .../scene (the files are complete now)
+```
+
+The message format is `contracts/step.schema.json`; who publishes what and who
+listens is `contracts/asyncapi.yaml`, an AsyncAPI 3 document that points at
+that schema rather than repeating it. The HTTP side's equivalent is the
+OpenAPI FastAPI serves at `/docs`.
 
 ## One frame for two reconstructions
 
@@ -125,7 +169,7 @@ one place (`web/js/scene.js`).
 | `GET /api/runs/{project}/{config}/scene` | the models, with cameras, flat point arrays and their transforms |
 | `GET /api/runs/{project}/{config}/dense.ply` | the dense cloud |
 | `WS /api/runs/{project}/{config}/live?after=<id>` | `{"now"}`, the server's clock, then the run's stream as `{"id", "message"}`: history first, then as it comes |
-| `GET /docs` | the API, from FastAPI |
+| `GET /docs`, `GET /redoc` | the API's OpenAPI, from FastAPI, two ways |
 
 Names are checked as single path components, and a run directory must lie
 inside the runs root, symlinks included. A refused WebSocket is accepted and

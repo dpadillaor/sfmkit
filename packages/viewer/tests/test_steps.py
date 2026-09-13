@@ -105,8 +105,9 @@ async def test_reading_resumes_after_an_id(source):
 async def test_runs_do_not_mix(source):
     steps, publish = source
     a, b = a_run(), a_run()
-    publish(a, STEP_EXAMPLES[0])
-    publish(b, STEP_EXAMPLES[2])
+    # By kind, not by position: the examples grow as the contract does.
+    publish(a, next(m for m in STEP_EXAMPLES if m["kind"] == "start"))
+    publish(b, next(m for m in STEP_EXAMPLES if m["kind"] == "end"))
     (event,) = await take(steps.events(b), 1)
     assert event.message["kind"] == "end"
 

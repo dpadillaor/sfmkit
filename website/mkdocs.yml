@@ -1,11 +1,13 @@
 site_name: sfmkit
 site_description: A small, tested Structure-from-Motion library, with a live 3D viewer.
-# The published address. GitHub Pages serves a project site under the repository
-# name; change both of these when the repository has a home.
-site_url: https://example.github.io/sfmkit/
-# repo_url: https://github.com/<owner>/<repo>
-# repo_name: <owner>/<repo>
-# edit_uri: edit/main/website/docs/
+# GitHub Pages serves a project site under the repository's name. repo_url puts
+# the repository, and its star count, in the header; edit_uri puts a pencil on
+# every page, which is what makes a typo a thirty-second fix rather than a note
+# to oneself.
+site_url: https://dpadillaor.github.io/sfmkit/
+repo_url: https://github.com/dpadillaor/sfmkit
+repo_name: dpadillaor/sfmkit
+edit_uri: edit/main/website/docs/
 docs_dir: docs
 site_dir: site
 strict: true                 # a broken link fails the build, and so the deploy
@@ -45,9 +47,20 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  # The changelog lives at the repository root, where a changelog belongs; the
+  # site includes that file rather than keeping a second copy of it. The path
+  # is from the working directory, so the site is built from the root --
+  # `mkdocs build -f website/mkdocs.yml`, as the workflow and the install page
+  # both do. check_paths turns a move of the file into a failed build.
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -68,6 +81,7 @@ nav:
       - Live messages: viewer/live.md
   - Project:
       - Results: project/results.md
+      - Changelog: project/changelog.md
       - Development: project/development.md
       - Licence: project/licence.md
   - Questions: faq.md

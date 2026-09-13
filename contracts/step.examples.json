@@ -1,19 +1,132 @@
 [
   {
-    "v": 1, "kind": "start", "run": "valencia/9cameras",
-    "K": [[3544.0, 0.0, 2016.0], [0.0, 3544.0, 1134.0], [0.0, 0.0, 1.0]],
-    "images": ["Img01", "Img03"]
+    "v": 1,
+    "kind": "stage",
+    "run": "valencia/9cameras",
+    "stage": "match",
+    "state": "start",
+    "seconds": null,
+    "note": null
   },
   {
-    "v": 1, "kind": "step", "run": "valencia/9cameras", "step": 0, "image": "Img03",
-    "n_registered": 2, "n_points": 2, "rmse_before": null, "rmse_after": 0.8,
+    "v": 1,
+    "kind": "stage",
+    "run": "valencia/9cameras",
+    "stage": "match",
+    "state": "end",
+    "seconds": 41.2,
+    "note": "92 pairs on cuda"
+  },
+  {
+    "v": 1,
+    "kind": "start",
+    "run": "valencia/9cameras",
+    "K": [
+      [
+        3544.0,
+        0.0,
+        2016.0
+      ],
+      [
+        0.0,
+        3544.0,
+        1134.0
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "images": [
+      "Img01",
+      "Img03"
+    ],
+    "reference": "Img01"
+  },
+  {
+    "v": 1,
+    "kind": "step",
+    "run": "valencia/9cameras",
+    "step": 0,
+    "image": "Img03",
+    "n_registered": 2,
+    "n_points": 2,
+    "rmse_before": null,
+    "rmse_after": 0.8,
     "bundle_seconds": 1.5,
     "cameras": [
-      {"name": "Img01", "R": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], "t": [0.0, 0.0, 0.0]},
-      {"name": "Img03", "R": [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], "t": [-1.0, 0.0, 0.0]}
+      {
+        "name": "Img01",
+        "R": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "t": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "name": "Img03",
+        "R": [
+          [
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "t": [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      }
     ],
-    "points": [0.1, 0.2, 5.0, -0.3, 0.1, 6.0]
+    "points": [
+      0.1,
+      0.2,
+      5.0,
+      -0.3,
+      0.1,
+      6.0
+    ]
   },
-  {"v": 1, "kind": "end", "run": "valencia/9cameras", "n_cameras": 2, "n_points": 2},
-  {"v": 1, "kind": "failed", "run": "valencia/9cameras", "error": "KeyboardInterrupt"}
+  {
+    "v": 1,
+    "kind": "end",
+    "run": "valencia/9cameras",
+    "n_cameras": 2,
+    "n_points": 2
+  },
+  {
+    "v": 1,
+    "kind": "failed",
+    "run": "valencia/9cameras",
+    "error": "KeyboardInterrupt"
+  }
 ]

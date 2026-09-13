@@ -1,0 +1,162 @@
+# The messages sfmkit and sfmview exchange, in AsyncAPI 3.
+#
+# The schemas themselves are not repeated here: every message points at
+# step.schema.json, which is the thing both test suites validate against. This
+# file is the map -- who publishes, who listens, over what -- which JSON Schema
+# has no way of saying. HTTP's half is FastAPI's OpenAPI, served at /docs.
+asyncapi: 3.0.0
+
+info:
+  title: sfmkit live progress
+  version: '1.0.0'
+  description: |
+    While `sfmkit run` works it publishes to a Redis stream, one per run. The
+    viewer reads that stream and relays it to the browser over a WebSocket,
+    unchanged. Neither program knows the other: what they share is this stream,
+    the message format, and the files a finished run leaves on disk.
+
+    A run that finds no broker publishes nothing and goes on; a page with no
+    broker shows finished runs. The live half is an addition, never a
+    dependency.
+  license:
+    name: MIT
+    url: https://github.com/dpadillaor/sfmkit/blob/main/LICENSE
+
+servers:
+  broker:
+    host: 'redis:6379'
+    protocol: redis
+    description: |
+      The Redis whose URL is `SFMKIT_BROKER` for sfmkit and `--broker` for the
+      viewer. Compose points both at its own `redis` service, which publishes
+      no port.
+  viewer:
+    host: '127.0.0.1:8000'
+    protocol: ws
+    description: The viewer, relaying the stream to whoever has the page open.
+
+channels:
+  steps:
+    address: 'sfmkit:steps:{project}/{config}'
+    title: A run's stream
+    description: |
+      One Redis stream per run, named after the run's directory. Each entry has
+      a single field, `data`, holding one message as JSON. The stream is
+      trimmed to a thousand entries, emptied by the first message of a run, and
+      expires a week after the run ends -- long enough to rewind a finished
+      run's timeline, not long enough to fill a broker.
+    parameters:
+      project:
+        description: The dataset, e.g. `valencia`.
+      config:
+        description: The config's name, e.g. `cpu`.
+    messages:
+      stage:
+        $ref: '#/components/messages/stage'
+      start:
+        $ref: '#/components/messages/start'
+      step:
+        $ref: '#/components/messages/step'
+      end:
+        $ref: '#/components/messages/end'
+      failed:
+        $ref: '#/components/messages/failed'
+
+  alive:
+    address: 'sfmkit:alive:{project}/{config}'
+    title: A run's heartbeat
+    description: |
+      Not a stream: a key that exists while the run works, set with a 15 second
+      expiry and renewed every 5. A run killed outright stops renewing it and
+      Redis lets it go, which is how a watcher tells a run at work from a
+      stream that stopped without an `end`.
+    parameters:
+      project: {}
+      config: {}
+
+  live:
+    address: '/api/runs/{project}/{config}/live'
+    title: The browser's WebSocket
+    description: |
+      The viewer relays the stream: first a frame carrying the server's clock,
+      `{"now": "<stream id>"}`, then one frame per entry as
+      `{"id": "<stream id>", "message": { ... }}` -- history first, then new
+      entries as they arrive. `?after=<id>` resumes. A socket that cannot be
+      served is accepted and then closed with a code: 4404 for no such run,
+      4503 for live progress not configured.
+    parameters:
+      project: {}
+      config: {}
+    messages:
+      relayed:
+        $ref: '#/components/messages/relayed'
+
+operations:
+  publish:
+    action: send
+    channel:
+      $ref: '#/channels/steps'
+    title: sfmkit publishes a run's progress
+    description: |
+      `sfmkit run` sends a `stage` at the start and end of each stage;
+      `reconstruct` sends a `start`, a `step` per camera registered and per
+      global refinement, and an `end` or a `failed`.
+  watch:
+    action: receive
+    channel:
+      $ref: '#/channels/steps'
+    title: sfmview reads it
+    description: |
+      History first, from the beginning of the stream or from `after`, then
+      whatever arrives. The reader never writes.
+  relay:
+    action: send
+    channel:
+      $ref: '#/channels/live'
+    title: sfmview relays it to the page
+
+components:
+  messages:
+    stage:
+      name: stage
+      title: A stage beginning, finishing, or stopping the run
+      contentType: application/json
+      payload:
+        $ref: './step.schema.json#/$defs/stage'
+    start:
+      name: start
+      title: The reconstruction opening
+      contentType: application/json
+      payload:
+        $ref: './step.schema.json#/$defs/start'
+    step:
+      name: step
+      title: The model as it stood after a camera was registered
+      contentType: application/json
+      payload:
+        $ref: './step.schema.json#/$defs/step'
+    end:
+      name: end
+      title: The reconstruction finished
+      contentType: application/json
+      payload:
+        $ref: './step.schema.json#/$defs/end'
+    failed:
+      name: failed
+      title: The run stopped short
+      contentType: application/json
+      payload:
+        $ref: './step.schema.json#/$defs/failed'
+    relayed:
+      name: relayed
+      title: One stream entry, as the page receives it
+      contentType: application/json
+      payload:
+        type: object
+        required: [id, message]
+        properties:
+          id:
+            type: string
+            description: The stream id, which begins with the milliseconds Redis wrote it at.
+          message:
+            $ref: './step.schema.json'

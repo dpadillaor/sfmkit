@@ -55,6 +55,28 @@ made elsewhere with the point pinned — the course's — is refined the same wa
 by the `colmap` stage (`refine_query`), which takes its old photo from 11.9°
 to 4.4°.
 
+## The camera it estimates
+
+Nothing about that camera is known: not its focal length, not where its
+principal point sits after whatever cropping the plate has had. All eleven
+unknowns of the projection come out of the fit, which makes COLMAP's own
+estimate for the same photograph the only check there is. On the `cpu` example,
+where both place a 557x418 plate:
+
+| | f<sub>x</sub> | f<sub>y</sub> | principal point |
+|---|---|---|---|
+| localize, refined | 552.0 | 555.8 | (238.0, 330.0) |
+| COLMAP's query pass | 553.8 | 553.8 | (243.5, 332.0) |
+
+Within 0.4% in focal length and six pixels in the centre, from two programs
+that share the photographs and nothing else. The fit is free to return
+whatever aspect ratio it likes -- COLMAP's `SIMPLE_RADIAL` is not -- and it
+returns 0.7% away from square, which is the more telling of the two figures:
+the course's pipeline, which assumed a K instead of estimating one, carried
+f<sub>x</sub> = 27139 against f<sub>y</sub> = 7054 for this plate, a 3.8:1
+camera with no physical meaning, and that is what its presentation was seeing
+when it called the old camera "rotated a little bit weird".
+
 ## What refining the camera bought
 
 RANSAC leaves a linear fit that minimises an algebraic error. Minimising the

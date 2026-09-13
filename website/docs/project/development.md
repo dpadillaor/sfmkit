@@ -38,7 +38,7 @@ make check PKG=viewer
 | Contract | |
 |---|---|
 | Layered architecture | `apps → render → data → core`, one direction only |
-| The core does no I/O and draws nothing | no matplotlib, torch, yaml, rich or textual in `core` |
+| The core does no I/O and draws nothing | no matplotlib, torch, yaml or rich in `core` |
 | Only the render layer imports matplotlib | |
 | Only the data layer imports torch | |
 
@@ -79,13 +79,33 @@ reference: what moves is our code, not COLMAP's randomness.
 
 ## Continuous integration
 
-`.github/workflows/` carries three:
+`.github/workflows/` carries four:
 
 | Workflow | When | What |
 |---|---|---|
 | **Checks** (`ci.yml`) | main, pull requests | ruff, the import contracts and both test suites, with a Redis service so the broker's own tests run; then the saved example put through `verify`…`evaluate` again, and its numbers checked. A pull request's run is cancelled when it is pushed again; main's never is |
 | **Documentation** (`docs.yml`) | main, pull requests touching `website/` | builds this site with `--strict`, and publishes it to GitHub Pages from main |
 | **Docker images** (`images.yml`) | main, published releases, or by hand | builds the CPU and viewer images on every change to them; publishes them to the registry when a release is published, tagged with the version, `cpu`/`latest` and the commit. The GPU image is built where there is a GPU: `make push DEVICE=gpu` |
+| **Notify** (`notify.yml`) | any of the three finishing | posts a failure to a Discord channel, and nothing when they pass |
 
 Everything they install comes from the same pinned requirements files as the
 conda environments, so a green CI means the documented installation works.
+
+### Where a failure is heard
+
+GitHub's own route is email, and it goes to the same inbox as everything else.
+So the email is turned off — <https://github.com/settings/notifications>,
+**Actions**, uncheck **Email** (or leave it on and set *Notify for failed
+workflows only*) — and `notify.yml` posts failures to a Discord channel
+instead, where they can be muted, read late, or left to the phone.
+
+It needs one repository secret:
+
+```bash
+# Discord: the channel's Edit Channel -> Integrations -> Webhooks -> New
+# Webhook -> Copy Webhook URL. Then, in a clone of this repository:
+gh secret set DISCORD_WEBHOOK
+```
+
+Without the secret the job says so and passes, so a fork is never failed by a
+secret it cannot have. It posts on `failure` only: a green run is not news.

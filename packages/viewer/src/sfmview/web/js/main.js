@@ -17,7 +17,7 @@ let liveOn = false;
 // open() takes a new token; work begun for an older one drops its results.
 const session = {
   token: 0, id: null, feed: null, scene: null, updated: null, connectedAt: Infinity,
-  K: null, steps: [], index: -1, running: false, fitted: false,
+  K: null, reference: null, stage: null, steps: [], index: -1, running: false, fitted: false,
 };
 
 const showLayers = () => ui.renderLayers(view.layers(), (id, on) => {
@@ -43,16 +43,21 @@ function open(id) {
   session.feed?.stop();
   Object.assign(session, {
     id, feed: null, scene: null, updated: runOf(id).updated, connectedAt: Infinity,
-    K: null, steps: [], index: -1, running: false,
+    K: null, reference: null, stage: null, steps: [], index: -1, running: false,
   });
   ui.selectRun(id);
   ui.renderTimeline([], -1);
   // The feed starts at once: the timeline need not wait for a dense cloud.
-  if (liveOn) {
-    session.feed = new LiveFeed(liveUrl(id), (event) => onLive(token, event),
-      (now) => { if (token === session.token) session.connectedAt = now; }).start();
-  }
+  if (liveOn) startFeed(token);
   showScene(token);
+}
+
+// The open run's live feed. Separate from open() because a broker can arrive
+// after the run was opened.
+function startFeed(token) {
+  session.feed?.stop();
+  session.feed = new LiveFeed(liveUrl(session.id), (event) => onLive(token, event),
+    (now) => { if (token === session.token) session.connectedAt = now; }).start();
 }
 
 // The run's finished results, if it has any yet, with its current step on top.
@@ -76,7 +81,8 @@ async function showScene(token) {
   showCameras();
   showPhotoBar();
   ui.renderInfo(runOf(id), scene);
-  say(token, scene ? '' : 'No results yet: waiting for the run.');
+  if (session.stage) say(token, `${session.stage.name}…`);
+  else say(token, scene ? '' : 'No results yet: waiting for the run.');
 
   if (scene?.dense) {
     try {
@@ -99,7 +105,8 @@ function onLive(token, { id: entry, message }) {
     // Replayed, a start is at work only if its heartbeat said so; new, it is.
     const running = news || runOf(session.id)?.running !== false;
     Object.assign(session, {
-      K: message.K, steps: [], index: -1, running, startSeen: Date.now(),
+      K: message.K, reference: message.reference ?? null,
+      steps: [], index: -1, running, startSeen: Date.now(),
     });
   } else if (message.kind === 'step') {
     if (!session.scene) say(token, ''); // no results yet, but the run is being drawn
@@ -107,6 +114,14 @@ function onLive(token, { id: entry, message }) {
     const following = session.index === session.steps.length - 1;
     session.steps.push(message);
     if (following) session.index = session.steps.length - 1;
+  } else if (message.kind === 'stage') {
+    // The stages that draw nothing still say where the run is: `match` alone
+    // is minutes in which the page would otherwise look like a dead run.
+    if (news) markLive(message.state === 'start' || session.running);
+    session.stage = message.state === 'start'
+      ? { name: message.stage, since: Date.now() }
+      : null;
+    if (news) say(token, stageLine(message));
   } else if (message.kind === 'end') {
     markLive(false);
     if (news) refresh(); // its files are newer than those drawn
@@ -115,6 +130,16 @@ function onLive(token, { id: entry, message }) {
     if (news) say(token, `The run stopped: ${message.error}`, true);
   }
   scheduleDraw();
+}
+
+// What a stage message reads as in the status line.
+function stageLine({ stage, state, seconds, note }) {
+  const minutes = `${Math.round(seconds / 60)} min`;
+  const took = seconds ? ` in ${seconds < 60 ? `${seconds}s` : minutes}` : '';
+  const said = note ? ` (${note})` : '';
+  if (state === 'start') return `${stage}…`;
+  if (state === 'failed') return `${stage} stopped${said}`;
+  return `${stage} done${took}${said}`;
 }
 
 // At work, or no longer: the open run's own stream says so before the list,
@@ -147,7 +172,7 @@ function drawStep() {
   });
   if (index < 0) return;
   // sfmkit's points and cameras become the step's; the old photo stays.
-  view.showStep(steps[index], session.K);
+  view.showStep(steps[index], session.K, session.reference);
   if (!session.scene && !session.fitted) {
     view.fit();
     session.fitted = true;
@@ -246,10 +271,16 @@ async function refresh() {
     say(session.token, 'The run stopped without a word: sfmkit is no longer at work.', true);
     scheduleDraw();
   }
+  // A broker can appear after the page did -- compose starting Redis, or the
+  // server restarted with one -- and a page that only asked at load would
+  // follow no steps until it was reloaded. While there is none, ask again.
+  if (!liveOn) {
+    liveOn = await health().then((h) => h.live, () => false);
+    if (liveOn && session.id && !session.feed) startFeed(session.token);
+  }
   if (!session.id && runs.length) {
     // The page came up before any run, or before the server: start now.
     ui.status('');
-    liveOn = await health().then((h) => h.live, () => liveOn);
     go(initial());
   } else if (run && run.updated !== session.updated) {
     session.updated = run.updated;

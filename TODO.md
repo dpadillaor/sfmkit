@@ -1,6 +1,9 @@
 # TODO
 
-Open work, grouped by area. Move to GitHub Issues once the repository is public.
+Open work, grouped by area. The repository is public now, and the backlog
+stays here rather than moving to Issues: it is read beside the code, it travels
+with the history, and nothing about it needs a browser. An issue tracker can
+take from it the day someone else works on this.
 
 ## Pipeline
 
@@ -22,7 +25,7 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   `calibrate` still takes chessboard photos (tested on synthetic boards) or a
   K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
   `data/valencia/calibration/` would check the EXIF K.
-- [ ] **Say in the README what the error is measured against.** Both configs
+- [x] **The README says what the error is measured against** (2026-09-13). Both configs
   score the reconstruction against COLMAP run from scratch on the same photos,
   its own features and matching: the two share the photographs and nothing
   else, which is what makes 0.35° (cpu) and 0.29° (gpu-dense) worth quoting.
@@ -35,48 +38,20 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
 
 ## Docker
 
-- [ ] **Plain `docker run` still runs as root.** Compose now runs as the user from
-  `.env` (`make env`); without compose, files written to a mounted `runs/` belong
-  to root unless `--user "$(id -u):$(id -g)" -e HOME=/tmp` is given. Fix: a
-  default non-root user in the Dockerfile (`sfmkit`, UID 1000, with a home), so
-  plain `docker run` is not root and is right for the common UID 1000; compose
-  keeps overriding it from `.env` (optional: without it compose uses 1000). Then
-  document it in the README's "Try it".
-- [x] **The SuperPoint weights are no longer in the image** (2026-09-12). Magic
-  Leap licenses them "ACADEMIC OR NON-PROFIT ORGANIZATION NONCOMMERCIAL
-  RESEARCH USE ONLY", and "You may not distribute, copy or use the Software
-  except as explicitly permitted": using them is fine, publishing an image that
-  carries them is not. So the image ships without them and `match` downloads
-  them on first use, into `$TORCH_HOME` (`/opt/torch` in the image, a volume by
-  compose's default), which is how that licence says it is accepted. Missing and
-  with no network, the error says where they go and how to point at them, in
-  compose's terms inside a container. The LightGlue file beside them
-  (`superpoint_lightglue_v0-1_arxiv.pth`, 47.5 MB) comes from cvg/LightGlue,
-  whose code is Apache-2.0; its weights' terms are not stated separately.
-- [x] **Publish the image** to a registry, so nobody has to build it. Nothing
-  stands in the way now that the weights are not in it; what is left is the
-  choosing of a registry, the tags (`:cpu`, `:gpu`, the commit) and a CI job
-  that builds both.
-- [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
-  UID has no entry in the image's `/etc/passwd`. Permissions are unaffected. The
-  full fix is an entrypoint script (start as root, `useradd` with `PUID`/`PGID`,
-  `exec setpriv` to drop root): ~15 lines, but it replaces `user:`, must cope with
-  `--user`, and needs `exec` for signals. Worth it only once others use the image.
-- [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
-- [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?
+- [x] **Plain `docker run` runs as uid 1000**, not as root: both images create
+  the user and switch to it, and `/app` belongs to it. Compose still overrides
+  it with the caller's own uid, so runs written to a mounted `runs/` belong to
+  whoever started them.
+- [x] **`make shell`**: a shell inside the image with a run's mounts,
+  `DEVICE=gpu` for the other one.
+- [x] **Name of the compose service.** It was in doubt because `cli` also ran
+  the TUI; with the TUI gone, `cli` is exact again.
 
 ## Using it on your own project
 
 - [ ] **Three mounts per project** (`data/`, `configs/`, `runs/`). Easy to get one
   wrong; a project-first layout was floated, not decided.
 - [ ] **A project template**: the folder shape and a starting config.
-
-## TUI
-
-- [ ] **Start a new run from a config**, not only re-run a stage of an existing run.
-  Agreed boundary: it views, compares and launches existing configs through the
-  CLI, showing the exact command; it does not edit configs.
-- [ ] Some columns are still cut: `when` in the run list, `stages` in compare.
 
 ## Viewer
 
@@ -88,10 +63,8 @@ Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
 set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
-- [ ] **A named volume for Redis** (`redis-data:/data`), as `docker compose
-  down` loses the streams kept in its anonymous one and so every finished run's
-  timeline. Put off: a small loss for now, 240 KB a run (see "Streams never
-  expire").
+- [x] **A named volume for Redis** (`redis-data:/data`): `down` no longer takes
+  the streams with it, and so a finished run's timeline survives.
 - [x] **Lighting up the points a camera sees: cancelled** (2026-09-12). It would
   have meant the scene API carrying, per model, which points each camera
   observes (both models keep it: sfmkit's `track_images`, COLMAP's tracks).
@@ -112,35 +85,38 @@ the contract, the API and the architecture.
   vendored three.js 0.9 MB, a run's scene 245 KB, the dense cloud 5.9 MB
   (220k points, worth thinning to ~50k), a photo 3.9 MB as it is and ~300 KB
   resized, fetched only when one is looked through.
-- [ ] **Document the interfaces with the standards.** HTTP is covered: FastAPI
-  serves OpenAPI at `/docs` and `/redoc` (say so in `docs/viewer.md`). The
-  messages are not: an AsyncAPI file in `contracts/` for the channels (the
-  stream `sfmkit:steps:<run>`, the WebSocket `/live`), who publishes and who
-  listens, reusing `step.schema.json`; and a Mermaid sequence diagram of
-  browser, viewer, Redis and sfmkit in `docs/viewer.md`.
-- [ ] **A page opened while the server had no broker never goes live.** The
-  page asks `/api/health` once, at load; restart the server with a broker (as
-  when adding Redis to compose) and the open page follows no steps until it is
-  reloaded. Seen in the Docker lesson. Fix: while `liveOn` is false, `refresh()`
-  asks `/api/health` again and, once live, opens the feed of the open run.
-- [ ] **Streams never expire.** A run's stream stays in Redis until the run is
-  repeated (a `start` empties it), which is what lets a finished run be
-  rewound; with many runs, set an `EXPIRE` after the `end` (a week?). Size,
-  measured: valencia/9cameras-exif's stream is 11 messages, 240 KB in Redis's
-  memory, 200 KB saved (the run's directory is 99 MB). But each step carries the
-  whole model as it stood, not what changed, so a run grows with steps times
-  points: a few hundred cameras and 100k points would be hundreds of MB, in
-  RAM. Then send the new points only (a `step` with the ids of what moved), or
-  cap the points a step carries.
-- [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
-  frame (the seed pair's first camera), not the reference camera's, as the
-  transform comes from the finished model. Harmless, as nothing else is drawn
-  then; the `start` message could carry the reference to fix it.
-- [ ] **The end of a watched run reloads the whole scene**, dense cloud included
-  (3.7 MB on Valencia), though only sfmkit's files changed.
-- [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's
-  start and end too, so the page shows where a whole run is; the TUI could read
-  the same stream instead of parsing the CLI's output.
+- [x] **The interfaces are written down in their own standards.** HTTP was
+  already: FastAPI serves OpenAPI at `/docs` and `/redoc`. The messages now have
+  `contracts/asyncapi.yaml` (AsyncAPI 3: the stream, the heartbeat, the
+  WebSocket, who sends and who listens), pointing at `step.schema.json` rather
+  than repeating it — for which the schema's branches were given names under
+  `$defs`. And a Mermaid sequence diagram of sfmkit, Redis, the viewer and the
+  browser, in `docs/viewer.md` and on the site.
+- [x] **A page opened while the server had no broker goes live when one
+  appears.** It asked `/api/health` once, at load, so adding Redis to compose
+  left the open page following nothing until it was reloaded. `refresh()` asks
+  again while there is no broker, and opens the feed of the run on screen the
+  moment one answers.
+- [x] **Streams expire a week after the run ends** (`live.FINISHED_TTL`), set on
+  the `end` or `failed`. They are kept at all so a timeline can be rewound
+  afterwards; without an expiry a broker that sees many runs only grows, since
+  each step carries the whole model as it stood. How big a step may get is
+  capped separately, below.
+- [x] **Live steps on a run with no finished model** were drawn in sfmkit's
+  world frame — the seed pair's first camera — because the transform came from
+  the finished model. The `start` carries the reference camera now, and a step
+  is placed by its own copy of it until a finished model has a transform to
+  take, so nothing jumps when the run ends.
+- [x] **The end of a watched run no longer refetches the dense cloud.** It
+  reloaded the whole scene, COLMAP's several MB included, though only sfmkit's
+  files had changed; the parsed cloud is now kept and reused while its URL is
+  the same, and dropped when a different run's is loaded.
+- [x] **Every stage says where the run is.** `sfmkit run` publishes a `stage`
+  message at the start and end of each one, and holds the heartbeat for the
+  whole run rather than for `reconstruct` alone: a page watching no longer
+  looks at nothing for the ten minutes `match` takes. The stream is emptied by
+  a run's first message instead of by the `start`, or the reconstruction would
+  wipe the stages before it.
 - [x] **three.js and the fonts are in `web/vendor/`** (three 0.170.0, 0.74 MB
   with OrbitControls and PLYLoader, MIT; IBM Plex Sans and Roboto Mono, one
   variable file a family, 0.14 MB, both OFL), so the page needs no network and
@@ -151,14 +127,22 @@ the contract, the API and the architecture.
   otherwise Python alone. The page is checked by screenshots from headless
   Chrome over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
   `--screenshot` does not wait for WebSockets).
-- [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
-  the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
-  one joins.
-- [ ] **pre-commit checks sfmkit's layering only.** Its hooks run in the current
-  environment, and each package lives in its own; CI checks both.
-- [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
-  the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
-  httpx2 is stable, and drop the filter.
+- [x] **`contracts/check.py` stays as it is** (2026-09-13). Eighty-two lines
+  covering the part of JSON Schema the contracts actually use, against a
+  dependency in both packages' environments -- and in both images -- for five
+  message shapes. Revisit only if `jsonschema` arrives for some other reason,
+  or if the schemas start using what it does not cover.
+- [x] **pre-commit checks both packages' layering** (2026-09-13), through
+  `tools/lint-imports`: import-linter has to import a package to follow its
+  imports, and the hooks run in whichever environment the commit is made from,
+  so each package is checked when it is installed there and skipped, out loud,
+  when it is not. CI builds both environments, so nothing is skipped twice.
+- [x] **The viewer's tests are on httpx2** (2026-09-13), so the warning is
+  gone rather than filtered. httpx2 2.12.0 brings `httpcore2` and `truststore`
+  and drops `certifi`; all four are pinned in `requirements-dev.txt` and the
+  80 tests pass in an environment built from it alone. Rebuild `sfmview` (or
+  `pip install --no-deps -r packages/viewer/requirements-dev.txt`) after
+  pulling this. Only the tests used httpx: nothing the viewer serves changed.
 - [x] **A K a camera: weighed and set aside** (2026-09-12). Photos of another
   setting (Img28, zoomed 1.17x; the seven 64 MP ones, another of the phone's
   cameras) would need their own K through reconstruct, the bundle, localize and
@@ -175,35 +159,32 @@ the contract, the API and the architecture.
   Redis 7.4, under RSALv2/SSPLv1 (free to use, not to resell as a hosted
   service); Redis 8 adds AGPLv3; redis-py is MIT. Valkey is the BSD fork, same
   protocol and a drop-in image, if that ever matters.
+- [x] **A step's points are capped** (2026-09-13), at `live.MAX_STEP_POINTS`,
+  20 000. A step carries the whole model rather than what changed, which is
+  what lets the timeline draw any step on its own, but the cost is steps times
+  points and it sits in the broker's memory for as long as the stream does.
+  Past the cap sfmkit sends a stride through the points -- the model thinned,
+  not a corner of it -- and `n_points` still says how many there really are.
+  Valencia's 2 830 never reach it. The alternative, a step carrying only the
+  points that moved, was not taken: it would make every reader stateful, and
+  a viewer that arrives late would have to replay the run to draw it.
 
 ## README
 
-- [ ] Sections still to write: **Try it** (the image with the Valencia example),
-  **Your own project**, **Development**. Write each once it works.
-- [ ] **Install section.** Conda and Docker are the only supported installs, each
-  in a CPU and a GPU flavour:
-  - Conda, CPU: `conda create -n sfmkit python=3.11`, then
-    `pip install --no-deps -r requirements-cpu.txt -r requirements.txt` and
-    `pip install --no-deps -e .`.
-  - Conda, GPU: the same with `requirements-gpu.txt` instead of
-    `requirements-cpu.txt`. Needs an NVIDIA driver for CUDA 12.1 or later (>= 530).
-  - Docker, CPU: `make image`, then `docker compose run --rm cli <stage> ...`.
-    On Linux, if your UID is not 1000, `make env` first, so the files written
-    to `runs/` are yours; a plain `docker run` needs
-    `--user "$(id -u):$(id -g)" -e HOME=/tmp` for the same reason.
-  - Docker, GPU: `make image DEVICE=gpu`, then `docker compose run --rm cli-gpu ...`.
-    The host needs, once: the NVIDIA driver, `nvidia-container-toolkit`
-    (from NVIDIA's repository), `sudo nvidia-ctk runtime configure --runtime=docker`
-    and a Docker restart. Without them the gpu image still runs, on the CPU,
-    and `dense` refuses.
-  - Which stages use the GPU: `match` (PyTorch), `colmap` (SIFT), `dense`
-    (PatchMatch, GPU only). `reconstruct` runs on the CPU either way.
-- [ ] Mention `sfm.device` and that CPU and GPU give slightly different matches.
-- [x] A GIF of the reconstruction growing: the viewer's timeline, stepped and captured.
-- [ ] **Figures for the README**: `changes/overlay_Img_Old_on_Img01.png` (the old photo
-  set into today's square, near-perfect alignment) is the strongest image the
-  project makes; with the dense cloud, the two to lead with. Copy reduced
-  versions into `docs/figures/` (the full PNGs are ~17 MB).
+- [x] **Rewritten** (2026-09-13): it opens with the question the project
+  answers, gives the old photograph and the change map a section of their own
+  rather than two rows in a table of ten, and carries Try it, the viewer, what
+  is inside, the badges and the links to the site.
+- [x] **`README.old.md` is folded in and gone** (2026-09-13). What it held and
+  the site did not: the camera estimated for the old plate against COLMAP's own
+  estimate of it, now in `docs/old-photo.md` and measured again on today's run
+  (f 552.0/555.8 against 553.8, six pixels apart in the centre, and the course's
+  3.8:1 K beside them); how far the change figure can be read, now on the
+  results page; and the diagnostics figures, now in the run guide with the
+  reading that made them worth showing. `matches`, `epipolar`, `residuals` and
+  `changes` went from 1-2.5 MB PNGs to resized JPEGs on the way.
+- [x] **The README mentions `sfm.device`** (2026-09-13), and that a CPU and a
+  GPU find slightly different matches and so give slightly different numbers.
 
 ## Going public
 
@@ -215,16 +196,27 @@ the contract, the API and the architecture.
   tag `baseline-original`) and `../MGRCV-backup-before-rewrite-2026-09-13.bundle`.
 - [x] **The repository is up**: `github.com/dpadillaor/sfmkit`, public, `main`,
   189 commits, wiki and projects off, eight topics.
-- [ ] **Badges in the README** once there is a repository: the CI's state and
-  the published image's version. They are the first thing a reader checks.
-- [ ] **The README buries what the project is for.** `localize` and `changes`
-  are two rows of a ten-row table, next to `figures`; placing a century-old
-  photograph in the model and saying what changed is the reason any of the
-  other eight exist. Lead with them when the README is rewritten, as the
-  website's home page already does.
-- [ ] **`compose.yaml` should be able to pull rather than build**, once the
-  images are published: someone who only wants to look at the viewer waits ten
-  minutes for a build they did not ask for.
+- [x] **Badges in the README**: the checks, the documentation and the licence.
+  The published image's version goes up when there is a release to name.
+- [x] **The README leads with what the project is for** — the old photograph
+  and what changed — instead of burying them in a table of ten stages.
+- [x] **`compose.yaml` names the images as they are published**
+  (`ghcr.io/dpadillaor/...`), so `docker compose pull` fetches them and nobody
+  waits for a build they did not ask for. Builds write the same names.
+- [x] **Failures are heard in Discord, not in the inbox** (2026-09-13).
+  `.github/workflows/notify.yml` watches the three workflows and posts the ones
+  that fail to a Discord channel, with the branch, the commit and a link; it
+  says nothing about a green run. It wants the repository secret
+  `DISCORD_WEBHOOK` (`gh secret set DISCORD_WEBHOOK`) and passes without it, so
+  a fork is not failed by a secret it cannot have. Still to do by hand, and
+  only the account's owner can: turn the email off at
+  <https://github.com/settings/notifications>, Actions -> Email.
+- [ ] **numpy 2 and OpenCV 5, one at a time.** Dependabot's first sweep offered
+  both inside a list of nineteen, with a CUDA that did not match the pinned
+  torch; the config now keeps majors out of the group so each arrives on its
+  own. Both are real work: numpy 2 changes promotion rules and copy semantics,
+  OpenCV 5 is a major of its own. Take them when there is time to run the
+  regression check and read what moved, not on a monthly schedule.
 - [ ] **Rehearse the newcomer's path against the published repository**: clone,
   the conda instructions as written, `no-colmap.yaml`, the viewer. It was
   rehearsed against the image; the instructions on the site have not been.
@@ -238,24 +230,30 @@ the contract, the API and the architecture.
   website/mkdocs.yml`, in an environment of its own or in `sfmview`.
 - [x] **The site is live** at `dpadillaor.github.io/sfmkit`, deployed by
   `Documentation` on every push to main.
-- [ ] **`repo_url`, `repo_name` and `edit_uri`** are still commented out in
-  `website/mkdocs.yml`: filling them puts the repository's link, its star count
-  and an "edit this page" pencil in the site's header.
+- [x] **`site_url`, `repo_url`, `repo_name` and `edit_uri` are filled in**
+  (2026-09-13): the header carries the repository and its stars, and every page
+  an "edit this page" pencil onto `main`.
 - [ ] **Publish the images.** `.github/workflows/images.yml` pushes to GHCR and
   to Docker Hub when a release is published; Docker Hub waits on the secrets
-  `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, which could not be set on
-  2026-09-13 because GitHub's secret API was answering 500 from both `gh` and
-  the web. Retry, then publish the first release.
-  When they are up, replace the "Published images" note in
-  `website/docs/install/docker.md` with the real `docker pull` lines, and give
-  `compose.yaml` an `image:` that can be pulled rather than built.
+  `DOCKERHUB_USERNAME` (`padidavid`) and `DOCKERHUB_TOKEN`. They could not be
+  set on 2026-09-13, while GitHub's secret API answered 500 from both `gh` and
+  the web; that outage is over, so: set them, tag `v0.1.0`, publish the
+  release. Then uncomment the `docker pull` lines in
+  `website/docs/install/docker.md`, which name the images already.
 - [ ] **The GPU image is published by hand**, `make push DEVICE=gpu`, because
   CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's disk. The
   target refuses a dirty tree and labels the image with its commit, so it stays
   as traceable as a CI-built one; it still has to be remembered at each release.
   A self-hosted runner with a GPU would fold it back into `images.yml`.
-- [ ] Keep the site content in sync with the README once the README rework
-  lands: install steps and the stages table are duplicated for now.
+- [ ] Keep the site and the README in step. The rework landed, and the two
+  still duplicate the install steps and the stages table; a change to one is a
+  change to both until they are cut down to a single home each.
+- [ ] **The figures are kept twice**, in `docs/figures/` for the README and in
+  `website/docs/figures/` for the site, copied by hand: 9 MB of duplicates, and
+  one of the two goes stale the first time only one is updated. MkDocs will not
+  read outside its own docs directory; the ways out are a build step that
+  copies them, a symlink, or moving the figures under `website/` and pointing
+  the README at raw URLs.
 - [x] **A tutorial**, the page COLMAP's site has and ours did not: one pass
   from a clone to a reconstruction in the viewer, then the same on photographs
   of your own. It is where most readers start.
@@ -264,8 +262,11 @@ the contract, the API and the architecture.
   old photograph is handled apart.
 - [x] **A licence page** on the site, saying what MIT covers and what the
   NOTICE carves out.
-- [ ] **A changelog**, once there are versions to write in it. The first entry
-  is `v0.1.0`, the tag that publishes the first images.
+- [x] **A changelog** (2026-09-13), `CHANGELOG.md` at the root, in Keep a
+  Changelog's shape, and on the site under Project -- included from the root
+  file by pymdownx.snippets rather than copied, so there is one of it. Its
+  first section is Unreleased; it becomes `v0.1.0` when that tag is pushed,
+  which is also what publishes the images.
 
 ## Later
 

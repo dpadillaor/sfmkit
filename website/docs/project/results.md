@@ -111,7 +111,17 @@ are matched: the lamp posts have moved, the arcade now opens onto a courtyard,
 a building beside the cathedral is gone, and the people are in both but never
 in the same place.
 
-![What changed](../figures/changes.png)
+![What changed](../figures/changes.jpg)
 
 7.6% of the overlap is flagged as changed. Most of that is the square's floor
 and its passers-by; the cathedral itself, minus one building, is where it was.
+
+**How far the figure can be read.** A homography aligns one plane exactly and
+nothing else. The cathedral's facade is near enough to flat, so what it flags
+there is change; the buildings down the sides of the square are at very
+different depths and register poorly, so much of what is marked there is
+misalignment instead. That is the method, not a fault in it, and the honest
+reading of the picture is that the facade is comparable and the flanks are
+not. Comparing them properly would mean warping through the model rather than
+through a plane — every pixel of the old photograph carried onto today's by
+the depth the reconstruction gives it.

@@ -48,8 +48,8 @@ COLMAP again too, which varies a little between runs, the old photo most.
 - `contracts/` the messages the packages exchange (`step.schema.json`, live
   progress through Redis), with examples and the checker both test suites load.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
-  import-linter. `core` does no I/O and imports no torch, matplotlib, yaml, rich
-  or textual.
+  import-linter. `core` does no I/O and imports no torch, matplotlib, yaml
+  or rich.
 - `data/<project>/` raw inputs, never written. `configs/<project>/*.yaml` one
   experiment each. `runs/<project>/<config>/<stage>/` outputs, ignored by git.
 - `examples/` a saved run, tracked and copied into the image.
@@ -59,8 +59,18 @@ COLMAP again too, which varies a little between runs, the old photo most.
 - Stage files by name, never `git add -A`: the user edits files at the same time.
 - Commit before generating anything that records the commit (a run, an image),
   so the recorded commit names the code that produced it.
-- Never rewrite history without asking. The course's code is no longer on disk:
-  it lives in `../MGRCV-history-backup-2026-09-10.bundle`, tag `baseline-original`.
+- **No co-author trailers, and no mention of the assistant in a commit.** The
+  history is the author's, under `181723095+dpadillaor@users.noreply.github.com`;
+  the messages say what changed and why, and nothing about what wrote them.
+  Decided on 2026-09-13 and applied to the whole history, which was rewritten
+  for it.
+- Never rewrite history without asking. Two bundles sit beside the repository:
+  `../MGRCV-history-backup-2026-09-10.bundle` (the course's code, tag
+  `baseline-original`) and `../MGRCV-backup-before-rewrite-2026-09-13.bundle`
+  (everything as it stood before that rewrite).
+- The repository is public: `github.com/dpadillaor/sfmkit`. Work goes in on a
+  branch and a pull request, not straight to `main`, so the checks speak before
+  a change lands.
 
 ## Working with the user
 

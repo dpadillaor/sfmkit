@@ -27,7 +27,8 @@ repos:
     hooks:
       - id: import-linter
         name: layered architecture
-        entry: lint-imports --config packages/sfmkit/pyproject.toml
-        language: system
+        # Both packages, each in the environment that has it; see the script.
+        entry: tools/lint-imports
+        language: script
         pass_filenames: false
         types: [python]

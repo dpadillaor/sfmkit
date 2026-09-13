@@ -5,7 +5,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 import {
-  cameraCentre, frustumDepth, frustumSegments, imageCorners, robustSphere, segmentDistance, viewDepth,
+  cameraCentre, frustumDepth, frustumSegments, imageCorners, referenceFrame, robustSphere,
+  segmentDistance, viewDepth,
 } from './geometry.js';
 import { colours, PALETTE, SIGNAL } from './palette.js';
 import { PhotoView } from './pov.js';
@@ -49,6 +50,10 @@ export class SceneView {
   #reach = new Map(); // camera key -> its view drawn out to the scene
   #cone = { show: 0.5, far: 1 }; // how strongly a view is drawn, and how far out
   #pointsOf = new Map(); // model source -> its sparse points, flat, in its own frame
+  // The dense cloud, kept across scenes: when a watched run ends, only sfmkit's
+  // files have changed, and fetching and parsing several MB of COLMAP's again
+  // to draw the same points is the most expensive thing the page can do.
+  #dense = { url: null, geometry: null };
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
 
@@ -224,9 +229,15 @@ export class SceneView {
 
   // Draw the reconstruction as a live step left it, replacing the last step
   // drawn. Its coordinates are sfmkit's, so it takes sfmkit's transform when
-  // the run's finished model is shown. ``K`` is the run's, from its start.
-  showStep(step, K) {
-    this.#live ??= this.#frame(this.#frames.get('sfmkit') ?? IDENTITY);
+  // the run's finished model is shown. ``K`` is the run's, from its start, and
+  // ``reference`` the camera it will be anchored to: until there is a finished
+  // model to take the transform from, the step is placed by its own reference
+  // camera, so it does not sit in the seed pair's frame and jump later.
+  showStep(step, K, reference = null) {
+    const rows = this.#frames.get('sfmkit')
+      ?? referenceFrame(step.cameras, reference) ?? IDENTITY;
+    if (this.#live) this.#live.matrix.copy(matrix4(rows));
+    else this.#live = this.#frame(rows);
     for (const id of ['live-points', 'live-cameras']) { // the last step's, not a photo
       this.#layers.get(id)?.object.traverse((o) => { o.geometry?.dispose(); o.material?.dispose(); });
       this.#layers.get(id)?.object.removeFromParent();
@@ -270,11 +281,18 @@ export class SceneView {
   // another scene was shown meanwhile.
   async loadDense(dense, onProgress) {
     const generation = this.#generation;
-    const geometry = await new PLYLoader().loadAsync(dense.url, (e) => {
-      if (e.lengthComputable) onProgress?.(e.loaded / e.total);
-    });
-    if (generation !== this.#generation) {
-      geometry.dispose();
+    let geometry = this.#dense.url === dense.url ? this.#dense.geometry : null;
+    if (!geometry) {
+      geometry = await new PLYLoader().loadAsync(dense.url, (e) => {
+        if (e.lengthComputable) onProgress?.(e.loaded / e.total);
+      });
+      if (generation !== this.#generation) {
+        geometry.dispose();
+        return null;
+      }
+      this.#dense.geometry?.dispose(); // a different cloud: the old one goes
+      this.#dense = { url: dense.url, geometry };
+    } else if (generation !== this.#generation) {
       return null;
     }
     const cloud = new THREE.Points(geometry, new THREE.PointsMaterial({
@@ -366,7 +384,7 @@ export class SceneView {
     this.#photos.clear();
     this.#shots.clear();
     this.#world.traverse((o) => {
-      o.geometry?.dispose();
+      if (o.geometry !== this.#dense.geometry) o.geometry?.dispose(); // kept for the next scene
       o.material?.dispose();
     });
     this.#world.clear();
