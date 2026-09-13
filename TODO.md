@@ -244,8 +244,11 @@ the contract, the API and the architecture.
   old photograph is handled apart.
 - [x] **A licence page** on the site, saying what MIT covers and what the
   NOTICE carves out.
-- [ ] **A changelog**, once there are versions to write in it. The first entry
-  is `v0.1.0`, the tag that publishes the first images.
+- [x] **A changelog** (2026-09-13), `CHANGELOG.md` at the root, in Keep a
+  Changelog's shape, and on the site under Project -- included from the root
+  file by pymdownx.snippets rather than copied, so there is one of it. Its
+  first section is Unreleased; it becomes `v0.1.0` when that tag is pushed,
+  which is also what publishes the images.
 
 ## Later
 
