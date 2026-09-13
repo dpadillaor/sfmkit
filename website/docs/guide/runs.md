@@ -94,6 +94,6 @@ camera, and most of the correction has been made.
 
 The viewer does exactly that, through a fixed set of files —
 [the contract](../viewer/index.md#what-the-viewer-reads) — and the same files
-are what `sfmkit ui` and the figures read. Nothing in a run needs sfmkit to be
-installed to be understood: arrays in `.npz`, text from COLMAP, JSON for the
-rest.
+are what the figures and the reporting tools read. Nothing in a run needs
+sfmkit installed to be understood: arrays in `.npz`, text from COLMAP, JSON for
+the rest.
