@@ -222,9 +222,11 @@ the contract, the API and the architecture.
   When they are up, replace the "Published images" note in
   `website/docs/install/docker.md` with the real `docker pull` lines, and give
   `compose.yaml` an `image:` that can be pulled rather than built.
-- [ ] **The GPU image is not built in CI**: CUDA PyTorch and COLMAP's CUDA build
-  do not fit a hosted runner's disk. Either build it on a self-hosted runner or
-  keep publishing it by hand with `make image DEVICE=gpu`.
+- [ ] **The GPU image is published by hand**, `make push DEVICE=gpu`, because
+  CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's disk. The
+  target refuses a dirty tree and labels the image with its commit, so it stays
+  as traceable as a CI-built one; it still has to be remembered at each release.
+  A self-hosted runner with a GPU would fold it back into `images.yml`.
 - [ ] Keep the site content in sync with the README once the README rework
   lands: install steps and the stages table are duplicated for now.
 

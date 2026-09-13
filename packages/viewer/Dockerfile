@@ -21,5 +21,11 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 --start-period=10s --start-interval=1s \
     CMD ["sfmview-health"]
 
+# The commit this image was built from, for `docker inspect`.
+ARG GIT_COMMIT=unknown
+LABEL org.opencontainers.image.title="sfmview" \
+      org.opencontainers.image.description="A web viewer for sfmkit runs" \
+      org.opencontainers.image.revision="$GIT_COMMIT"
+
 # Entrypoint
 ENTRYPOINT ["sfmview"]

@@ -123,6 +123,27 @@ the run goes ahead either way. `down` removes Redis's container and the next
 | `viewer` | `sfmview` | the web viewer on port 8000 |
 | `redis` | `redis:7-alpine` | live progress, internal to the compose network |
 
+## Publishing an image
+
+The CPU and viewer images are built and pushed by CI on a version tag. The GPU
+one is not: CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's
+disk, so it is built where there is a GPU and published by hand:
+
+```bash
+docker login ghcr.io -u <you>     # once, with a token that can write packages
+make push DEVICE=gpu
+```
+
+`make push` refuses to publish from a working tree with uncommitted changes,
+and stamps the commit into the image twice: as `SFMKIT_GIT_COMMIT`, which every
+run manifest records, and as an OCI label. So a published image can always be
+traced back, whoever built it:
+
+```bash
+docker inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' \
+  ghcr.io/<owner>/sfmkit:gpu
+```
+
 ## GPU
 
 The `cli-gpu` service asks for `gpus: all`, which needs NVIDIA's container

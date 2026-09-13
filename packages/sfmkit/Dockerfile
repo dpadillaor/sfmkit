@@ -37,9 +37,14 @@ COPY packages/sfmkit/pyproject.toml .
 COPY packages/sfmkit/src src
 RUN pip install --no-cache-dir --no-deps .
 
-# The commit this image was built from, recorded in every run manifest
+# The commit this image was built from, recorded in every run manifest, and as
+# a label too: `docker inspect` then says which code is inside, which is the
+# only thing that makes a hand-built image as accountable as a CI-built one.
 ARG GIT_COMMIT=unknown
 ENV SFMKIT_GIT_COMMIT=$GIT_COMMIT
+LABEL org.opencontainers.image.title="sfmkit" \
+      org.opencontainers.image.description="Structure from Motion: the pipeline and its CLI" \
+      org.opencontainers.image.revision="$GIT_COMMIT"
 
 # Entrypoint
 ENTRYPOINT ["sfmkit"]
