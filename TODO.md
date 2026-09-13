@@ -243,8 +243,11 @@ the contract, the API and the architecture.
   Settings -> Pages -> Source to "GitHub Actions", and put the address Pages
   gives back into `site_url` in `website/mkdocs.yml`, along with `repo_url`,
   `repo_name` and `edit_uri`, which are commented out there.
-- [ ] **Publish the images.** `.github/workflows/images.yml` pushes
-  `ghcr.io/<owner>/sfmkit:cpu` and `ghcr.io/<owner>/sfmview` on a `v*` tag.
+- [ ] **Publish the images.** `.github/workflows/images.yml` pushes to GHCR and
+  to Docker Hub when a release is published; Docker Hub waits on the secrets
+  `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`, which could not be set on
+  2026-09-13 because GitHub's secret API was answering 500 from both `gh` and
+  the web. Retry, then publish the first release.
   When they are up, replace the "Published images" note in
   `website/docs/install/docker.md` with the real `docker pull` lines, and give
   `compose.yaml` an `image:` that can be pulled rather than built.

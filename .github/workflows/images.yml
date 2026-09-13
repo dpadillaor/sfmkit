@@ -1,7 +1,12 @@
-# The images, built and pushed to the registry: the CPU pipeline and the
+# The images, built and pushed to the registries: the CPU pipeline and the
 # viewer. Both are built on every push to the default branch, so a broken
 # Dockerfile is caught then rather than at release, and published when a
 # release is, or by hand.
+#
+# Two registries: GHCR always, since GitHub lends the credentials, and Docker
+# Hub as well when DOCKERHUB_USERNAME and DOCKERHUB_TOKEN are set as secrets.
+# Without them that half is skipped rather than failed, so the workflow is
+# green on a clone that has no Docker Hub account behind it.
 #
 # The GPU image is not built here: it pulls CUDA PyTorch and COLMAP's CUDA
 # build, which does not fit a hosted runner's disk. Build that one where there
@@ -35,6 +40,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      # A secret cannot be read in an `if:`; its presence can, through here.
+      HAS_DOCKERHUB: ${{ secrets.DOCKERHUB_TOKEN != '' && secrets.DOCKERHUB_USERNAME != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,28 +61,45 @@ jobs:
       - name: What to build, and whether to push it
         id: plan
         run: |
-          name="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}"
-          tags="$name:${{ matrix.moving }},$name:${GITHUB_SHA::7}"
+          names="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}"
+          if [ "$HAS_DOCKERHUB" = true ]; then
+            names="$names docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image }}"
+          fi
           version="${{ github.event.release.tag_name }}"
           if [ -n "$version" ]; then          # a release was published
-            tags="$tags,$name:$version"
             push=true
           elif [ "${{ inputs.push }}" = true ]; then
             push=true
           else
             push=false
           fi
-          echo "tags=$tags" >> "$GITHUB_OUTPUT"
-          echo "first=$name:${{ matrix.moving }}" >> "$GITHUB_OUTPUT"
+          tags=""
+          for name in $names; do
+            tags="$tags,$name:${{ matrix.moving }},$name:${GITHUB_SHA::7}"
+            # Not `[ -n "$version" ] && ...`: on the last pass a false test
+            # would be the loop's exit status, and the step runs under `set -e`.
+            if [ -n "$version" ]; then
+              tags="$tags,$name:$version"
+            fi
+          done
+          echo "tags=${tags#,}" >> "$GITHUB_OUTPUT"
+          echo "first=${names%% *}:${{ matrix.moving }}" >> "$GITHUB_OUTPUT"
           echo "push=$push" >> "$GITHUB_OUTPUT"
 
-      - name: Log in to the registry
+      - name: Log in to GHCR
         if: steps.plan.outputs.push == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to Docker Hub
+        if: steps.plan.outputs.push == 'true' && env.HAS_DOCKERHUB == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # The build context is the repository root for both images: they copy the
       # dataset, the configs and the saved example run alongside the package.

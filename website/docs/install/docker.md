@@ -9,17 +9,18 @@ CUDA toolkit (the GPU image still needs the host's NVIDIA driver and the
 container toolkit).
 
 !!! info "Published images"
-    The images are not on a registry yet. When they are, this page will say
-    `docker pull …` and the rest of it stays the same: the commands below build
-    the same images locally, and the compose file will take the published tag
-    the moment there is one.
+    Nothing is published yet: the images go out when a release is published,
+    and there has been no release. They will land in two registries at once —
+    GitHub's, which needs no account of ours, and Docker Hub, which is where
+    people look:
 
     ```bash
-    # Coming: nothing to build, just
-    # docker pull <registry>/sfmkit:cpu
-    # docker pull <registry>/sfmkit:gpu
-    # docker pull <registry>/sfmview
+    # Coming, once there is a release
+    # docker pull ghcr.io/dpadillaor/sfmkit:cpu     docker pull padidavid/sfmkit:cpu
+    # docker pull ghcr.io/dpadillaor/sfmview        docker pull padidavid/sfmview
     ```
+
+    Until then, the commands below build the same images locally.
 
 ## First, your user
 
@@ -125,8 +126,18 @@ the run goes ahead either way. `down` removes Redis's container and the next
 
 ## Publishing an image
 
-The CPU and viewer images are built and pushed by CI on a version tag. The GPU
-one is not: CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's
+The CPU and viewer images are built and pushed by CI when a release is
+published, to GHCR and to Docker Hub. GHCR needs nothing: GitHub lends the
+workflow a credential for the duration. Docker Hub needs two repository
+secrets, `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`; without them that half is
+skipped rather than failed, so a fork with no Docker Hub account still gets a
+green build and its images on GHCR.
+
+Each image goes out with three tags: the version from the release, a moving one
+(`cpu` for the pipeline, `latest` for the viewer) and the short commit, for
+when a build has to be named exactly.
+
+The GPU image is not built there: CUDA PyTorch and COLMAP's CUDA build do not fit a hosted runner's
 disk, so it is built where there is a GPU and published by hand:
 
 ```bash
