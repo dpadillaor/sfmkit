@@ -89,7 +89,15 @@ body { font-size: 0.8rem; }
   font-size: 0.68rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  /* The title is sticky: it needs a ground of its own and a rule under it, or
+     the first row scrolls up behind the words. */
+  background: var(--sfm-panel);
+  padding: 10px 12px 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--sfm-line);
+  box-shadow: none;
 }
+.md-sidebar--secondary .md-nav__title { background: var(--sfm-ground); }
 
 /* top-level items are section headers, like the viewer's collapsible panels */
 .md-nav--primary > .md-nav__list > .md-nav__item {
