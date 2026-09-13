@@ -57,11 +57,15 @@ Open work, grouped by area. Move to GitHub Issues once the repository is public.
   stands in the way now that the weights are not in it; what is left is the
   choosing of a registry, the tags (`:cpu`, `:gpu`, the commit) and a CI job
   that builds both.
-- [ ] Cosmetic: a shell in the compose service greets `I have no name!`, as the host
-  UID has no entry in the image's `/etc/passwd`. Permissions are unaffected. The
-  full fix is an entrypoint script (start as root, `useradd` with `PUID`/`PGID`,
-  `exec setpriv` to drop root): ~15 lines, but it replaces `user:`, must cope with
-  `--user`, and needs `exec` for signals. Worth it only once others use the image.
+- [x] **`I have no name!` in a container's shell: left alone** (2026-09-13). The
+  host's UID has no entry in the image's `/etc/passwd`, so bash cannot put a
+  name on the prompt. Nothing else is affected — permissions, writes and runs
+  are all by number. Every fix costs more than the symptom: mounting the host's
+  `/etc/passwd` shows the container the machine's user list and does nothing on
+  Windows unless compose is run from inside WSL; baking a user in assumes a UID
+  the host may not have; an entrypoint that adds the line needs that file
+  writable and replaces `user:` altogether. Revisit only if the image is handed
+  to people who live in its shell.
 - [ ] **`make shell`**: a shortcut for `docker compose run --rm --entrypoint bash cli`.
 - [ ] **Name of the compose service.** `cli` also runs the TUI now; `app` or `tool`?
 
