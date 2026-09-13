@@ -158,8 +158,11 @@ the contract, the API and the architecture.
 - [ ] **`contracts/check.py` is a small validator** for the part of JSON Schema
   the contracts use, as neither package otherwise needs `jsonschema`. Swap it if
   one joins.
-- [ ] **pre-commit checks sfmkit's layering only.** Its hooks run in the current
-  environment, and each package lives in its own; CI checks both.
+- [x] **pre-commit checks both packages' layering** (2026-09-13), through
+  `tools/lint-imports`: import-linter has to import a package to follow its
+  imports, and the hooks run in whichever environment the commit is made from,
+  so each package is checked when it is installed there and skipped, out loud,
+  when it is not. CI builds both environments, so nothing is skipped twice.
 - [ ] **starlette's TestClient warns that `httpx` is deprecated for `httpx2`**;
   the warning is filtered in `packages/viewer/pyproject.toml`. Switch when
   httpx2 is stable, and drop the filter.
