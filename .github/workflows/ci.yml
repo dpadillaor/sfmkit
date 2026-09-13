@@ -1,10 +1,13 @@
 name: CI
 
 on:
+  # The two moments that matter: a change proposed, and a change landing. A
+  # branch of one's own is not built until it asks to come in, and a pull
+  # request from this repository is built once, not twice.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
-  workflow_dispatch:
+  workflow_dispatch:      # and a button, for when neither has happened
 
 concurrency:
   group: ci-${{ github.ref }}
