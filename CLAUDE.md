@@ -48,8 +48,8 @@ COLMAP again too, which varies a little between runs, the old photo most.
 - `contracts/` the messages the packages exchange (`step.schema.json`, live
   progress through Redis), with examples and the checker both test suites load.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
-  import-linter. `core` does no I/O and imports no torch, matplotlib, yaml, rich
-  or textual.
+  import-linter. `core` does no I/O and imports no torch, matplotlib, yaml
+  or rich.
 - `data/<project>/` raw inputs, never written. `configs/<project>/*.yaml` one
   experiment each. `runs/<project>/<config>/<stage>/` outputs, ignored by git.
 - `examples/` a saved run, tracked and copied into the image.

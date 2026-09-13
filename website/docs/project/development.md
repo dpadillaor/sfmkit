@@ -38,7 +38,7 @@ make check PKG=viewer
 | Contract | |
 |---|---|
 | Layered architecture | `apps → render → data → core`, one direction only |
-| The core does no I/O and draws nothing | no matplotlib, torch, yaml, rich or textual in `core` |
+| The core does no I/O and draws nothing | no matplotlib, torch, yaml or rich in `core` |
 | Only the render layer imports matplotlib | |
 | Only the data layer imports torch | |
 
