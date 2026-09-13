@@ -83,9 +83,9 @@ reference: what moves is our code, not COLMAP's randomness.
 
 | Workflow | When | What |
 |---|---|---|
-| `ci.yml` | push, pull request | ruff, the import contracts and both test suites, with a Redis service so the broker's own tests run; then the saved example put through `verify`…`evaluate` again, and its numbers checked |
-| `docs.yml` | push to the default branch | builds this site with `--strict` and publishes it to GitHub Pages |
-| `images.yml` | default branch, tags, or by hand | builds the CPU and viewer images; pushes them to the registry on a tag. The GPU image is built where there is a GPU, not on a runner |
+| **Checks** (`ci.yml`) | main, pull requests | ruff, the import contracts and both test suites, with a Redis service so the broker's own tests run; then the saved example put through `verify`…`evaluate` again, and its numbers checked. A pull request's run is cancelled when it is pushed again; main's never is |
+| **Documentation** (`docs.yml`) | main, pull requests touching `website/` | builds this site with `--strict`, and publishes it to GitHub Pages from main |
+| **Docker images** (`images.yml`) | main, published releases, or by hand | builds the CPU and viewer images on every change to them; publishes them to the registry when a release is published, tagged with the version, `cpu`/`latest` and the commit. The GPU image is built where there is a GPU: `make push DEVICE=gpu` |
 
 Everything they install comes from the same pinned requirements files as the
 conda environments, so a green CI means the documented installation works.

@@ -1,17 +1,16 @@
 # The images, built and pushed to the registry: the CPU pipeline and the
 # viewer. Both are built on every push to the default branch, so a broken
-# Dockerfile is caught then rather than at release, and pushed on a version tag
-# or by hand.
+# Dockerfile is caught then rather than at release, and published when a
+# release is, or by hand.
 #
 # The GPU image is not built here: it pulls CUDA PyTorch and COLMAP's CUDA
 # build, which does not fit a hosted runner's disk. Build that one where there
 # is a GPU, with `make image DEVICE=gpu`.
-name: images
+name: Docker images
 
 on:
   push:
     branches: [main]
-    tags: ["v*"]
     paths:
       - "packages/*/Dockerfile"
       - "packages/*/requirements*.txt"
@@ -19,6 +18,9 @@ on:
       - "packages/*/pyproject.toml"
       - "compose.yaml"
       - ".github/workflows/images.yml"
+  # A release is the human-readable act: notes, version and images together.
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       push:
@@ -28,6 +30,7 @@ on:
 
 jobs:
   build:
+    name: ${{ matrix.image }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,8 +55,9 @@ jobs:
         run: |
           name="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}"
           tags="$name:${{ matrix.moving }},$name:${GITHUB_SHA::7}"
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            tags="$tags,$name:${GITHUB_REF_NAME}"
+          version="${{ github.event.release.tag_name }}"
+          if [ -n "$version" ]; then          # a release was published
+            tags="$tags,$name:$version"
             push=true
           elif [ "${{ inputs.push }}" = true ]; then
             push=true

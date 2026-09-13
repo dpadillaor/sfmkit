@@ -1,4 +1,4 @@
-name: CI
+name: Checks
 
 on:
   # The two moments that matter: a change proposed, and a change landing. A
@@ -10,11 +10,14 @@ on:
   workflow_dispatch:      # and a button, for when neither has happened
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A pull request pushed five times only needs its last run. A run on main is
+  # the one that says whether the branch is sound, and is never cut short.
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
+    name: sfmkit (CPU)
     runs-on: ubuntu-latest
     # A broker for the tests of live progress, which are skipped without one.
     services:
@@ -53,6 +56,7 @@ jobs:
         run: pytest -q --cov=sfmkit --cov-report=term-missing
 
   viewer:
+    name: sfmview
     runs-on: ubuntu-latest
     services:
       redis:
@@ -97,7 +101,7 @@ jobs:
         run: pytest -q
 
   regression:
-    name: the saved example, run again
+    name: The saved example, run again
     runs-on: ubuntu-latest
     needs: test
     steps:

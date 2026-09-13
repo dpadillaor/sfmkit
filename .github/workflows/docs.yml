@@ -3,7 +3,7 @@
 # Before the first deploy, in the repository's Settings → Pages, set the source
 # to "GitHub Actions"; and in website/mkdocs.yml, set site_url to the address
 # Pages gives you.
-name: docs
+name: Documentation
 
 on:
   push:
@@ -26,6 +26,7 @@ permissions:
 
 jobs:
   build:
+    name: Build the site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +50,7 @@ jobs:
           path: website/site
 
   deploy:
+    name: Publish to Pages
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
