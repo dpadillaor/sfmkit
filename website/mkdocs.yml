@@ -47,7 +47,14 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.superfences
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  # The changelog lives at the repository root, where a changelog belongs; the
+  # site includes that file rather than keeping a second copy of it. The path
+  # is from the working directory, so the site is built from the root --
+  # `mkdocs build -f website/mkdocs.yml`, as the workflow and the install page
+  # both do. check_paths turns a move of the file into a failed build.
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -68,6 +75,7 @@ nav:
       - Live messages: viewer/live.md
   - Project:
       - Results: project/results.md
+      - Changelog: project/changelog.md
       - Development: project/development.md
       - Licence: project/licence.md
   - Questions: faq.md
