@@ -255,6 +255,16 @@ the contract, the API and the architecture.
   A self-hosted runner with a GPU would fold it back into `images.yml`.
 - [ ] Keep the site content in sync with the README once the README rework
   lands: install steps and the stages table are duplicated for now.
+- [x] **A tutorial**, the page COLMAP's site has and ours did not: one pass
+  from a clone to a reconstruction in the viewer, then the same on photographs
+  of your own. It is where most readers start.
+- [x] **An FAQ** for the four questions that keep coming: whether COLMAP is
+  needed, whether a GPU is, where the feature weights come from, and why the
+  old photograph is handled apart.
+- [x] **A licence page** on the site, saying what MIT covers and what the
+  NOTICE carves out.
+- [ ] **A changelog**, once there are versions to write in it. The first entry
+  is `v0.1.0`, the tag that publishes the first images.
 
 ## Later
 

@@ -53,6 +53,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Tutorial: tutorial.md
   - Install:
       - With conda: install/conda.md
       - With Docker: install/docker.md
@@ -68,3 +69,5 @@ nav:
   - Project:
       - Results: project/results.md
       - Development: project/development.md
+      - Licence: project/licence.md
+  - Questions: faq.md

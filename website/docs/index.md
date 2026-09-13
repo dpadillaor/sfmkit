@@ -17,8 +17,8 @@ rebuilds a place in 3D from modern photographs, places an old photograph in
 that model, and checks itself against <a href="https://colmap.github.io/">COLMAP</a>.</p>
 
 <div class="sfm-cta" markdown>
-[Install](install/conda.md){ .md-button .md-button--primary }
-[The pipeline](guide/pipeline.md){ .md-button }
+[Tutorial](tutorial.md){ .md-button .md-button--primary }
+[Install](install/conda.md){ .md-button }
 [Results](project/results.md){ .md-button }
 </div>
 
@@ -61,6 +61,8 @@ sfmkit answers that from a handful of modern photographs of the same place:
 
 <div class="grid cards" markdown>
 
+- **[Tutorial](tutorial.md)** — from a clone to a reconstruction you can turn
+  around, then the same on photographs of your own.
 - **[Install](install/conda.md)** — three conda environments, or
   [Docker](install/docker.md) and nothing on the host.
 - **[The pipeline](guide/pipeline.md)** — the ten stages, and how the
@@ -73,6 +75,8 @@ sfmkit answers that from a handful of modern photographs of the same place:
 - **[Results](project/results.md)** — the numbers, the 11.5° argument, and what
   a bundle adjustment of our own bought.
 - **[Development](project/development.md)** — the layering, the checks, and CI.
+- **[Questions](faq.md)** — COLMAP, GPUs, the weights, and why the old
+  photograph is handled apart.
 
 </div>
 
