@@ -211,6 +211,12 @@ the contract, the API and the architecture.
   a fork is not failed by a secret it cannot have. Still to do by hand, and
   only the account's owner can: turn the email off at
   <https://github.com/settings/notifications>, Actions -> Email.
+- [ ] **numpy 2 and OpenCV 5, one at a time.** Dependabot's first sweep offered
+  both inside a list of nineteen, with a CUDA that did not match the pinned
+  torch; the config now keeps majors out of the group so each arrives on its
+  own. Both are real work: numpy 2 changes promotion rules and copy semantics,
+  OpenCV 5 is a major of its own. Take them when there is time to run the
+  regression check and read what moved, not on a monthly schedule.
 - [ ] **Rehearse the newcomer's path against the published repository**: clone,
   the conda instructions as written, `no-colmap.yaml`, the viewer. It was
   rehearsed against the image; the instructions on the site have not been.
