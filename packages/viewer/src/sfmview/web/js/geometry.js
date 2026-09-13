@@ -26,6 +26,23 @@ export function cameraCentre(camera) {
   return unproject(camera, [[1, 0, 0], [0, 1, 0], [0, 0, 1]], 0, 0, 0);
 }
 
+// The 4x4 that takes a model's own coordinates into ``name``'s camera frame,
+// row-major: that camera's world-to-camera pose, which is what the server
+// sends as a model's `to_common`. It is how a live step can be drawn where the
+// finished model will sit, before there is a finished model to take the
+// transform from.
+export function referenceFrame(cameras, name) {
+  const camera = cameras.find((c) => c.name === name);
+  if (!camera) return null;
+  const [R, t] = [camera.R, camera.t];
+  return [
+    [R[0][0], R[0][1], R[0][2], t[0]],
+    [R[1][0], R[1][1], R[1][2], t[1]],
+    [R[2][0], R[2][1], R[2][2], t[2]],
+    [0, 0, 0, 1],
+  ];
+}
+
 // Where a camera looks, in the world: its optical axis and its image's up.
 // The rows of R are the camera's axes in the world.
 export function cameraAxes(camera) {

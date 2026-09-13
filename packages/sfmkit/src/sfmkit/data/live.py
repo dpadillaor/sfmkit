@@ -42,8 +42,12 @@ def alive_key(run: str) -> str:
     return f"sfmkit:alive:{run}"
 
 
-def start_message(run: str, K: np.ndarray, images: list[str]) -> dict:
-    return {"v": VERSION, "kind": "start", "run": run, "K": _matrix(K), "images": list(images)}
+def start_message(run: str, K: np.ndarray, images: list[str],
+                  reference: str | None = None) -> dict:
+    """The run opening. ``reference`` lets a watcher draw the steps in the frame
+    the finished model will use, rather than in the seed pair's."""
+    return {"v": VERSION, "kind": "start", "run": run, "K": _matrix(K),
+            "images": list(images), "reference": reference}
 
 
 def step_message(run: str, snapshot: Snapshot) -> dict:

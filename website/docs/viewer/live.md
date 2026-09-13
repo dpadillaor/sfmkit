@@ -49,9 +49,15 @@ is emptied immediately before this is written.
 {
   "v": 1, "kind": "start", "run": "valencia/cpu",
   "K": [[3029.0, 0.0, 2016.0], [0.0, 3029.0, 1134.0], [0.0, 0.0, 1.0]],
-  "images": ["Img01", "Img02", "Img03"]
+  "images": ["Img01", "Img02", "Img03"],
+  "reference": "Img01"
 }
 ```
+
+`reference` is the camera the finished model will be anchored to. A watcher
+needs it to draw the steps where the finished model will sit: until there is
+one, it has no transform to take, and would otherwise place the model in the
+seed pair's frame and have it jump when the run ends.
 
 ### `step`
 

@@ -136,10 +136,11 @@ the contract, the API and the architecture.
   points: a few hundred cameras and 100k points would be hundreds of MB, in
   RAM. Then send the new points only (a `step` with the ids of what moved), or
   cap the points a step carries.
-- [ ] **Live steps on a run with no finished model** are drawn in sfmkit's world
-  frame (the seed pair's first camera), not the reference camera's, as the
-  transform comes from the finished model. Harmless, as nothing else is drawn
-  then; the `start` message could carry the reference to fix it.
+- [x] **Live steps on a run with no finished model** were drawn in sfmkit's
+  world frame — the seed pair's first camera — because the transform came from
+  the finished model. The `start` carries the reference camera now, and a step
+  is placed by its own copy of it until a finished model has a transform to
+  take, so nothing jumps when the run ends.
 - [ ] **The end of a watched run reloads the whole scene**, dense cloud included
   (3.7 MB on Valencia), though only sfmkit's files changed.
 - [ ] **Only `reconstruct` publishes.** `sfmkit run` could publish each stage's

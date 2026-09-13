@@ -58,7 +58,7 @@ def cmd_reconstruct(args) -> int:
         broker = live.publisher(run_name, on_error=lambda e: console.print(
             f"[yellow]live progress off:[/yellow] the broker in ${live.BROKER_ENV} is unreachable "
             f"({type(e).__name__}); the run goes on"))
-        broker.publish(live.start_message(run_name, K, s.images))
+        broker.publish(live.start_message(run_name, K, s.images, s.reference))
 
         table = Table(title="incremental reconstruction")
         for c, j in (("step", "right"), ("image", "left"), ("cams", "right"), ("points", "right"),
