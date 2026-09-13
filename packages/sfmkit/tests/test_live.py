@@ -88,6 +88,9 @@ class FakeRedis:
             raise redis.ConnectionError("no broker")
         self.calls.append(("xadd", key, json.loads(fields["data"]), maxlen))
 
+    def expire(self, key, seconds):
+        self.calls.append(("expire", key, seconds))
+
 
 def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
     client = FakeRedis()
@@ -97,6 +100,23 @@ def test_a_start_empties_the_stream_then_everything_is_appended(snapshot):
     key = "sfmkit:steps:valencia/9cameras"
     assert [c[:2] for c in client.calls] == [("delete", key), ("xadd", key), ("xadd", key)]
     assert client.calls[2][2]["kind"] == "step" and client.calls[2][3] == live.MAXLEN
+
+
+def test_a_finished_run_starts_the_stream_clock(snapshot):
+    """The stream outlives the run so a timeline can be rewound, but not for ever."""
+    client = FakeRedis()
+    publisher = live.RedisPublisher(client, RUN)
+    publisher.publish(live.step_message(RUN, snapshot))
+    assert not [c for c in client.calls if c[0] == "expire"]  # still at work
+    publisher.publish(live.end_message(RUN, 2, 2))
+    assert client.calls[-1] == ("expire", live.stream_key(RUN), live.FINISHED_TTL)
+
+
+def test_a_failed_run_starts_it_too():
+    client = FakeRedis()
+    publisher = live.RedisPublisher(client, RUN, ttl=60)
+    publisher.publish(live.failed_message(RUN, KeyboardInterrupt()))
+    assert client.calls[-1] == ("expire", live.stream_key(RUN), 60)
 
 
 def test_an_unreachable_broker_is_reported_once_and_never_stops_the_run(snapshot):
@@ -157,4 +177,6 @@ def test_a_real_broker_keeps_the_messages_in_order(snapshot):
     entries = publisher.client.xrange(live.stream_key(run))
     assert [json.loads(fields[b"data"]) for _, fields in entries] == \
         [json.loads(json.dumps(m)) for m in messages]
+    # The end set the clock: kept for a week, not for ever.
+    assert 0 < publisher.client.ttl(live.stream_key(run)) <= live.FINISHED_TTL
     publisher.client.delete(live.stream_key(run))

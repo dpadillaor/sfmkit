@@ -28,6 +28,11 @@ from sfmkit.core.reconstruct import Snapshot
 VERSION = 1
 BROKER_ENV = "SFMKIT_BROKER"
 MAXLEN = 1000  # entries a stream keeps: far more than a run's steps
+# How long a finished run's stream lives. It is kept at all so that a timeline
+# can still be rewound after the fact; a week of that is generous, and without
+# an expiry a broker that sees many runs only ever grows -- each step carries
+# the whole model as it stood, so a stream is as big as the run is long.
+FINISHED_TTL = 7 * 24 * 60 * 60
 ALIVE_SECONDS = 15  # how long the alive key outlives its last renewal
 RENEW_SECONDS = 5
 
@@ -83,15 +88,20 @@ class NullPublisher:
 
 
 class RedisPublisher:
-    """Appends messages to a run's stream. A ``start`` empties the stream first,
-    so a run repeated does not follow the steps of the last one."""
+    """Appends messages to a run's stream.
+
+    A ``start`` empties the stream first, so a run repeated does not follow the
+    steps of the last one, and an ``end`` or a ``failed`` starts its clock: the
+    stream outlives the run by ``ttl`` seconds and is then Redis's to reclaim.
+    """
 
     def __init__(self, client, run: str, on_error: Callable[[Exception], None] | None = None,
-                 maxlen: int = MAXLEN) -> None:
+                 maxlen: int = MAXLEN, ttl: int = FINISHED_TTL) -> None:
         self.client = client
         self.key = stream_key(run)
         self.on_error = on_error
         self.maxlen = maxlen
+        self.ttl = ttl
         self.failed = False
 
     @classmethod
@@ -109,6 +119,8 @@ class RedisPublisher:
             # allow_nan=False: a NaN would break every reader's JSON.
             self.client.xadd(self.key, {"data": json.dumps(message, allow_nan=False)},
                              maxlen=self.maxlen, approximate=True)
+            if message["kind"] in ("end", "failed"):
+                self.client.expire(self.key, self.ttl)
         except Exception as e:  # the broker's trouble is never the run's
             self.failed = True
             if self.on_error is not None:
