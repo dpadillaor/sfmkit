@@ -18,16 +18,11 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1024]
 
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.7.1
-    hooks:
-      - id: nbstripout
-
   - repo: local
     hooks:
       - id: import-linter
         name: layered architecture
-        # Both packages, each in the environment that has it; see the script.
+        # Every package, each in the environment that has it; see the script.
         entry: tools/lint-imports
         language: script
         pass_filenames: false
