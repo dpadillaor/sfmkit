@@ -78,9 +78,11 @@ the matches and epipolar lines for a pair.
 
 ## Can I use it on something other than Valencia?
 
-Yes — that is what `projects/<name>/data/scene/` and `projects/<name>/configs/*.yaml` are
-for. The [tutorial](tutorial.md#5-your-own-photographs) has the shape of a
-config for your own photographs.
+Yes. `sfmkit new plaza --photos ~/Pictures/plaza` lays out a project of your
+own, copies the photographs in and writes a config that lists them; then
+`sfmkit run --config projects/plaza/configs/cpu.yaml`. The
+[tutorial](tutorial.md#5-your-own-photographs) says what makes a set of
+photographs work.
 
 ## Why write a bundle adjustment instead of using Ceres or scipy?
 

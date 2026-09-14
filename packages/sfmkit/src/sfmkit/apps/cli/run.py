@@ -36,6 +36,21 @@ STAGES = [
 ]
 
 
+def configured(cfg: Config, stage: str) -> bool:
+    """Whether the config asks for a stage at all.
+
+    `dense` already skips itself when it is off. The same holds for the rest: a
+    project with no historical photograph has nothing to localise, and one with
+    no COLMAP has nothing to be scored against. `run` walks past them; asking
+    for one by name still says what is missing.
+    """
+    if stage in ("localize", "changes"):
+        return bool(cfg.localize.query)
+    if stage in ("colmap", "evaluate"):
+        return bool(cfg.colmap.precomputed or cfg.colmap.matches)
+    return True
+
+
 def cmd_run(args) -> int:
     """Run the pipeline end to end, stopping at the first stage that fails."""
     cfg = load_config(args.config)  # fail early on a bad config, before any stage runs
@@ -52,7 +67,10 @@ def cmd_run(args) -> int:
         stages = [(n, f) for n, f in STAGES if n in wanted]
     else:
         start = names.index(args.From) if args.From else 0
-        stages = STAGES[start:]
+        stages = [(n, f) for n, f in STAGES[start:] if configured(cfg, n)]
+        absent = [n for n, _ in STAGES[start:] if not configured(cfg, n)]
+        if absent:
+            console.print(f"[dim]not in this config: {', '.join(absent)}[/dim]")
 
     problem = _needs_missing_cuda(cfg, {n for n, _ in stages})
     if problem:

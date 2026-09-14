@@ -11,7 +11,7 @@ CONFIG = Path(__file__).resolve().parents[3] / "projects" / "valencia" / "config
 
 class _Args:
     def __init__(self, out, **kw):
-        self.config = str(CONFIG)
+        self.config = str(kw.get("config", CONFIG))
         self.out = str(out)
         self.From = kw.get("From")
         self.only = kw.get("only")
@@ -87,3 +87,23 @@ def test_run_help_lists_the_stages_in_order(capsys):
     at = [printed.index(f"\n  {name:<12}") for name, _ in STAGES]
     assert at == sorted(at), "the stages are listed out of order"
     assert "calibrate   intrinsics" in printed  # each with what it does
+
+
+def _bare_config(tmp_path) -> Path:
+    """A project that configures neither a query nor a COLMAP to be scored against."""
+    configs = tmp_path / "city" / "configs"
+    configs.mkdir(parents=True)
+    config = configs / "cpu.yaml"
+    config.write_text("sfm:\n  images: [Img01, Img02]\n")
+    return config
+
+
+def test_a_stage_the_config_says_nothing_about_is_walked_past(ran, tmp_path):
+    cmd_run(_Args(tmp_path / "out", config=_bare_config(tmp_path)))
+    assert ran == ["calibrate", "match", "verify", "reconstruct", "dense", "figures"]
+
+
+def test_asking_for_one_by_name_still_runs_it(ran, tmp_path):
+    """So a typo in `localize.query` is reported by the stage, not hidden here."""
+    cmd_run(_Args(tmp_path / "out", config=_bare_config(tmp_path), only="localize"))
+    assert ran == ["localize"]

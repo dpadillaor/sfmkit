@@ -18,6 +18,7 @@ from sfmkit.apps.cli import (
     figures,
     localize,
     match,
+    new,
     reconstruct,
     run,
     verify,
@@ -45,9 +46,17 @@ def build_parser() -> argparse.ArgumentParser:
         helps[name] = help_
         s = sub.add_parser(name, help=help_)
         s.add_argument("--config", required=True, help="YAML experiment config")
-        s.add_argument("--out", help="run directory (default: runs/<dataset>/<config>)")
+        s.add_argument("--out", help="run directory (default: the project's runs/<config>)")
         s.set_defaults(func=fn)
         return s
+
+    n = sub.add_parser("new", help="lay out a new project: data/, configs/ and a config")
+    n.add_argument("name", help="the project's name, and the directory it gets")
+    n.add_argument("--in", dest="inside", default="projects", metavar="DIR",
+                   help="where projects live (default: projects)")
+    n.add_argument("--photos", metavar="DIR",
+                   help="photographs to copy into the project, and to list in the config")
+    n.set_defaults(func=new.cmd_new)
 
     stage("calibrate", calibrate.cmd_calibrate,
           "intrinsics from chessboard photos, or a precomputed K")

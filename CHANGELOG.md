@@ -15,7 +15,13 @@ What it will carry:
   (`apps → render → data → core`), enforced by import-linter rather than by
   good intentions. Ten stages, each a command, `sfmkit run` doing them in
   order: `calibrate`, `match`, `verify`, `reconstruct`, `localize`, `colmap`,
-  `dense`, `evaluate`, `changes`, `figures`.
+  `dense`, `evaluate`, `changes`, `figures`. A stage the config says nothing
+  about is walked past, so a project with no historical photograph and no
+  COLMAP runs what it has.
+- **`sfmkit new`**, a project laid out for you — `data/scene/`, `configs/` and
+  a config that parses — with `--photos` to copy a directory of photographs in
+  and list them. The layout a config is found by is written by the code that
+  requires it rather than by the README.
 - **A bundle adjustment of its own** — Levenberg–Marquardt, an analytic
   Jacobian, the points eliminated with the Schur complement — 58× faster than
   the `scipy.optimize.least_squares` it replaced, and to a lower cost.
