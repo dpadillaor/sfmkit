@@ -61,7 +61,7 @@ the config does not ask for.
 | `colmap` | COLMAP's model of the same photographs, to be scored against | 14 cameras and the old one |
 | `dense` | Optional, needs an NVIDIA GPU: a dense cloud from COLMAP's model | 226 792 points |
 | `evaluate` | How far every camera is from COLMAP's | 0.30° mean rotation error |
-| **`changes`** | **Overlays the old photograph on a modern one and marks what differs** | **7.6% of the overlap** |
+| **`changes`** | **Overlays the old photograph on a modern one and marks what differs** | **the lamp posts, the gallery, a lost building** |
 | `figures` | The plots for a finished run | |
 
 Every stage writes a manifest with the commit, the versions and the whole config,
@@ -143,7 +143,7 @@ difference in exposure and tone is not reported as change.
 
 *The old photograph flown onto today's through the homography between them. The
 facade lines up; what does not line up is what changed. The lamp posts have
-moved, a building beside the cathedral is gone, the arcade now opens onto a
+moved, a building beside the cathedral is gone, the gallery now opens onto a
 courtyard, and there are people in both photographs but never in the same place.*
 
 And the answer can be argued with. Our placement and COLMAP's disagreed by 11.5°
