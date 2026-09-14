@@ -51,7 +51,7 @@ opens a plot.
 
 ## Stage contract
 
-A run lives in `runs/<dataset>/<config>/`. Each stage writes its own subfolder,
+A run lives in `projects/<name>/runs/<config>/`. Each stage writes its own subfolder,
 with a `manifest.json` holding the config, the git commit and package versions,
 and reads only from the dataset and from earlier stages' subfolders.
 

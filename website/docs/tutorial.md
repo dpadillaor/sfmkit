@@ -31,11 +31,11 @@ from perhaps a century earlier.
 ## 2. Run the pipeline
 
 ```bash
-sfmkit run --config configs/valencia/no-colmap.yaml
+sfmkit run --config projects/valencia/configs/no-colmap.yaml
 ```
 
 That config scores the result against a COLMAP model saved in the repository,
-so nothing needs COLMAP installed. Use `configs/valencia/cpu.yaml` instead if
+so nothing needs COLMAP installed. Use `projects/valencia/configs/cpu.yaml` instead if
 you have it and would rather COLMAP reconstructed the scene itself.
 
 What you will see, in order:
@@ -61,7 +61,7 @@ conda create -n sfmview python=3.11 -y
 conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
 pip install --no-deps -e packages/viewer
-sfmview --runs runs --data data
+sfmview --projects projects --data data
 ```
 
 Open <http://127.0.0.1:8000> and pick the run. You are looking at two
@@ -70,7 +70,7 @@ reconstructions in one frame: ours in amber, COLMAP's in blue, aligned the way
 to look through it. The old photograph is the one in its own colour, set among
 the modern ones.
 
-The pictures the run drew for itself are in `runs/valencia/no-colmap/figures/`
+The pictures the run drew for itself are in `projects/valencia/runs/no-colmap/figures/`
 and `…/changes/`; the overlay of the old photograph on today's is the one worth
 opening first.
 
@@ -82,24 +82,34 @@ that is one command:
 
 ```bash
 docker compose up -d viewer        # Redis, then the viewer
-docker compose run --rm cli reconstruct --config configs/valencia/cpu.yaml
+docker compose run --rm cli reconstruct --config projects/valencia/configs/cpu.yaml
 ```
 
 Without Docker, run a Redis of your own and point both at it:
 
 ```bash
-sfmview --runs runs --broker redis://localhost:6379
-SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config configs/valencia/cpu.yaml
+sfmview --projects projects --broker redis://localhost:6379
+SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config projects/valencia/configs/cpu.yaml
 ```
 
 ## 5. Your own photographs
 
-Say your project is called `plaza`. Put the photographs in
-`data/plaza/scene/`, named however you like — `Img01.jpg`, `Img02.jpg`, … is
-what the examples do — and write `configs/plaza/first.yaml`:
+Say your project is called `plaza`. A project is one directory, and everything
+it owns lives inside it:
+
+```
+projects/plaza/
+├── data/scene/     the photographs
+├── configs/        one YAML an experiment
+└── runs/           written for you
+```
+
+Put the photographs in `projects/plaza/data/scene/`, named however you like —
+`Img01.jpg`, `Img02.jpg`, … is what Valencia does — and write
+`projects/plaza/configs/first.yaml`. Nothing in it names the project: the file's
+own location says which one it belongs to.
 
 ```yaml
-dataset: plaza
 name: first
 seed: 0
 
@@ -120,7 +130,7 @@ colmap:
 ```
 
 ```bash
-sfmkit run --config configs/plaza/first.yaml
+sfmkit run --config projects/plaza/configs/first.yaml
 ```
 
 What matters for the photographs themselves:

@@ -287,7 +287,7 @@ def bounds(snapshots, margin=0.10):
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--config", default="configs/valencia/gpu-dense.yaml")
+    p.add_argument("--config", default="projects/valencia/configs/gpu-dense.yaml")
     p.add_argument("--out", type=Path, default=None)
     p.add_argument("--view", choices=("map", "colmap"), default="map",
                    help="the model being built, or the same cameras against COLMAP's")

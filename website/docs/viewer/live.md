@@ -8,9 +8,9 @@ A change on one side breaks a test on the other, not a run.
 
 ```bash
 # sfmkit publishes when this names a Redis
-SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config configs/valencia/cpu.yaml
+SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config projects/valencia/configs/cpu.yaml
 # the viewer reads when this names the same one
-sfmview --runs runs --broker redis://localhost:6379
+sfmview --projects projects --broker redis://localhost:6379
 ```
 
 With Docker both are set for you; see [Install with Docker](../install/docker.md#watching-a-run-as-it-is-built).
@@ -26,7 +26,7 @@ sequenceDiagram
     participant B as the browser
 
     B->>V: GET /api/runs
-    B->>V: WS /api/runs/valencia/cpu/live
+    B->>V: WS /api/projects/valencia/runs/cpu/live
     V->>R: XRANGE (history)
     R-->>V: what the last run left, if anything
     V-->>B: {"now": "<stream id>"}, then each entry

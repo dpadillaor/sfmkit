@@ -9,7 +9,7 @@ from sfmview.adapters.runs_fs import FsRunStore
 from sfmview.domain import RunId, RunNotFound
 from synthetic import make_run, write_manifest
 
-EXAMPLES = Path(__file__).resolve().parents[3] / "examples"
+PROJECTS = Path(__file__).resolve().parents[3] / "projects"
 
 
 def apply(T, X):
@@ -34,8 +34,8 @@ def test_runs_are_listed_newest_first_with_what_they_hold(tmp_path):
 
 def test_directories_that_are_not_runs_are_skipped(tmp_path):
     make_run(tmp_path, "city", "full")
-    (tmp_path / "city" / ".cache" / "x").mkdir(parents=True)
-    (tmp_path / "city" / ".cache" / "x" / "manifest.json").write_text("{}")
+    (tmp_path / "city" / "runs" / ".cache" / "x").mkdir(parents=True)
+    (tmp_path / "city" / "runs" / ".cache" / "x" / "manifest.json").write_text("{}")
     (tmp_path / "loose.json").write_text("{}")
     assert [str(r.run) for r in FsRunStore(tmp_path).runs()] == ["city/full"]
 
@@ -112,10 +112,13 @@ def test_a_symlink_out_of_the_root_is_not_followed(tmp_path):
         store.dense_file(RunId("city", "link"))
 
 
-@pytest.mark.skipif(not (EXAMPLES / "valencia" / "cpu").is_dir(), reason="no example run")
+EXAMPLE = PROJECTS / "valencia" / "runs" / "reference-cpu"
+
+
+@pytest.mark.skipif(not EXAMPLE.is_dir(), reason="no frozen run")
 def test_the_valencia_example():
     """The saved run: sfmkit and an independent COLMAP model, the old photo in both."""
-    scene = FsRunStore(EXAMPLES).scene(RunId("valencia", "cpu"))
+    scene = FsRunStore(PROJECTS).scene(RunId("valencia", "reference-cpu"))
     ours, theirs = scene.models
     assert scene.reference == "Img01"
     assert len([c for c in ours.cameras if not c.query]) == 14
@@ -127,7 +130,7 @@ def test_the_valencia_example():
         return apply(model.to_common, model.camera(name).center)
 
     scale_image = json.loads(
-        (EXAMPLES / "valencia" / "cpu" / "evaluate" / "evaluation.json").read_text())["scale_image"]
+        (EXAMPLE / "evaluate" / "evaluation.json").read_text())["scale_image"]
     ours_far, theirs_far = centre(ours, scale_image), centre(theirs, scale_image)
     assert np.isclose(np.linalg.norm(ours_far), np.linalg.norm(theirs_far))
     gaps = [np.linalg.norm(centre(ours, c.name) - centre(theirs, c.name))

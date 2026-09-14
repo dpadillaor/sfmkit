@@ -1,8 +1,18 @@
-"""Experiment configuration, loaded from YAML."""
+"""Experiment configuration, loaded from YAML.
+
+A config lives inside the project it belongs to::
+
+    projects/valencia/
+    |-- data/        the photographs, and anything precomputed
+    |-- configs/     one YAML an experiment
+    |-- reference/   a frozen run, where there is one
+    `-- runs/        what a run writes
+
+so the project is the directory the config sits in and nothing names it twice.
+"""
 
 from __future__ import annotations
 
-import os
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
@@ -14,7 +24,7 @@ from sfmkit.data.features import DEVICES
 
 __all__ = [
     "CalibrateConfig", "ColmapConfig", "Config", "DenseConfig", "LocalizeConfig", "SfmConfig",
-    "data_root", "default_run_dir", "load_config", "runs_root",
+    "default_run_dir", "load_config", "project_dir",
 ]
 
 
@@ -134,10 +144,10 @@ class DenseConfig:
 
 @dataclass
 class Config:
-    """One experiment over one dataset.
+    """One experiment over one project.
 
-    ``dataset_dir`` is not read from the YAML: ``load_config`` fills it in from
-    ``dataset`` and the data root.
+    Neither ``dataset`` nor ``dataset_dir`` is read from the YAML: both come
+    from where the config file sits.
     """
 
     dataset: str
@@ -170,18 +180,19 @@ SECTIONS = {
 PATH_FIELDS = {"calibrate": ("images", "intrinsics"), "colmap": ("precomputed",)}
 
 
-def data_root() -> Path:
-    """Where datasets live: ``$SFMKIT_DATA``, or ``data`` in the working directory."""
-    return Path(os.environ.get("SFMKIT_DATA", "data"))
-
-
-def runs_root() -> Path:
-    """Where runs are written: ``$SFMKIT_RUNS``, or ``runs`` in the working directory."""
-    return Path(os.environ.get("SFMKIT_RUNS", "runs"))
+def project_dir(config_path) -> Path:
+    """The project a config belongs to: whatever holds its ``configs/``."""
+    config_path = Path(config_path).resolve()
+    if config_path.parent.name != "configs":
+        raise ValueError(
+            f"{config_path}: a config belongs in <project>/configs/, beside the "
+            "project's data/ and runs/, so that the project is where it sits"
+        )
+    return config_path.parent.parent
 
 
 def default_run_dir(cfg: Config) -> Path:
-    return runs_root() / cfg.dataset / cfg.name
+    return Path(cfg.dataset_dir).parent / "runs" / cfg.name
 
 
 def _section(cls, raw, where: str):
@@ -195,19 +206,19 @@ def _section(cls, raw, where: str):
 def load_config(path) -> Config:
     """Load a YAML config, rejecting unknown keys rather than ignoring them.
 
-    Relative paths are resolved against the dataset directory, so the same
-    config works wherever the data root is mounted.
+    Relative paths are resolved against the project's ``data/``, so a project
+    copied or mounted elsewhere works unchanged.
     """
     path = Path(path)
     raw = yaml.safe_load(path.read_text()) or {}
-    top = {"dataset", "name", "seed", *SECTIONS}
+    top = {"name", "seed", *SECTIONS}
     unknown = set(raw) - top
     if unknown:
-        raise ValueError(f"unknown config keys: {sorted(unknown)}")
-    if not raw.get("dataset"):
-        raise ValueError(f"{path}: `dataset` is required")
+        extra = ". `dataset` is the project's directory now" if "dataset" in unknown else ""
+        raise ValueError(f"unknown config keys: {sorted(unknown)}{extra}")
 
-    dataset_dir = (data_root() / raw["dataset"]).resolve()
+    project = project_dir(path)
+    dataset_dir = project / "data"
     for key, fieldnames in PATH_FIELDS.items():
         section = raw.get(key) or {}
         for f in fieldnames:
@@ -217,7 +228,7 @@ def load_config(path) -> Config:
         raw[key] = section
 
     return Config(
-        dataset=raw["dataset"],
+        dataset=project.name,
         name=raw.get("name") or path.stem,
         seed=raw.get("seed", 0),
         dataset_dir=str(dataset_dir),

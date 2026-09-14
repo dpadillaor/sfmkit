@@ -23,18 +23,19 @@ import of sfmkit would fail), checked the same way from `packages/viewer`, or
 `make check PKG=viewer`.
 
 The regression check for anything touching the pipeline reruns our stages on
-the saved example, whose matches and COLMAP model came from a CPU:
+the project's frozen run, whose matches and COLMAP model came from a CPU:
 
 ```bash
-mkdir -p /tmp/check/valencia && cp -r examples/valencia/cpu /tmp/check/valencia/
+cd projects/valencia
+cp -r runs/reference-cpu runs/cpu          # cpu.yaml writes `cpu`, so start from the frozen one
 for s in verify reconstruct localize evaluate; do
-  SFMKIT_RUNS=/tmp/check sfmkit $s --config configs/valencia/cpu.yaml
+  sfmkit $s --config configs/cpu.yaml
 done
 # 14 cameras, 2850 points, mean rotation error 0.338°, the old photo 1.32°
 ```
 
-Its COLMAP model is the example's, so the check scores against a fixed
-reference. A full run from scratch on a GPU (`configs/valencia/gpu-dense.yaml`),
+Its COLMAP model is the frozen run's, so the check scores against a fixed
+reference. A full run from scratch on a GPU (`projects/valencia/configs/gpu-dense.yaml`),
 whose matches differ, gives 14 cameras, 2830 points, 0.300° and 0.60°; it runs
 COLMAP again too, which varies a little between runs, the old photo most.
 
@@ -50,9 +51,14 @@ COLMAP again too, which varies a little between runs, the old photo most.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
   import-linter. `core` does no I/O and imports no torch, matplotlib, yaml
   or rich.
-- `data/<project>/` raw inputs, never written. `configs/<project>/*.yaml` one
-  experiment each. `runs/<project>/<config>/<stage>/` outputs, ignored by git.
-- `examples/` a saved run, tracked and copied into the image.
+- `projects/<name>/` one project, and everything it owns: `data/` (the
+  photographs and anything precomputed, never written), `configs/*.yaml` (one
+  experiment each), and `runs/<config>/<stage>/` (outputs, ignored by git). The
+  project is the directory its config sits in -- nothing names it twice.
+- `projects/<name>/runs/reference-*` the frozen runs, tracked and copied into
+  the image: what the regression check measures against, and what the viewer
+  has to show before you have run anything. Named so that no config can write
+  over one, since `cpu.yaml` writes `cpu`.
 
 ## Git
 

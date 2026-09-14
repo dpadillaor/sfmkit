@@ -17,7 +17,7 @@ from sfmkit.data import io
 from sfmkit.data.colmap import read_model
 from sfmkit.data.config import load_config
 
-cfg = load_config("configs/valencia/cpu.yaml")
+cfg = load_config("projects/valencia/configs/cpu.yaml")
 run = Path("runs/valencia/cpu")
 K = np.loadtxt(run / "calibrate" / "K.txt").reshape(3, 3)
 gt = read_model(run / "colmap")["poses"]

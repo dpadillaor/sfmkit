@@ -64,7 +64,7 @@ conda create -n sfmview python=3.11 -y
 conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
 pip install --no-deps -e packages/viewer
-sfmview --runs runs                 # http://127.0.0.1:8000
+sfmview --projects projects                 # http://127.0.0.1:8000
 ```
 
 ## COLMAP
@@ -79,7 +79,7 @@ model of the same fifteen photographs, and a config that copies it instead of
 computing it.
 
 ```bash
-sfmkit run --config configs/valencia/no-colmap.yaml
+sfmkit run --config projects/valencia/configs/no-colmap.yaml
 ```
 
 ## The feature weights
@@ -106,12 +106,20 @@ mkdocs serve -f website/mkdocs.yml  # http://127.0.0.1:8000
 
 | Environment variable | Default | What it moves |
 |---|---|---|
-| `SFMKIT_DATA` | `data` | the datasets root |
-| `SFMKIT_RUNS` | `runs` | where runs are written |
 | `SFMKIT_BROKER` | — | Redis URL to publish live progress to |
 | `TORCH_HOME` | `~/.cache/torch` | where the feature weights are cached |
-| `SFMVIEW_RUNS`, `SFMVIEW_DATA` | `runs`, `data` | the same two, for the viewer |
+| `SFMVIEW_PROJECTS` | `projects` | the projects directory the viewer reads |
 | `SFMVIEW_BROKER` | — | Redis URL the viewer reads live progress from |
 
-A dataset is `data/<project>/scene/*.jpg`; a run is
-`runs/<project>/<config>/<stage>/`. Nothing is ever written back into `data/`.
+A project is one directory and holds everything of its own:
+
+```
+projects/valencia/
+├── data/      scene/*.jpg, and anything precomputed
+├── configs/   one YAML an experiment
+└── runs/      <config>/<stage>/, what a run writes
+```
+
+The config's own location says which project it belongs to, so nothing names it
+twice. Nothing is ever written back into `data/`, which CI checks by
+fingerprinting it around a run.

@@ -18,12 +18,11 @@ cd packages/viewer
 pip install --no-deps -r requirements.txt -r requirements-dev.txt
 pip install --no-deps -e .
 cd ../..
-sfmview --runs runs        # http://127.0.0.1:8000
+sfmview --projects projects        # http://127.0.0.1:8000
 ```
 
-`--runs`, `--data`, `--host`, `--port` and `--broker`, or `SFMVIEW_RUNS`,
-`SFMVIEW_DATA`, `SFMVIEW_HOST`, `SFMVIEW_PORT` and `SFMVIEW_BROKER` in a
-container. The page loads three.js from jsDelivr, so the browser needs the
+`--projects`, `--host`, `--port` and `--broker`, or `SFMVIEW_PROJECTS`,
+`SFMVIEW_HOST`, `SFMVIEW_PORT` and `SFMVIEW_BROKER` in a container. The page loads three.js from jsDelivr, so the browser needs the
 internet.
 
 With Docker, from the root:
@@ -49,7 +48,7 @@ viewer reads them when `--broker` names the same one. Compose sets both to its
 
 ```bash
 docker compose up -d viewer         # Redis first, then the viewer once Redis is healthy
-docker compose run --rm cli reconstruct --config configs/valencia/cpu.yaml
+docker compose run --rm cli reconstruct --config projects/valencia/configs/cpu.yaml
 docker compose down                 # when done: stops both
 ```
 
@@ -75,7 +74,7 @@ is marked live in the list, and a run whose heartbeat stops before its `end`
 
 ## What it reads: the contract with sfmkit
 
-A run is `runs/<project>/<config>/`, one directory per stage. The viewer only
+A run is `projects/<name>/runs/<config>/`, one directory per stage. The viewer only
 reads, and only these:
 
 | File | Stage | What the viewer takes |
@@ -119,7 +118,7 @@ sequenceDiagram
     participant B as the browser
 
     B->>V: GET /api/runs
-    B->>V: WS /api/runs/valencia/cpu/live
+    B->>V: WS /api/projects/valencia/runs/cpu/live
     V->>R: XRANGE (history)
     R-->>V: what the last run left, if anything
     V-->>B: {"now": "<stream id>"}, then each entry

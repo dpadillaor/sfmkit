@@ -1,11 +1,11 @@
 # What a run holds
 
-A run is a directory per stage under `runs/<project>/<config>/`. Everything in
+A run is a directory per stage under `projects/<name>/runs/<config>/`. Everything in
 it is reproducible from the config and the photographs, which is why `runs/` is
-not in version control and `examples/` — one saved run of each kind — is.
+not in version control, except the frozen runs `runs/reference-*` — one of each kind — which are.
 
 ```
-runs/valencia/gpu-dense/
+projects/valencia/runs/gpu-dense/
 ├── calibrate/   K.txt, manifest.json
 ├── match/       Img01__Img02.npz …            one per pair
 ├── verify/      Img01__Img02.npz …            the same pairs, inliers only
@@ -25,7 +25,7 @@ runs/valencia/gpu-dense/
 ```json
 {
   "stage": "evaluate",
-  "config_path": "configs/valencia/gpu-dense.yaml",
+  "config_path": "projects/valencia/configs/gpu-dense.yaml",
   "timestamp": "2026-09-12T16:50:18.283605+00:00",
   "git_commit": "82e4ac97f2a1c7ebd6d876e292d406147f0440e8",
   "versions": {"sfmkit": "0.1.0", "numpy": "1.26.4", "scipy": "1.17.1", "python": "3.11.16"},

@@ -20,13 +20,12 @@ their own — amber for sfmkit, blue for COLMAP.
 
 ```bash
 conda activate sfmview
-sfmview --runs runs --data data      # http://127.0.0.1:8000
+sfmview --projects projects --data data      # http://127.0.0.1:8000
 ```
 
 | Option | Default | | Environment |
 |---|---|---|---|
-| `--runs` | `runs` | sfmkit's runs directory | `SFMVIEW_RUNS` |
-| `--data` | `data` | the datasets, for the photographs | `SFMVIEW_DATA` |
+| `--projects` | `projects` | sfmkit's projects: a run and its photographs are both inside one | `SFMVIEW_PROJECTS` |
 | `--host` | `127.0.0.1` | address to listen on; `0.0.0.0` in a container | `SFMVIEW_HOST` |
 | `--port` | `8000` | | `SFMVIEW_PORT` |
 | `--broker` | — | Redis URL for live progress | `SFMVIEW_BROKER` |
@@ -62,7 +61,7 @@ The messages are documented in [Live messages](live.md).
 ## What the viewer reads
 
 The contract with sfmkit, and the whole of it. A run is
-`runs/<project>/<config>/`, one directory per stage; the viewer only reads, and
+`projects/<name>/runs/<config>/`, one directory per stage; the viewer only reads, and
 only these:
 
 | File | Stage | What it takes |

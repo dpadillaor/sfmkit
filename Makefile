@@ -1,9 +1,10 @@
 # Developer shortcuts. The pipeline itself lives in the CLI: `sfmkit run`.
-CONFIG ?= configs/valencia/cpu.yaml
+CONFIG ?= projects/valencia/configs/cpu.yaml
 DEVICE ?= cpu
 # The package that test, lint and check work on, in its own environment.
 PKG    ?= sfmkit
-RUN    ?= runs/$(notdir $(patsubst %/,%,$(dir $(CONFIG))))/$(notdir $(basename $(CONFIG)))
+# A run is written inside its own project: <project>/runs/<config>.
+RUN    ?= $(patsubst %/configs/,%,$(dir $(CONFIG)))/runs/$(notdir $(basename $(CONFIG)))
 # Where images are published. OWNER is the GitHub account the packages hang off.
 REGISTRY ?= ghcr.io
 OWNER    ?= dpadillaor
@@ -14,7 +15,7 @@ SHORT    := $(shell git rev-parse --short HEAD)
 .PHONY: help run view test lint env-check env image push shell check clean-run
 
 help:
-	@echo "make run     CONFIG=configs/<dataset>/<config>.yaml   run the whole pipeline"
+	@echo "make run     CONFIG=projects/<name>/configs/<config>.yaml  run the whole pipeline"
 	@echo "make view                                 the viewer on runs/, at http://127.0.0.1:8000"
 	@echo "make test   [PKG=sfmkit|viewer]           test suite (no dataset needed)"
 	@echo "make lint   [PKG=sfmkit|viewer]           ruff + import contracts"
@@ -31,7 +32,7 @@ run:
 	sfmkit run --config $(CONFIG)
 
 view:
-	sfmview --runs runs
+	sfmview --projects projects
 
 # Everything runs through `python -m`, so the tools are the ones belonging to
 # the interpreter that is active. Calling `pytest` or `ruff` by name picks

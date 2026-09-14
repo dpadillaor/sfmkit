@@ -89,7 +89,7 @@ def make_run(root, project: str = "city", config: str = "full", *, sfmkit: bool 
              timestamp: str = "2026-09-10T10:00:00+00:00", s: float = 0.5,
              query: str | None = None):
     """A run with sfmkit's model a similarity away from COLMAP's; its directory."""
-    run = Path(root) / project / config
+    run = Path(root) / project / "runs" / config
     settings = {"sfm": {"reference": NAMES[0]}, "localize": {"query": query}}
     theirs, points = world()
     ours, our_points = moved(theirs, points, s, rotation([1, 2, 3], 30), np.array([1.0, -2, 3]))

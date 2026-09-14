@@ -81,7 +81,7 @@ each into the shared frame.
     },
     {"source": "colmap", "…": "the same shape"}
   ],
-  "dense": {"url": "/api/runs/valencia/gpu-dense/dense.ply",
+  "dense": {"url": "/api/projects/valencia/runs/gpu-dense/dense.ply",
             "to_common": [["…"]]},
   "images": "/api/datasets/valencia/images"
 }

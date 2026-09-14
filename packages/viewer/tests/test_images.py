@@ -14,11 +14,12 @@ from synthetic import make_run
 
 @pytest.fixture
 def data(tmp_path):
-    scene = tmp_path / "data" / "city" / "scene"
+    """A projects root with one project in it, and tmp_path outside it."""
+    scene = tmp_path / "projects" / "city" / "data" / "scene"
     scene.mkdir(parents=True)
     (scene / "Img02.jpg").write_bytes(b"jpeg of Img02")
     (scene / "Img13.png").write_bytes(b"png of Img13")
-    return tmp_path / "data"
+    return tmp_path / "projects"
 
 
 def test_a_photo_is_found_by_its_name_without_extension(data):
@@ -37,21 +38,21 @@ def test_what_is_not_a_photo_there_is_not_found(data, dataset, name):
 
 
 def test_two_files_that_could_both_be_it_are_not_guessed_between(data):
-    (data / "city" / "scene" / "Img02.png").write_bytes(b"another")
+    (data / "city" / "data" / "scene" / "Img02.png").write_bytes(b"another")
     with pytest.raises(ImageNotFound):
         FsImageStore(data).image_file("city", "Img02")
 
 
 def test_a_symlink_out_of_the_root_is_not_followed(data, tmp_path):
     (tmp_path / "secret.jpg").write_bytes(b"secret")
-    os.symlink(tmp_path / "secret.jpg", data / "city" / "scene" / "Img50.jpg")
+    os.symlink(tmp_path / "secret.jpg", data / "city" / "data" / "scene" / "Img50.jpg")
     with pytest.raises(ImageNotFound):
         FsImageStore(data).image_file("city", "Img50")
 
 
 def test_the_api_serves_photos_and_scenes_say_where(data, tmp_path):
-    make_run(tmp_path / "runs", "city", "full")
-    client = TestClient(create_app(FsRunStore(tmp_path / "runs"), None, FsImageStore(data)))
+    make_run(data, "city", "full")
+    client = TestClient(create_app(FsRunStore(data), None, FsImageStore(data)))
     scene = client.get("/api/runs/city/full/scene").json()
     assert scene["images"] == "/api/datasets/city/images"  # the run's config names its dataset
     photo = client.get(f"{scene['images']}/Img02")

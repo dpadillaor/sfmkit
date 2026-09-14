@@ -4,10 +4,10 @@
 
 No. COLMAP is what the result is *scored against*, not what produces it. The
 repository carries a saved COLMAP model of the same photographs, and
-`configs/valencia/no-colmap.yaml` uses it:
+`projects/valencia/configs/no-colmap.yaml` uses it:
 
 ```bash
-sfmkit run --config configs/valencia/no-colmap.yaml
+sfmkit run --config projects/valencia/configs/no-colmap.yaml
 ```
 
 You need it for two things only: to have COLMAP reconstruct your own scene as
@@ -78,7 +78,7 @@ the matches and epipolar lines for a pair.
 
 ## Can I use it on something other than Valencia?
 
-Yes — that is what `data/<project>/scene/` and `configs/<project>/*.yaml` are
+Yes — that is what `projects/<name>/data/scene/` and `projects/<name>/configs/*.yaml` are
 for. The [tutorial](tutorial.md#5-your-own-photographs) has the shape of a
 config for your own photographs.
 

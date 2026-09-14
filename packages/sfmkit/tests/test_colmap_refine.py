@@ -9,7 +9,8 @@ import pytest
 from sfmkit.data.colmap import intrinsics, read_model, refine_query
 
 REPO = Path(__file__).resolve().parents[3]
-COURSE = REPO / "data" / "valencia" / "precomputed" / "colmap" / "9cameras_sfmkit_matches"
+PRECOMPUTED = REPO / "projects" / "valencia" / "data" / "precomputed"
+COURSE = PRECOMPUTED / "colmap" / "9cameras_sfmkit_matches"
 
 
 @pytest.fixture

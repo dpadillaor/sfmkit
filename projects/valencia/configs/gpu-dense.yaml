@@ -3,7 +3,6 @@
 # run from scratch on the same photos, its own features and matching: a
 # reference that shares nothing with sfmkit but the photos. Paths are relative
 # to data/valencia/.
-dataset: valencia
 seed: 0
 
 calibrate:

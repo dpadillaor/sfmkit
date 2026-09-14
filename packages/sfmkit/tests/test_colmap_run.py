@@ -17,8 +17,9 @@ from sfmkit.data.colmap import (
 pytestmark = pytest.mark.slow
 
 REPO = Path(__file__).resolve().parents[3]
-SCENE = REPO / "data" / "valencia" / "scene"
-EXAMPLE = REPO / "examples" / "valencia" / "cpu"
+PROJECT = REPO / "projects" / "valencia"
+SCENE = PROJECT / "data" / "scene"
+EXAMPLE = PROJECT / "runs" / "reference-cpu"
 IMAGES = ["Img01", "Img14", "Img04", "Img05"]  # the four the old photo matches best
 K = np.loadtxt(EXAMPLE / "calibrate" / "K.txt")
 
