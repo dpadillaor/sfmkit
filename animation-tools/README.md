@@ -37,6 +37,7 @@ site's are relative to its own pages.
 | `viewer.png` | The viewer on the frozen GPU run, so its counts are the ones the README quotes | `sfmview --projects projects --port 8124`, then `google-chrome --headless=new --disable-gpu --use-angle=swiftshader --window-size=1400,900 --virtual-time-budget=30000 --screenshot=viewer.png "http://localhost:8124/#valencia/reference-gpu-dense"` | README, the site |
 | `pipeline.svg` | The ten stages on three lanes, and what flows between them | Written by hand; see below | README, the site |
 | `containers.svg` | The three containers, the disk they share and the one port that leaves | Written by hand, the same way | README, the site |
+| `reconstruct.svg` | What `reconstruct` does, step by step | Written by hand, the same way | the site |
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
 | `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
@@ -181,3 +182,30 @@ is the only one that crosses it. `cli` has none, which says it listens nowhere.
 that `viewer` waits on, which its card describes in words; and that the images
 are published to two registries so `docker compose pull` fetches rather than
 builds. All three are on the page the figure sits on.
+
+
+## `reconstruct.svg`
+
+The level `pipeline.svg` cannot reach: one box of it, opened. Canvas `1020 x 700`,
+the same tokens, the same cards.
+
+Its shape carries an argument the pipeline diagram's lanes would get wrong. There,
+lanes run in parallel. Here they do not: the seed pair happens once and then the
+loop runs, so the two columns are joined by a line that merges with the loop's own
+return, and only the loop feeds the last step. Three phases, numbered, because
+they are in sequence; the numbers on `pipeline.svg` were dropped for the opposite
+reason.
+
+Two rules the text follows, and they are worth keeping:
+
+* **Nothing in it is Valencia's.** No camera counts, no pixel errors, no "twelve
+  times". The loop is labelled by its stopping condition, and the last step by
+  the reason it exists. Those hold for any set of photographs; the numbers live
+  in Results.
+* **The second line describes what happens, and a function name only rides
+  behind it if it fits.** A card whose second line was just `ransac_pnp` taught
+  nothing. Descriptions take a capital letter; identifiers never do, because an
+  identifier is not a sentence.
+
+Widths, measured: a title fits about 50 characters at 12.5px, a description
+about 61 at 10px in the mono face. Past that it runs over the card.
