@@ -58,51 +58,87 @@ viewer's files for a font.
 
 A hand-written SVG rather than a mermaid block: GitHub picks mermaid's fonts,
 colours and layout, and the result always looks generated. The SVG is still
-text, so it is edited and diffed like code.
+text, so it is edited and diffed like code. To preview it, make the viewer's
+typefaces visible to fontconfig once, then render with cairosvg:
+
+```bash
+python - <<'FONTS'
+import sys; sys.path.insert(0, "animation-tools")
+from pathlib import Path
+from animate import _truetype, PLEX, MONO
+for src, name in ((PLEX, "IBMPlexSans-Regular.ttf"), (MONO, "RobotoMono-Regular.ttf")):
+    Path.home().joinpath(".local/share/fonts", name).write_bytes(_truetype(src))
+FONTS
+fc-cache -f ~/.local/share/fonts
+python -c "import cairosvg; cairosvg.svg2png(
+    url='website/docs/figures/pipeline.svg', write_to='/tmp/pipeline.png', scale=2)"
+```
 
 ### Layout
 
-Canvas `920 × 426`, with its own white background (`rx=16`) so it looks the
-same in GitHub's light and dark themes.
+Canvas `1090 x 512`, on its own white card (`rx=14`) so it reads the same
+against GitHub's two themes and against the site, which is dark only.
+
+Three lanes, because two of the ten stages run beside the reconstruction rather
+than after it. The spine is the middle one; the old photograph hangs above it,
+COLMAP runs below on nothing but the photographs, and the two things a reader
+leaves with sit at the end.
 
 ```
-x: 20 ────── 166   190 ──────────────────────────────── 900
-   inputs          1 · Build the 3D model      y 24–244
-                   2 · Use the old photo       3 · Check the result
-                   x 190–535, y 276–404        x 555–900, y 276–404
+x:  24 -- 216   260 --------------------------- 855   895 -- 1065
+    inputs      THE OLD PHOTOGRAPH   y  24-134         RESULTS
+                BUILD THE MODEL      y 160-350         y 250-446
+                COLMAP, ON ITS OWN   y 372-482
 ```
 
-* **Inputs**: pills `146 × 40`, `rx=20`, under a `YOU PROVIDE` label.
-* **Block**: panel `fill #f8fafc`, `stroke #e2e8f0`, `rx=12`. Its title sits at
-  the bottom left, after a numbered badge (circle `r=11`), so arrows can enter
-  the cards from above without crossing it.
-* **Card**: `150 × 62` in block 1, `140 × 62` in blocks 2 and 3, `rx=8`, white.
-  Stage name at `(x+14, y+24)`, description lines at `y+42` and `y+56`.
-* **Arrows**: right angles only, never crossing, `stroke #64748b`, width 1.6,
-  one shared arrowhead marker. The paths between blocks run in the gap between
-  `y=244` and `y=276`, at different heights so they do not overlap.
+* **Lane**: `fill #f7f7f5`, `stroke #e7e7e3`, `rx=5`. Its label sits at the
+  bottom left, so an arrow can enter a card from above without crossing it. The
+  two lanes at the edges take nothing from above and label themselves at the top.
+* **Card**: `145 x 64`, `rx=4`, white, with a 3 px bar down its left edge in the
+  data's colour, which is how the viewer marks a selected run. Stage name at
+  `(x+16, y+26)`, description lines at `y+45` and `y+59`.
+* **Arrows**: right angles only. Each takes the colour of whatever sends it, so
+  the three that meet at `evaluate` say which model each one carries without a
+  word. The cables to the results climb the gutter at `x=865` and `x=879`.
 
 ### Style
 
+Both typefaces and the three data colours are the viewer's own, so a figure and
+the page it belongs beside are set the same way. Plex and Roboto Mono fall back
+to the system's sans and mono for a reader who has neither installed.
+
 | Element | Font | Colour |
 |---|---|---|
-| Stage name | monospace, 14px, 600 | block colour, dark |
-| Description | sans, 12px | `#475569` |
-| Block title | sans, 14px, 600 | `#0f172a` |
+| Stage name | Roboto Mono, 14.5px | the lane's, darkened for white |
+| Description | IBM Plex Sans, 11.5px | `#6d6d68` |
+| Lane label | IBM Plex Sans, 10px, tracked | `#9a9a94` |
+| Flow label | Roboto Mono, 9px | `#8e8e88` |
 
-| Block | Badge | Card border | Stage name |
+| Lane | Accent bar | Stage name | Cable |
 |---|---|---|---|
-| 1 · Build the 3D model | `#2563eb` | `#93c5fd` | `#1d4ed8` |
-| 2 · Use the old photo | `#b45309` | `#f2c46d` | `#92400e` |
-| 3 · Check the result | `#047857` | `#6ee7b7` | `#047857` |
-
-Old photo pill: `#f3ead8` / `#b08d57` (sepia). Modern photos: `#eef2f7` / `#94a3b8`.
+| Build the model | `#f2a93b` | `#96620c` | `#d9911f` |
+| The old photograph | `#ff6fae` | `#b23a6c` | `#e8629b` |
+| COLMAP | `#56a8f5` | `#1a6bb5` | `#3f92e0` |
+| Results | `#3b3b38`, `#b9b9b3` | `#1b1b1a`, `#6d6d68` | |
 
 ### Changing it
 
-* Keep descriptions to two lines of about 16 characters: that is what fits.
-* A new stage is a card in its block plus the arrows into and out of it; if
-  a block grows, widen or heighten its panel and move the panels after it.
-* Check it in a browser, zoomed and at the width GitHub gives it (about
-  830 px), before committing. `figures` is left out on purpose: it draws plots,
-  it is not a step of the method.
+* Keep a description to two lines of about 20 characters. Past that it runs
+  over the card, and the card is sized so three of them and their gaps fill a
+  lane.
+* Say what a stage does and then how, in that order. Read down the diagram and
+  `match` and `colmap` fall into the same shape, which is what makes the two
+  matchers comparable at a glance.
+* A new stage is a card in its lane plus the arrows into and out of it. If a
+  lane grows, widen every lane and move the results frame and the gutter with
+  them; the three lanes share a left and a right edge.
+* Check it in a browser, zoomed and at the width the site gives it, before
+  committing.
+
+### What it leaves out
+
+Every arrow is a directory the next stage reads, but not every read is drawn.
+`localize` also opens `verify/`, which is how the old photograph reaches a model
+it was kept out of, and `evaluate` also opens `calibrate/`, to set our K beside
+COLMAP's. Both belong in the prose about those stages rather than in a diagram
+of ten boxes.
