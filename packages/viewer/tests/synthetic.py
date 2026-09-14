@@ -80,8 +80,14 @@ def write_manifest(run_dir, stage: str, timestamp: str, config: dict | None = No
     d = Path(run_dir) / stage
     d.mkdir(parents=True, exist_ok=True)
     config = config or {"sfm": {"reference": NAMES[0]}, "localize": {"query": None}}
+    # As sfmkit writes one: the commit and the versions are part of the contract,
+    # so a fixture without them is not the thing the viewer will be given.
     (d / "manifest.json").write_text(json.dumps(
-        {"stage": stage, "timestamp": timestamp, "config": config, **extra}))
+        {"stage": stage, "timestamp": timestamp, "config": config,
+         "config_path": f"projects/city/configs/{stage}.yaml",
+         "git_commit": "0" * 40,
+         "versions": {"sfmkit": "0.1.0", "numpy": "1.26.4", "python": "3.11.16"},
+         **extra}))
 
 
 def make_run(root, project: str = "city", config: str = "full", *, sfmkit: bool = True,
@@ -106,8 +112,13 @@ def make_run(root, project: str = "city", config: str = "full", *, sfmkit: bool 
         write_manifest(run, "dense", timestamp, settings)
     if evaluate and sfmkit and colmap:
         (run / "evaluate").mkdir(parents=True, exist_ok=True)
-        (run / "evaluate" / "evaluation.json").write_text(json.dumps(
-            {"reference": NAMES[0], "scale_image": NAMES[-1], "scale": s}))
+        (run / "evaluate" / "evaluation.json").write_text(json.dumps({
+            "reference": NAMES[0], "scale_image": NAMES[-1], "scale": s,
+            "n_cameras": len(NAMES), "mean_rotation_error_deg": 0.5,
+            "max_rotation_error_deg": 1.0, "mean_position_error": 0.01,
+            "query": None, "intrinsics": None,
+            "cameras": [{"name": n, "rotation_error_deg": 0.5} for n in NAMES],
+        }))
         write_manifest(run, "evaluate", timestamp, settings, mean_rotation_error_deg=0.5,
                        max_rotation_error_deg=1.0, n_cameras=len(NAMES),
                        query_rotation_error_deg=None)

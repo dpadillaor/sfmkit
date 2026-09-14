@@ -8,8 +8,8 @@ import time
 import numpy as np
 import pytest
 import redis
+from sfmcontracts import STEP_EXAMPLES, step_errors
 
-from contract import STEP_EXAMPLES, step_errors
 from sfmkit.core.reconstruct import Snapshot, StageReport
 from sfmkit.core.types import Pose
 from sfmkit.data import live

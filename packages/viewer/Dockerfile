@@ -6,6 +6,10 @@ WORKDIR /app
 COPY packages/viewer/requirements.txt .
 RUN pip install --no-cache-dir --no-deps -r requirements.txt
 
+# What both packages agree on, installed first because both of them read it.
+COPY packages/contracts /tmp/contracts
+RUN pip install --no-cache-dir --no-deps /tmp/contracts && rm -rf /tmp/contracts
+
 # Copying and Installing viewer library
 COPY packages/viewer/pyproject.toml .
 COPY packages/viewer/src src

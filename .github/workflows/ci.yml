@@ -40,6 +40,7 @@ jobs:
         # The same pinned environment as the image, installed the same way.
         run: |
           pip install --no-deps -r requirements-cpu.txt -r requirements.txt -r requirements-dev.txt
+          pip install --no-deps -e ../contracts   # what both packages agree on
           pip install --no-deps -e .
 
       - name: The pins must agree
@@ -65,6 +66,11 @@ jobs:
         # The architecture is a contract, not a comment: this fails the build if
         # a layer imports upwards, or if the core acquires an I/O dependency.
         run: lint-imports
+
+      - name: The shared contracts must depend on nothing
+        # They sit underneath both packages, so anything they imported both
+        # would have to carry.
+        run: lint-imports --config packages/contracts/pyproject.toml
 
       - name: Test
         working-directory: packages/sfmkit
@@ -95,6 +101,7 @@ jobs:
         # Its own environment: if the viewer imported sfmkit, this would fail.
         run: |
           pip install --no-deps -r requirements.txt -r requirements-dev.txt
+          pip install --no-deps -e ../contracts   # what both packages agree on
           pip install --no-deps -e .
 
       - name: The pins must agree
@@ -147,6 +154,7 @@ jobs:
         run: |
           pip install --no-deps -r packages/sfmkit/requirements-cpu.txt \
                                 -r packages/sfmkit/requirements.txt
+          pip install --no-deps -e packages/contracts
           pip install --no-deps -e packages/sfmkit
 
       - name: The pins must agree

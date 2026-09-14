@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sfmcontracts"
+version = "0.1.0"
+description = "What sfmkit and sfmview agree on: the messages they pass and the files a run leaves behind."
+requires-python = ">=3.11"
+# No dependencies, and not by accident: this sits underneath both packages, so
+# anything it needed they would both have to carry. The standard library only.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sfmcontracts = ["*.json", "*.yaml"]
+
+# It has no test suite of its own: it is tested from both sides, by the two
+# packages that depend on it, which is the only place a contract means anything.
+
+# It may import nothing but the standard library, which is what lets it be the
+# one thing both packages share without tying either to anything.
+[tool.importlinter]
+root_package = "sfmcontracts"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The contracts depend on nothing"
+type = "forbidden"
+source_modules = ["sfmcontracts"]
+forbidden_modules = ["numpy", "yaml", "pydantic", "fastapi", "redis", "torch", "cv2"]

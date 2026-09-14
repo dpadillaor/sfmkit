@@ -5,7 +5,7 @@
 ```
 packages/sfmkit/      the library and CLI, in four layers
 packages/viewer/      sfmview, in ports and adapters
-contracts/            the messages the two exchange, with a schema and examples
+packages/contracts/   sfmcontracts: what the two agree on, and all they share
 projects/<name>/      one project and all it owns
   data/                 the photographs; never written to
   configs/              one YAML per experiment
@@ -44,7 +44,7 @@ make check PKG=viewer
 | Only the data layer imports torch | |
 
 The viewer's own contracts keep the API away from the adapters, and both
-packages test against `contracts/step.schema.json`, so a change to the live
+packages test against `sfmcontracts/step.schema.json`, so a change to the live
 message format breaks a test on both sides rather than a run.
 
 ## The regression check
