@@ -23,7 +23,7 @@ __all__ = ["BUNDLE_SOLVERS", "ReconstructionConfig", "StageReport", "reconstruct
 
 # The same bundle adjustment, two solvers: our Levenberg-Marquardt with an
 # analytic Jacobian and the Schur complement, or scipy's generic least squares,
-# 58x slower on Valencia and stopped short of the minimum (docs/optimizations.md).
+# 58x slower on Valencia and stopped short of the minimum: see the site's Results.
 BUNDLE_SOLVERS = {"scipy": solve_bundle, "schur": solve_bundle_schur}
 
 

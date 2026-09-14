@@ -167,10 +167,8 @@ The parts worth a look, and why they are there:
 | [Results](https://dpadillaor.github.io/sfmkit/project/results/) | the numbers, and the arguments behind them |
 | [Questions](https://dpadillaor.github.io/sfmkit/faq/) | COLMAP, GPUs, the weights, and why the old photograph is handled apart |
 
-In the repository, the long-form notes: [the old
-photograph](docs/old-photo.md), [what was measured and what it
-bought](docs/optimizations.md), [the viewer's contract](docs/viewer.md), and
-the backlog, [TODO.md](TODO.md).
+Everything that is written down is on the site: there are no notes scattered
+through the repository to go looking for.
 
 ## Licence
 

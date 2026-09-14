@@ -73,7 +73,10 @@ only these:
 | `evaluate/evaluation.json` | evaluate | `reference`, `scale_image` |
 | `dense/fused.ply` | dense | served as it is; the browser parses it |
 
-A run missing some of these shows what it has. Outputs of `localize` and
+That table is not the contract itself: `sfmcontracts/run.schema.json` is, and
+both packages' tests check themselves against it — sfmkit that it writes those
+arrays with those shapes, the viewer that it is given them. A run missing some
+of these shows what it has. Outputs of `localize` and
 `evaluate` older than the reconstruction are ignored: they describe the one
 before.
 

@@ -67,6 +67,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Tutorial: tutorial.md
+  - A guided tour: tour.md
   - Install:
       - With conda: install/conda.md
       - With Docker: install/docker.md
@@ -81,6 +82,8 @@ nav:
       - Live messages: viewer/live.md
   - Project:
       - Results: project/results.md
+      - The old photograph: project/old-photo.md
+      - Architecture: project/architecture.md
       - Changelog: project/changelog.md
       - Development: project/development.md
       - Licence: project/licence.md
