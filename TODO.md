@@ -36,6 +36,15 @@ take from it the day someone else works on this.
 - [x] **`sfmkit run --help` should list the stages** in order, one line each. A
   newcomer cannot tell the order from `sfmkit --help`.
 
+- [x] **One Python, 3.11** (2026-09-14). `packages/sfmkit` claimed
+  `requires-python = ">=3.10"` and nothing tested it: both images are
+  `python:3.11-slim`, both conda environments are 3.11, and every CI job pins
+  3.11, as the viewer's `>=3.11` already said. The claim also held the package
+  a numpy behind -- numpy 2.3 dropped 3.10, which is why dependabot offered
+  sfmkit 2.2.6 and the viewer 2.4.6. Supporting 3.10 for real would mean a
+  second set of pinned requirements and a second CI matrix leg; promising it
+  without testing it was the worst of both.
+
 ## Docker
 
 - [x] **Plain `docker run` runs as uid 1000**, not as root: both images create
