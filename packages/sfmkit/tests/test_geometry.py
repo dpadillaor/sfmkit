@@ -6,7 +6,10 @@ import pytest
 from sfmkit.core.geometry import (
     decompose_projection,
     eight_point,
+    epipoles,
+    essential_to_poses,
     fundamental_to_essential,
+    in_front_of_both,
     log_rotation,
     normalize_points,
     project,
@@ -256,3 +259,66 @@ class TestMatchesConsistency:
         from sfmkit.core.types import Matches
         m = Matches("A", "B", self._kp(4), self._kp(4), np.zeros((0, 2), dtype=int))
         assert m.n_matches == 0 and m.inlier_ratio == 0.0
+
+
+class TestEpipoles:
+    def test_they_are_the_null_spaces(self, scene):
+        m = scene.matches_for("cam00", "cam02")
+        x0, x1 = m.points()
+        F = eight_point(x0, x1)
+        e0, e1 = epipoles(F)
+        assert np.linalg.norm(F @ e0) < 1e-8
+        assert np.linalg.norm(F.T @ e1) < 1e-8
+
+    def test_each_one_is_the_other_camera_photographed(self, scene):
+        """Which is what makes it worth drawing: not a property of F, a place.
+
+        Compared before the division, since on this scene the division is by
+        nearly nothing -- see below.
+        """
+        m = scene.matches_for("cam00", "cam02")
+        x0, x1 = m.points()
+        e0, e1 = epipoles(eight_point(x0, x1))
+        into0 = scene.K @ scene.poses["cam00"].transform(scene.poses["cam02"].center[None])[0]
+        into1 = scene.K @ scene.poses["cam02"].transform(scene.poses["cam00"].center[None])[0]
+        for epipole, camera in ((e0, into0), (e1, into1)):
+            a = epipole / np.linalg.norm(epipole)
+            b = camera / np.linalg.norm(camera)
+            # The same ray, to a sign: a homogeneous point has no length.
+            assert min(np.linalg.norm(a - b), np.linalg.norm(a + b)) < 1e-6
+
+    def test_cameras_looking_at_the_same_wall_put_them_at_infinity(self, scene):
+        """The synthetic cameras sit on an arc facing a facade, so each is very
+        nearly in the other's image plane and neither epipole has a pixel. It is
+        the case a figure that marks them has to survive."""
+        m = scene.matches_for("cam00", "cam02")
+        x0, x1 = m.points()
+        for epipole in epipoles(eight_point(x0, x1)):
+            assert abs(epipole[2]) < 1e-3
+
+
+class TestCheirality:
+    """The count that picks one of four poses, and the figure that draws it."""
+
+    def _essential(self, scene):
+        m = scene.matches_for("cam00", "cam02")
+        x0, x1 = m.points()
+        return fundamental_to_essential(eight_point(x0, x1), scene.K, scene.K), x0, x1
+
+    def test_the_recovered_pose_puts_every_point_in_front(self, scene):
+        E, x0, x1 = self._essential(scene)
+        _, ahead = in_front_of_both(recover_pose(E, scene.K, x0, x1), scene.K, x0, x1)
+        assert ahead.all()
+
+    def test_reversing_the_baseline_puts_them_all_behind(self, scene):
+        E, x0, x1 = self._essential(scene)
+        pose = recover_pose(E, scene.K, x0, x1)
+        _, ahead = in_front_of_both(Pose(pose.R, -pose.t), scene.K, x0, x1)
+        assert not ahead.any()
+
+    def test_exactly_one_of_the_four_is_ahead_of_both_cameras(self, scene):
+        """What the figure claims: three decompositions are not near misses."""
+        E, x0, x1 = self._essential(scene)
+        counts = [int(in_front_of_both(p, scene.K, x0, x1)[1].sum())
+                  for p in essential_to_poses(E)]
+        assert sorted(counts) == [0, 0, 0, len(x0)]

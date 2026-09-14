@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 from sfmkit.apps.cli._common import console, run_dir
-from sfmkit.core.geometry import eight_point, project
+from sfmkit.core.geometry import eight_point, fundamental_to_essential, project
 from sfmkit.core.tracks import build_tracks, track_statistics
 from sfmkit.data import io
 from sfmkit.data.colmap import intrinsics, read_fused, read_model
@@ -35,6 +35,7 @@ def cmd_figures(args) -> int:
         plot_dense,
         plot_epipolar,
         plot_matches,
+        plot_pose_candidates,
         plot_residuals,
         plot_track_lengths,
     )
@@ -92,8 +93,15 @@ def cmd_figures(args) -> int:
             written.append(plot_matches(i0, i1, m, out / f"matches_{m.image0}_{m.image1}.png"))
             x0, x1 = m.points()
             if len(x0) >= 8:
-                written.append(plot_epipolar(i0, i1, eight_point(x0, x1), x0,
+                F = eight_point(x0, x1)
+                written.append(plot_epipolar(i0, i1, F, x0,
                                              out / f"epipolar_{m.image0}_{m.image1}.png"))
+                # The cheirality test, which `recover_pose` does in a line and
+                # leaves no trace of: the three poses it threw away, drawn.
+                written.append(plot_pose_candidates(
+                    fundamental_to_essential(F, rec.K, rec.K), rec.K, x0, x1,
+                    out / f"pose_candidates_{m.image0}_{m.image1}.png",
+                    names=(m.image0, m.image1)))
 
     # Residuals for the reference camera, before and after the final refinement.
     kp = {}
