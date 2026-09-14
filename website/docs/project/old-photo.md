@@ -37,11 +37,14 @@ and had to tilt the camera up instead.
 
 Two measurements settled it:
 
-- **The phones were held level.** Taking the vertical as the direction
-  orthogonal to the nine phones' x axes — they are orthogonal to it within
-  0.6° — the phones look up 10 to 14°, as anyone photographing a facade does.
-  sfmkit puts the old camera level (pitch 0.2°, roll 1.5°); COLMAP had it
-  looking up 11.2°, and the 11.5° between the two is almost all pitch.
+- **The phones were all pointed slightly up.** The vertical is the normal to
+  the plane of the fourteen camera centres, which are coplanar to within 0.7%
+  of their own spread: a flat square, photographed from shoulder height, so the
+  plane is the ground and its normal is the vertical. Against it the fourteen
+  look up between 11 and 19°, as anyone photographing a facade does. sfmkit
+  puts the old camera level (pitch 0.2°, roll 2.0°); COLMAP, with the principal
+  point pinned, had it looking up 11.2°, and the 11.5° between the two is
+  almost all pitch.
 - **A level camera with a low principal point is how architecture was
   photographed.** A view camera's rising front shifts the lens up to take in a
   tall facade while keeping the verticals parallel; a cropped print does the
