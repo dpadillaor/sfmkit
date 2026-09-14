@@ -4,8 +4,8 @@ The scripts that draw the pictures. They live outside `packages/` on purpose:
 not installed, not imported by anything, not copied into an image. Run them
 from the repository root, in the `sfmkit` environment.
 
-They need a finished run to draw from — `projects/valencia/runs/gpu-dense` for
-the ones that want a dense cloud — so they are not something a stranger can
+They need a finished run to draw from (`projects/valencia/runs/gpu-dense` for
+the ones that want a dense cloud), so they are not something a stranger can
 execute on a fresh clone. They are here so that a figure is never a picture
 nobody knows how to remake.
 

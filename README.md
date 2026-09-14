@@ -11,9 +11,9 @@ its own. Every result it reports is scored against
 
 It was built to answer one question. Give it a handful of photographs of a place
 and one undated photograph of the same place, and it works out where the old one
-was taken from — then shows you, on today's photograph, what is no longer there.
+was taken from, then shows you on today's photograph what is no longer there.
 
-The library is open source and takes any set of photographs — `sfmkit new` lays a
+The library is open source and takes any set of photographs; `sfmkit new` lays a
 project of your own out beside this one. The set that ships with it was
 photographed for it: fourteen frames of the Plaza de la Virgen in Valencia, one
 phone, fourteen minutes of one December morning, and one undated print of the
@@ -34,14 +34,15 @@ kept out of the model; the thirteen underneath are what build it.*
 ![The reconstruction as it is built](website/docs/figures/growth.webp)
 
 *Fourteen photographs of the square becoming a model of it. Two cameras to start,
-then one at a time — each placed against the points already there, each followed
-by a bundle adjustment — and a global refinement over everything at the end. The
+then one at a time, each placed against the points already there and each
+followed by a bundle adjustment, and a global refinement over everything at the
+end. The
 table keeps the count, and the reprojection error after every step.*
 
 The bundle adjustment is ours: Levenberg–Marquardt, an analytic Jacobian, the
 points eliminated with the Schur complement. It replaced
-`scipy.optimize.least_squares`, which on these problems never converged — it
-exhausted its evaluation budget on every bundle. Ours is **58× faster and reaches
+`scipy.optimize.least_squares`, which on these problems never converged:
+it exhausted its evaluation budget on every bundle. Ours is **58× faster and reaches
 a lower cost**, which is what turned a run from minutes into seconds and made
 searching the thresholds affordable at all.
 [The numbers](https://dpadillaor.github.io/sfmkit/project/results/#the-bundle-adjustment).
@@ -66,7 +67,7 @@ This is the part the rest exists for. It was taken by another camera, of unknown
 focal length, perhaps cropped, a century before the others, so it cannot simply
 join the reconstruction: it is matched against one modern photograph only, kept
 out of the model so that a poorly constrained camera cannot bend it, and then
-**placed against the finished model** — solving for its whole projection matrix,
+**placed against the finished model**, solving for its whole projection matrix,
 focal length included, because assuming the phone's would put it somewhere else
 entirely. RANSAC-DLT on eleven unknowns, then refined in pixels under a Huber
 loss, which took its reprojection from 14 px to 2 and stopped it landing
@@ -77,12 +78,12 @@ Once it is placed, the two views can be brought together and their tones compare
 ![The old photograph landing on today's, and what changed](website/docs/figures/old_photo.webp)
 
 *The old photograph flown onto today's through the homography between them. The
-facade lines up; what does not line up is what changed — the lamp posts have
+facade lines up; what does not line up is what changed. The lamp posts have
 moved, a building beside the cathedral is gone, the arcade now opens onto a
 courtyard, and there are people in both photographs but never in the same place.*
 
 And the answer can be argued with. For a long time our placement and COLMAP's
-disagreed by 11.5°, and it turned out to be COLMAP that was wrong — the whole
+disagreed by 11.5°, and it turned out to be COLMAP that was wrong. The whole
 argument, with the two measurements that settled it, is in
 [Results](https://dpadillaor.github.io/sfmkit/project/results/#the-115-argument).
 
@@ -107,7 +108,7 @@ cli ──▶ redis ──▶ viewer ──▶ browser
 Neither program imports the other. They share a
 [message format](https://dpadillaor.github.io/sfmkit/viewer/live/), written down
 in AsyncAPI and checked against a schema on both sides, and a
-[set of files](https://dpadillaor.github.io/sfmkit/viewer/), and nothing else —
+[set of files](https://dpadillaor.github.io/sfmkit/viewer/), and nothing else,
 which is enforced by a test that fails if the viewer's environment can so much as
 import sfmkit. Each package builds its own image, and CI publishes them to GHCR
 and to Docker Hub on a release.
@@ -175,17 +176,17 @@ so a figure can name the code that produced it.
 
 Besides the bundle adjustment and the estimated camera above:
 
-- **Three packages that do not know each other** — `packages/sfmkit` in four
+- **Three packages that do not know each other**: `packages/sfmkit` in four
   layers (`apps → render → data → core`), `packages/viewer` in ports and
   adapters, and `packages/contracts` underneath both, importing nothing but the
   standard library. All enforced by import-linter rather than by good intentions.
-- **A project is one folder** — its photographs, its configs, its runs. A config
+- **A project is one folder**: its photographs, its configs, its runs. A config
   is found by where it sits, so nothing names the project twice and the same file
   works on the host and inside a container.
-- **Everything pinned, installed with `--no-deps`** — one list per environment,
+- **Everything pinned, installed with `--no-deps`**: one list per environment,
   the same in conda and in Docker, so what CI proves is what the instructions
   give you. `pip check` guards the pins and has caught three real mismatches.
-- **A frozen run, tracked** — what the regression measures against. CI reruns the
+- **A frozen run, tracked**: what the regression measures against. CI reruns the
   pipeline on it and fails unless fourteen cameras come back within 0.02° of the
   error recorded here.
 
@@ -203,8 +204,8 @@ Besides the bundle adjustment and the estimated camera above:
 | [Questions](https://dpadillaor.github.io/sfmkit/faq/) | COLMAP, GPUs, the weights, and why the old photograph is handled apart |
 
 Everything explained is on the site. The READMEs left in the repository sit
-beside what they describe — the photographs, and the scripts that draw the
-figures — and explain nothing that is not there.
+beside what they describe, the photographs and the scripts that draw the
+figures, and explain nothing that is not there.
 
 ## Licence
 

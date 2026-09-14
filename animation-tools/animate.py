@@ -44,10 +44,16 @@ def typeface() -> bytes:
 
 
 def write_video(frames, times, out: Path, fps: int, crf: int = 23) -> Path:
-    """H.264, the held frames repeated to fill their time."""
+    """H.264, the held frames repeated to fill their time.
+
+    Trimmed to even dimensions first: the figure's height follows whatever
+    width was asked for, and libx264 refuses an odd one by closing the pipe,
+    which arrives here as a broken pipe and says nothing about why.
+    """
     if shutil.which("ffmpeg") is None:
         raise SystemExit("no ffmpeg: install it, or ask for --format webp")
-    height, width = frames[0].shape[:2]
+    height, width = (n - n % 2 for n in frames[0].shape[:2])
+    frames = [f[:height, :width] for f in frames]
     ffmpeg = subprocess.Popen(
         ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "bgr24",
          "-s", f"{width}x{height}", "-r", str(fps), "-i", "-", "-c:v", "libx264", "-crf", str(crf),
