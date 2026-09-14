@@ -58,9 +58,44 @@ take from it the day someone else works on this.
 
 ## Using it on your own project
 
-- [ ] **Three mounts per project** (`data/`, `configs/`, `runs/`). Easy to get one
-  wrong; a project-first layout was floated, not decided.
-- [ ] **A project template**: the folder shape and a starting config.
+- [ ] **A project is one folder: decided 2026-09-14, not yet done.** Today a
+  project is spread over three roots (`data/<name>/`, `configs/<name>/`,
+  `runs/<name>/`) and its name is written twice -- as those directories and as
+  the `dataset:` field inside the config, which nothing checks agree. That is
+  the mistake to remove. The shape agreed:
+
+  ```
+  projects/valencia/
+  ├── data/        scene/, precomputed/
+  ├── configs/     cpu.yaml, gpu-dense.yaml, no-colmap.yaml
+  ├── reference/   cpu/, gpu-dense/   tracked: the frozen example
+  └── runs/        ignored: what you write
+  ```
+
+  `SFMKIT_PROJECTS`, default `projects`. The `dataset:` field goes: the project
+  is the directory it sits in. `configs/`, `data/`, `examples/` and `runs/`
+  leave the root. Compose becomes one mount, `./projects:/app/projects`, all of
+  it writable -- the `:ro` that proved a run does not write into its inputs is
+  replaced by the fingerprint check now in CI, which holds however anyone
+  mounts. Only Valencia carries `reference/`; a project of your own is three
+  directories.
+
+  Why `reference/` and not a tracked run inside `runs/`: what fixes the image's
+  baked example being hidden by the mount is that it is *tracked*, not where it
+  sits -- a clone brings it, so host and image hold the same file. Keeping it
+  out of `runs/` is what stops `sfmkit run --config cpu.yaml` overwriting it.
+
+  It falls out of this that `no-colmap.yaml` can point at
+  `reference/gpu-dense/colmap` instead of `data/precomputed/colmap/15cameras_gpu`,
+  which is byte for byte the same model: 5.8 MB and one copy that can drift.
+
+  Mechanical but wide: three configs, `config.py`, `.gitignore`, the Dockerfile
+  `COPY` lines, compose, the tests that name paths, `CLAUDE.md`, the tutorial,
+  the install page and the run guide. One pull request, with the saved example's
+  0.338° as the net.
+- [ ] **A project template**, `sfmkit new <name>`: the folder shape and a
+  starting config, written for you. Worth doing before the move above -- it may
+  take enough of the sting out that the move can wait.
 
 ## Viewer
 
