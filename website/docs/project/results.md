@@ -113,7 +113,7 @@ needs before their intersection is trusted; and `max_reprojection_error`, how
 far a point may sit from where it projects before it is thrown away.
 
 They were chosen by running the reconstruction over a grid of combinations and
-scoring each against COLMAP (`tools/sweep.py`), because the first search
+scoring each against COLMAP, because the first search
 returned two results that no amount of local reasoning would have produced.
 
 **A tighter reprojection threshold is worse, not safer.** Discarding a point

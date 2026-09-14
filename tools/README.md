@@ -1,18 +1,20 @@
 # Tools
 
-Ours, not the library's: the scripts that make the figures of the README and
-the docs, and that ran the experiments behind a few of the defaults. They live
-outside `packages/` on purpose — they are not installed, not imported by
-anything, and not copied into the image. Run them from the repo root, in the
-`sfmkit` environment.
+The scripts that draw the pictures. They live outside `packages/` on purpose:
+not installed, not imported by anything, not copied into an image. Run them
+from the repository root, in the `sfmkit` environment.
+
+They need a finished run to draw from — `projects/valencia/runs/gpu-dense` for
+the ones that want a dense cloud — so they are not something a stranger can
+execute on a fresh clone. They are here so that a figure is never a picture
+nobody knows how to remake.
 
 | Script | What it does |
 |---|---|
 | `changes_animation.py` | The old photograph landing on today's and what changed: `website/docs/figures/old_photo.{webp,mp4}` |
 | `then_and_now.py` | The pair side by side, `website/docs/figures/then_and_now.jpg` |
-| `sweep.py` | The grid search over the reconstruction's thresholds, scored against COLMAP |
-| `report.py` | A run's numbers gathered into one table |
-| `experiment_topology.py` | How the matching graph changes with the pairs kept |
+| `growth_animation.py` | Two films from one run: the model growing camera by camera (`--view map`), and the comparison against COLMAP built up step by step (`--view colmap`) |
+| `animate.py` | Not run on its own: writing a list of frames out as WebP, GIF or MP4, shared by the two above |
 
 `changes_animation.py` sets its text in the viewer's own IBM Plex Sans, which
 it reads from `packages/viewer/.../vendor/fonts` as woff2; that needs `brotli`
