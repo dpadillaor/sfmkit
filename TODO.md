@@ -216,7 +216,29 @@ the contract, the API and the architecture.
   torch; the config now keeps majors out of the group so each arrives on its
   own. Both are real work: numpy 2 changes promotion rules and copy semantics,
   OpenCV 5 is a major of its own. Take them when there is time to run the
-  regression check and read what moved, not on a monthly schedule.
+  regression check and read what moved, not on a monthly schedule. Read on
+  2026-09-14, against #6 (OpenCV 5), #7 (numpy 2.2.6) and #8 (the viewer's
+  numpy 2.4.6):
+  - **numpy 2 moves no number here.** No `copy=False` anywhere, no removed
+    alias, and `np.ptp` is used as the function, which stays, not the array
+    method, which is gone. The saved example gives the same dtypes and the same
+    results, run artefacts read across both versions in either direction, and
+    the `changes` stage writes byte-identical PNGs. #8 is clean as it stands.
+  - **OpenCV 5 moves the pictures, not the numbers.** `solvePnPRansac`,
+    `Rodrigues` and `imread` are identical to the bit, so the pipeline's own
+    error does not move; but `warpPerspective`'s bilinear was revised and
+    `findHomography` finds 79 inliers where it found 78, so the `changes` stage
+    reports `changed_fraction` 0.0755479 against 0.0755469 and **every PNG it
+    writes has a different hash**. Its figures stop being reproducible against
+    the saved example. `findChessboardCorners` and `cornerSubPix` also return
+    `(N, 2)` now instead of `(N, 1, 2)`, which this code survives because the
+    corners go straight back into OpenCV.
+  - **#6 must not go in on its own.** The 5.0 wheel declares `numpy>=2` while
+    `requirements.txt` still pins 1.26.4, and everything is installed with
+    `--no-deps`, so nothing would ever say so. It goes in with #7 or after it.
+  - **#7 offers sfmkit 2.2.6 rather than 2.4.x** because `requires-python` said
+    3.10 and numpy 2.3 dropped 3.10. With 3.11 declared, ask dependabot to
+    recreate it so both packages sit on one numpy.
 - [ ] **Rehearse the newcomer's path against the published repository**: clone,
   the conda instructions as written, `no-colmap.yaml`, the viewer. It was
   rehearsed against the image; the instructions on the site have not been.
