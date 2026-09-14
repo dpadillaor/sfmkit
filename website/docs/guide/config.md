@@ -1,6 +1,7 @@
 # Configuration
 
-One YAML file per experiment, in `configs/<project>/`. It is the whole
+One YAML file per experiment, in `projects/<name>/configs/`. Where it sits is
+what says which project it belongs to. It is the whole
 description of a run: the same file, the same seed and the same photographs
 give the same result. Unknown keys are refused rather than ignored, so a
 misspelling fails at the first stage instead of silently doing nothing.
@@ -10,7 +11,6 @@ are resolved against the dataset directory, so a config works wherever the data
 root is mounted.
 
 ```yaml
-dataset: valencia          # data/<dataset>/scene/*.jpg
 name: cpu                  # the run directory; defaults to the file's name
 seed: 0                    # every RANSAC and every sampler
 ```
@@ -96,6 +96,6 @@ camera instead.
 
 | File | What it is |
 |---|---|
-| `configs/valencia/cpu.yaml` | the whole pipeline on the CPU, COLMAP computed here |
-| `configs/valencia/gpu-dense.yaml` | the same on a GPU, with COLMAP's dense cloud |
-| `configs/valencia/no-colmap.yaml` | the CPU run scored against a saved COLMAP model, for machines without COLMAP |
+| `projects/valencia/configs/cpu.yaml` | the whole pipeline on the CPU, COLMAP computed here |
+| `projects/valencia/configs/gpu-dense.yaml` | the same on a GPU, with COLMAP's dense cloud |
+| `projects/valencia/configs/no-colmap.yaml` | the CPU run scored against a saved COLMAP model, for machines without COLMAP |

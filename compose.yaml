@@ -17,9 +17,11 @@ services:
       HOME: /tmp
       SFMKIT_BROKER: redis://redis:6379
     volumes:
-      - ./data:/app/data:ro
-      - ./configs:/app/configs:ro
-      - ./runs:/app/runs
+      # One mount: a project holds its photographs, its configs and its runs,
+      # so there is one path to get right instead of three. It is writable
+      # because a run writes inside it; that a run writes nothing else is
+      # checked in CI rather than promised by the mount.
+      - ./projects:/app/projects
       - ${SFMKIT_WEIGHTS:-weights}:/opt/torch
 
   cli-gpu:
@@ -39,8 +41,7 @@ services:
     environment:
       SFMVIEW_BROKER: redis://redis:6379
     volumes:
-      - ./data:/app/data:ro
-      - ./runs:/app/runs:ro
+      - ./projects:/app/projects:ro   # the viewer only ever reads
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

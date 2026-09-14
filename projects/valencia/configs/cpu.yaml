@@ -1,8 +1,7 @@
 # The whole pipeline on the CPU alone, so any machine reproduces it: the saved
 # example. Scored against COLMAP run from scratch on the same photos, its own
 # features and matching: a reference that shares nothing with sfmkit but the
-# photos. No dense cloud: it needs CUDA. Paths are relative to data/valencia/.
-dataset: valencia
+# photos. No dense cloud: it needs CUDA. Paths are relative to the project's data/.
 seed: 0
 
 calibrate:

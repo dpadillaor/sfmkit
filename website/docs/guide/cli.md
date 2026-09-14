@@ -5,23 +5,26 @@ stage takes the same two options, and each stage reads what the one before it
 wrote, so they can be run one at a time, re-run, or resumed.
 
 ```bash
-sfmkit <stage> --config configs/<project>/<config>.yaml [--out DIR]
+sfmkit <stage> --config projects/<name>/configs/<config>.yaml [--out DIR]
 ```
 
 | Option | Default | |
 |---|---|---|
 | `--config` | required | the YAML experiment file; see [Configuration](config.md) |
-| `--out` | `runs/<dataset>/<config name>` | where the run's directories go |
+| `--out` | `<project>/runs/<config name>` | where the run's directories go |
 
-`$SFMKIT_RUNS` and `$SFMKIT_DATA` move the two roots without touching a config,
-which is how the same config runs inside a container and on the host.
+There is no root to set: a config sits in `<project>/configs/`, so the project
+it belongs to is where it is, and the photographs and the runs are its
+neighbours. The same config therefore works on the host and inside a container
+without either knowing where the other put the project. `--out` is the way to
+write a run somewhere else.
 
 ## `sfmkit run`
 
 Every stage in order, stopping at the first one that fails.
 
 ```bash
-sfmkit run --config configs/valencia/cpu.yaml
+sfmkit run --config projects/valencia/configs/cpu.yaml
 ```
 
 | Option | |
@@ -36,8 +39,8 @@ lives in `run.STAGES`, and the help is generated from it, so the two cannot
 drift apart.
 
 ```bash
-sfmkit run --config configs/valencia/cpu.yaml --from reconstruct
-sfmkit run --config configs/valencia/cpu.yaml --only changes,figures
+sfmkit run --config projects/valencia/configs/cpu.yaml --from reconstruct
+sfmkit run --config projects/valencia/configs/cpu.yaml --only changes,figures
 ```
 
 A stage that needs CUDA and cannot have it (`dense`) is refused before anything
@@ -51,7 +54,7 @@ The camera's intrinsics for the run: from chessboard photographs, from a saved
 3×3 matrix, or from the scene photographs' EXIF. Writes `calibrate/K.txt`.
 
 ```bash
-sfmkit calibrate --config configs/valencia/cpu.yaml
+sfmkit calibrate --config projects/valencia/configs/cpu.yaml
 ```
 
 ### `match`

@@ -24,7 +24,7 @@ take from it the day someone else works on this.
   `precomputed/K.txt` (f = 3544), was ~17% too long, and its photos are lost.
   `calibrate` still takes chessboard photos (tested on synthetic boards) or a
   K file: photos in the scene's mode (main lens 1x, 16:9, 4032x2268) in
-  `data/valencia/calibration/` would check the EXIF K.
+  `projects/valencia/data/calibration/` would check the EXIF K.
 - [x] **The README says what the error is measured against** (2026-09-13). Both configs
   score the reconstruction against COLMAP run from scratch on the same photos,
   its own features and matching: the two share the photographs and nothing
@@ -58,8 +58,37 @@ take from it the day someone else works on this.
 
 ## Using it on your own project
 
-- [ ] **Three mounts per project** (`data/`, `configs/`, `runs/`). Easy to get one
-  wrong; a project-first layout was floated, not decided.
+- [x] **A project is one folder** (2026-09-14). It was spread over three roots
+  and its name was written twice -- as the directories and as `dataset:` inside
+  the config, with nothing checking the two agreed. Now:
+
+  ```
+  projects/valencia/
+  ├── data/                 scene/, precomputed/
+  ├── configs/              cpu.yaml, gpu-dense.yaml, no-colmap.yaml
+  └── runs/
+      ├── cpu/              what you write, ignored by git
+      └── reference-cpu/    the frozen run, tracked
+  ```
+
+  The `dataset:` key is gone: a config lives in `<project>/configs/`, so the
+  project is where it sits, and `load_config` refuses one that does not. So are
+  `SFMKIT_DATA` and `SFMKIT_RUNS` -- there is no root left to move, and `--out`
+  covers writing a run elsewhere. The viewer takes `--projects` instead of
+  `--runs` and `--data`. Compose is one mount, writable; what used to be proved
+  by `:ro` is proved by the fingerprint check in CI, which holds however anyone
+  mounts.
+
+  The frozen runs sit in `runs/` rather than a directory of their own, named
+  `reference-*` so that no config can write over one. That is what lets the
+  image's copy and the host's be the same tracked file, instead of the image's
+  being hidden the moment anyone mounts their own `runs/`.
+
+  `data/precomputed/colmap/15cameras_gpu` is gone: it was byte for byte
+  `runs/reference-gpu-dense/colmap`, and `no-colmap.yaml` points there now.
+
+  The regression reproduces exactly: 14 cameras, 2850 points,
+  0.3382837616037929 -- the same digits as before the move.
 - [ ] **A project template**: the folder shape and a starting config.
 
 ## Viewer
@@ -350,7 +379,8 @@ the contract, the API and the architecture.
   reference while it was made by the config it names and while nothing writes
   into it. `tests/test_saved_example.py` compares the config each stage records
   in its manifest against the YAML on disk, and names the section that moved;
-  CI fingerprints `data/` and `examples/` around the regression run and fails if
+  CI fingerprints a project's `data/` and its frozen runs around the regression
+  run and fails if
   a byte changed. The second one holds however the directories are mounted,
   which compose's `:ro` does not.
 

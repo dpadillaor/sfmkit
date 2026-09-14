@@ -1,7 +1,6 @@
 # The whole pipeline without COLMAP installed: the comparison is made against a
 # saved COLMAP model rather than one computed here. Everything else is the cpu
-# config. Paths are relative to data/valencia/.
-dataset: valencia
+# config. Paths are relative to the project's data/.
 name: no-colmap
 seed: 0
 
@@ -28,7 +27,8 @@ localize:
   query: Img_Old
 
 colmap:
-  precomputed: precomputed/colmap/15cameras_gpu   # copied, not computed
+  # The gpu-dense reference run's own COLMAP model, copied rather than computed.
+  precomputed: ../runs/reference-gpu-dense/colmap
 
 dense:
   enabled: false    # COLMAP's dense stereo; there is no COLMAP here to run it

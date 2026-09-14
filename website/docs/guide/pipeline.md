@@ -6,7 +6,7 @@ can be run on its own, because each reads what the one before it wrote.
 ![The sfmkit pipeline](../figures/pipeline.svg)
 
 ```bash
-sfmkit run --config configs/valencia/cpu.yaml      # writes runs/valencia/cpu/
+sfmkit run --config projects/valencia/configs/cpu.yaml      # writes projects/valencia/runs/cpu/
 ```
 
 <video controls muted loop playsinline width="100%" poster="../../figures/then_and_now.jpg">

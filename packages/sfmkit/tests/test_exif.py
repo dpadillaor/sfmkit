@@ -5,7 +5,7 @@ from PIL import Image
 
 from sfmkit.data.exif import read_camera
 
-SCENE = Path(__file__).resolve().parents[3] / "data" / "valencia" / "scene"
+SCENE = Path(__file__).resolve().parents[3] / "projects" / "valencia" / "data" / "scene"
 
 
 def photo(path, **tags):

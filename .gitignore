@@ -11,19 +11,22 @@ htmlcov/
 # Per-machine settings read by docker compose, such as UID and GID.
 .env
 
-# Run outputs are reproducible artefacts, not source.
-runs/
+# Run outputs are reproducible artefacts, not source -- except the frozen runs
+# the checks measure against, which are named so that no config can write over
+# one: a config is `cpu.yaml`, the run it writes is `cpu`, and the reference
+# beside it is `reference-cpu`.
+projects/*/runs/*
+!projects/*/runs/reference-*
 .baseline/
 
-# Generated images and arrays. The dataset under data/, the saved example run
-# and the README figures are the exceptions.
+# Generated images and arrays. A project's photographs and frozen reference,
+# and the figures, are the exceptions.
 *.jpg
 *.jpeg
 *.png
 *.npz
-!data/**
-!examples/**
-!docs/figures/**
+!projects/*/data/**
+!projects/*/runs/reference-*/**
 !website/docs/figures/**
 !packages/*/tests/**/*.npz
 

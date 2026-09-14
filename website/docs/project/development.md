@@ -6,10 +6,11 @@
 packages/sfmkit/      the library and CLI, in four layers
 packages/viewer/      sfmview, in ports and adapters
 contracts/            the messages the two exchange, with a schema and examples
-configs/<project>/    one YAML per experiment
-data/<project>/       the photographs; never written to
-runs/<project>/…      outputs, not in version control
-examples/             one saved run of each kind, tracked and copied into the images
+projects/<name>/      one project and all it owns
+  data/                 the photographs; never written to
+  configs/              one YAML per experiment
+  runs/<config>/        outputs, not in version control
+  runs/reference-*/     one frozen run of each kind, tracked and copied into the images
 docs/                 the long-form notes: the old photograph, optimisations, the viewer
 website/              this site
 tools/                our own scripts: figures, films, experiments. Not installed
@@ -48,20 +49,23 @@ message format breaks a test on both sides rather than a run.
 
 ## The regression check
 
-The tests need no dataset. The pipeline's behaviour, though, is checked by
-re-running the stages on the saved example, whose matches and COLMAP model come
-from a CPU:
+The tests need no photographs. The pipeline's behaviour, though, is checked by
+re-running the stages on the project's frozen run, whose matches and COLMAP
+model come from a CPU:
 
 ```bash
-mkdir -p /tmp/check/valencia && cp -r examples/valencia/cpu /tmp/check/valencia/
+cd projects/valencia
+cp -r runs/reference-cpu runs/cpu     # cpu.yaml writes `cpu`; start from the frozen one
 for s in verify reconstruct localize evaluate; do
-  SFMKIT_RUNS=/tmp/check sfmkit $s --config configs/valencia/cpu.yaml
+  sfmkit $s --config configs/cpu.yaml
 done
 # 14 cameras, 2850 points, mean rotation error 0.338°, the old photo 1.32°
 ```
 
-Because its COLMAP model is the example's, the check scores against a fixed
-reference: what moves is our code, not COLMAP's randomness.
+Because its COLMAP model is the frozen run's, the check scores against a fixed
+reference: what moves is our code, not COLMAP's randomness. The frozen runs are
+called `reference-*` for a reason — no config writes a run by that name, so
+none of them can be overwritten by an ordinary run.
 
 ## Conventions
 

@@ -61,17 +61,19 @@ overrides that with your own uid so the runs it writes belong to you.
 ## Run the pipeline
 
 ```bash
-docker compose run --rm cli run --config configs/valencia/cpu.yaml
-docker compose run --rm cli-gpu run --config configs/valencia/gpu-dense.yaml
+docker compose run --rm cli run --config projects/valencia/configs/cpu.yaml
+docker compose run --rm cli-gpu run --config projects/valencia/configs/gpu-dense.yaml
 ```
 
 `cli` is the entry point `sfmkit`, so everything after the service name is the
-command line you would type locally. The service mounts `./data` and
-`./configs` read-only and `./runs` writable, so the output lands in the
-repository as usual.
+command line you would type locally. It mounts `./projects` — one directory,
+because a project holds its photographs, its configs and its runs — writable, so
+the output lands in the repository as usual. That a run writes nothing but its
+own directory is checked in CI rather than promised by the mount.
 
-Each image ships the example run it can reproduce: `sfmkit:cpu` carries
-`runs/valencia/cpu`, `sfmkit:gpu` carries `runs/valencia/gpu-dense` with its
+Each image ships the frozen run it can reproduce: `sfmkit:cpu` carries
+`projects/valencia/runs/reference-cpu`, `sfmkit:gpu` carries
+`projects/valencia/runs/reference-gpu-dense` with its
 dense cloud. You can open the viewer on them before running anything yourself.
 
 ## A shell inside
@@ -93,7 +95,7 @@ whatever is mounted at `/opt/torch`. Compose mounts a named volume by default,
 so the download happens once:
 
 ```bash
-docker compose run --rm cli match --config configs/valencia/cpu.yaml
+docker compose run --rm cli match --config projects/valencia/configs/cpu.yaml
 ```
 
 To keep them somewhere of your own, point `SFMKIT_WEIGHTS` at a directory:
@@ -112,8 +114,8 @@ docker compose up -d viewer         # http://127.0.0.1:8000
 docker compose down                 # stops the viewer and its Redis
 ```
 
-It mounts `runs/` and `data/` read-only and publishes port 8000 **on the host's
-loopback only**. From another machine, tunnel to it:
+It mounts `./projects` read-only — it never writes — and publishes port 8000
+**on the host's loopback only**. From another machine, tunnel to it:
 
 ```bash
 ssh -N -L 8000:127.0.0.1:8000 <host>
@@ -132,7 +134,7 @@ compose points both at its own `redis` service:
 
 ```bash
 docker compose up -d viewer                                   # Redis, then the viewer
-docker compose run --rm cli reconstruct --config configs/valencia/cpu.yaml
+docker compose run --rm cli reconstruct --config projects/valencia/configs/cpu.yaml
 ```
 
 Redis publishes no port: the containers find it by name on compose's network

@@ -10,7 +10,8 @@ from sfmkit.apps.cli import run as run_cmd
 from sfmkit.data.colmap import dense_available, run_dense
 
 REPO = Path(__file__).resolve().parents[3]
-EXAMPLE = REPO / "examples" / "valencia" / "cpu"
+PROJECT = REPO / "projects" / "valencia"
+EXAMPLE = PROJECT / "runs" / "reference-cpu"
 
 
 class _Args:
@@ -22,8 +23,11 @@ class _Args:
 
 
 def _config(tmp_path, enabled: bool) -> Path:
-    body = (REPO / "configs" / "valencia" / "cpu.yaml").read_text().split("\ndense:")[0]
-    path = tmp_path / "exp.yaml"
+    """The example's config with dense switched, in a project of its own."""
+    body = (PROJECT / "configs" / "cpu.yaml").read_text().split("\ndense:")[0]
+    configs = tmp_path / "valencia" / "configs"
+    configs.mkdir(parents=True, exist_ok=True)
+    path = configs / "exp.yaml"
     path.write_text(body + f"\ndense:\n  enabled: {str(enabled).lower()}\n")
     return path
 
@@ -58,7 +62,7 @@ def test_without_cuda_run_stops_before_the_first_stage(tmp_path, in_repo, monkey
 @pytest.mark.skipif(not dense_available(), reason="needs pycolmap built with CUDA")
 def test_a_dense_cloud_from_the_example_model(tmp_path):
     images = ["Img02", "Img25", "Img13", "Img14"]
-    s = run_dense(EXAMPLE / "colmap", REPO / "data" / "valencia" / "scene", images, tmp_path,
+    s = run_dense(EXAMPLE / "colmap", PROJECT / "data" / "scene", images, tmp_path,
                   max_image_size=600)
     assert s.n_images == len(images)  # the old photo, also in the model, is left out
     assert s.n_points > 1000

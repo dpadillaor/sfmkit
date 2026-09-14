@@ -83,8 +83,8 @@ sfmkit answers that from a handful of modern photographs of the same place:
 ## In one command
 
 ```bash
-sfmkit run --config configs/valencia/cpu.yaml   # every stage, in order
-sfmview --runs runs                             # look at what it made
+sfmkit run --config projects/valencia/configs/cpu.yaml   # every stage, in order
+sfmview --projects projects                             # look at what it made
 ```
 
 The viewer shows a run's two models side by side, each in its own colour —

@@ -19,17 +19,17 @@ METRICS = ("mean_rotation_error_deg", "max_rotation_error_deg", "n_cameras",
 
 
 class FsRunStore:
-    """Runs as sfmkit writes them, under ``root``."""
+    """Runs as sfmkit writes them: ``<root>/<project>/runs/<config>/``."""
 
     def __init__(self, root) -> None:
         self.root = Path(root).resolve()
 
     def runs(self) -> list[RunSummary]:
         found = []
-        for manifest in self.root.glob("*/*/*/manifest.json"):
+        for manifest in self.root.glob("*/runs/*/*/manifest.json"):
             run_dir = manifest.parent.parent
             try:
-                found.append(RunId(run_dir.parent.name, run_dir.name))
+                found.append(RunId(run_dir.parents[1].name, run_dir.name))
             except ValueError:
                 continue
         summaries = [self._summary(run) for run in set(found)]
@@ -69,14 +69,14 @@ class FsRunStore:
         return path
 
     def _dir(self, run: RunId) -> Path:
-        d = self.root / run.project / run.config
+        d = self.root / run.project / "runs" / run.config
         # RunId already refuses "..": this also refuses a symlink out of the root.
         if not d.is_dir() or not d.resolve().is_relative_to(self.root):
             raise RunNotFound(str(run))
         return d
 
     def _summary(self, run: RunId) -> RunSummary:
-        d = self.root / run.project / run.config
+        d = self.root / run.project / "runs" / run.config
         manifests = _manifests(d)
         evaluated = manifests.get("evaluate", {})
         layers = [name for name, there in (

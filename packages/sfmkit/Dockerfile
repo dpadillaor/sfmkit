@@ -25,12 +25,13 @@ RUN pip install --no-cache-dir --no-deps -r requirements.txt
 ENV TORCH_HOME=/opt/torch
 RUN mkdir -p /opt/torch/hub/checkpoints && chmod -R 777 /opt/torch
 
-# Valencia example: photos, configs and a saved run, the one this image can
-# reproduce: the CPU one, or the GPU one with its dense cloud.
+# The Valencia project: its photographs, its configs, and the frozen run this
+# image can reproduce -- the CPU one, or the GPU one with its dense cloud. The
+# other frozen run is left out rather than carried for nothing.
 ARG EXAMPLE=cpu
-COPY data/valencia data/valencia
-COPY configs/valencia configs/valencia
-COPY examples/valencia/${EXAMPLE} runs/valencia/${EXAMPLE}
+COPY projects/valencia/data projects/valencia/data
+COPY projects/valencia/configs projects/valencia/configs
+COPY projects/valencia/runs/reference-${EXAMPLE} projects/valencia/runs/reference-${EXAMPLE}
 
 # Copying and Installing sfmkit library
 COPY packages/sfmkit/pyproject.toml .

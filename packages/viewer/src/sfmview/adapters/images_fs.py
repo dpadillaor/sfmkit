@@ -1,4 +1,4 @@
-"""An ``ImageStore`` over sfmkit's data directory, ``<root>/<dataset>/scene/``.
+"""An ``ImageStore`` over sfmkit's projects, ``<root>/<project>/data/scene/``.
 
 Images are named without extension, as sfmkit names them. Read-only.
 """
@@ -21,7 +21,7 @@ class FsImageStore:
     def image_file(self, dataset: str, name: str) -> Path:
         if not (valid_name(dataset) and valid_name(name)):
             raise ImageNotFound(f"{dataset}/{name}")
-        scene = self.root / dataset / "scene"
+        scene = self.root / dataset / "data" / "scene"
         # Resolved, so a case-insensitive disk does not find one file twice.
         found = {p.resolve() for p in (scene / f"{name}{ext}" for ext in EXTENSIONS)
                  if p.is_file()}

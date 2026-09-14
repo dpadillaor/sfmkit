@@ -61,7 +61,7 @@ conda create -n sfmkit python=3.11 -y && conda activate sfmkit
 pip install --no-deps -r packages/sfmkit/requirements-cpu.txt
 pip install --no-deps -e packages/sfmkit
 
-sfmkit run --config configs/valencia/no-colmap.yaml
+sfmkit run --config projects/valencia/configs/no-colmap.yaml
 ```
 
 The photographs come with the repository, and that config scores the result
@@ -72,14 +72,14 @@ look at what it made:
 conda create -n sfmview python=3.11 -y && conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
 pip install --no-deps -e packages/viewer
-sfmview --runs runs        # http://127.0.0.1:8000
+sfmview --projects projects        # http://127.0.0.1:8000
 ```
 
 With Docker instead, and nothing on the host:
 
 ```bash
 make env                                                     # your uid, once
-docker compose run --rm cli run --config configs/valencia/cpu.yaml
+docker compose run --rm cli run --config projects/valencia/configs/cpu.yaml
 docker compose up -d viewer                                  # http://127.0.0.1:8000
 ```
 
