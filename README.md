@@ -100,10 +100,11 @@ in `compose.yaml` are for: the pipeline publishes each stage, and each camera it
 registers, to a Redis stream; the viewer relays that to the page over a
 WebSocket, and a timeline rewinds it.
 
-```
-cli ──▶ redis ──▶ viewer ──▶ browser
-      (stream)          (websocket)
-```
+![The three containers, what they share and what they publish](website/docs/figures/containers.svg)
+
+*One directory, `./projects`, mounted twice: the pipeline writes into it, the
+viewer only reads. Redis is never published, so nothing outside the network can
+reach it, and the one port that is published is bound to the loopback address.*
 
 Neither program imports the other. They share a
 [message format](https://dpadillaor.github.io/sfmkit/viewer/live/), written down

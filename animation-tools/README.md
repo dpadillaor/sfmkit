@@ -35,7 +35,8 @@ site's are relative to its own pages.
 | `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python animation-tools/changes_animation.py --layout side --format webp --width 860 --quality 38` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `growth.webp`, `growth.mp4` | The map being built, camera by camera | `python animation-tools/growth_animation.py --format webp --width 1000 --out website/docs/figures/growth` (the MP4: `--format mp4`) | README, the site |
 | `viewer.png` | The viewer on the frozen GPU run, so its counts are the ones the README quotes | `sfmview --projects projects --port 8124`, then `google-chrome --headless=new --disable-gpu --use-angle=swiftshader --window-size=1400,900 --virtual-time-budget=30000 --screenshot=viewer.png "http://localhost:8124/#valencia/reference-gpu-dense"` | README, the site |
-| `pipeline.svg` | The stages, grouped in three blocks | Written by hand; see below | README |
+| `pipeline.svg` | The ten stages on three lanes, and what flows between them | Written by hand; see below | README, the site |
+| `containers.svg` | The three containers, the disk they share and the one port that leaves | Written by hand, the same way | README, the site |
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
 | `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
@@ -142,3 +143,41 @@ Every arrow is a directory the next stage reads, but not every read is drawn.
 it was kept out of, and `evaluate` also opens `calibrate/`, to set our K beside
 COLMAP's. Both belong in the prose about those stages rather than in a diagram
 of ten boxes.
+
+
+## `containers.svg`
+
+The same hand-written SVG as `pipeline.svg`, and the same tokens, drawn from
+`compose.yaml` and the two Dockerfiles. Canvas `1040 x 612`.
+
+It is the one figure that does not use the data colours for meaning, because
+its subject is not the data. Instead it borrows a vocabulary diagrams of
+infrastructure already have:
+
+* **A window with a title bar** for the terminal and the browser, each showing
+  what it would really show: the command in one, `127.0.0.1:8000` in the
+  address bar of the other, and a scatter of amber and blue points for the page
+  it renders.
+* **Three stacked bars** in a card's corner for a container, in that
+  container's colour. They are the image's layers, and they are the only glyph
+  here that says anything about Docker.
+* **A cylinder** for a named volume, **a folder** for a directory on your disk.
+  The difference matters: the cylinders sit inside the boundary and the folder
+  outside it, which is what a bind mount is.
+* **A dashed boundary** in Docker's blue, `#2496ed`, with its label sitting on
+  the line over a white gap, the way a fieldset legend does.
+
+No whale and no logo. Docker's mark is a trademark, redrawing it would be a
+knock-off, and an external asset would stop this file being text that diffs.
+The stacked cargo is the metaphor without the brand.
+
+Ports are pills beside the service name, and their colour is the argument:
+`:6379` is grey and never leaves, `:8000` is the boundary's own blue because it
+is the only one that crosses it. `cli` has none, which says it listens nowhere.
+
+### What it leaves out
+
+`cli-gpu`, which is `cli` with another image and `gpus: all`; the healthcheck
+that `viewer` waits on, which its card describes in words; and that the images
+are published to two registries so `docker compose pull` fetches rather than
+builds. All three are on the page the figure sits on.

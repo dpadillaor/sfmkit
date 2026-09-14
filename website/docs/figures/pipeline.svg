@@ -35,12 +35,12 @@
   <rect class="card" x="485" y="44" width="145" height="64" rx="4"/>
   <rect x="485" y="44" width="3" height="64" fill="#ff6fae"/>
   <text class="cmd" x="501" y="70" fill="#b23a6c">changes</text>
-  <text class="what" x="501" y="89">a homography, then</text>
+  <text class="what" x="501" y="89">A homography, then</text>
   <text class="what" x="501" y="103">their tones compared</text>
   <rect class="card" x="690" y="44" width="145" height="64" rx="4"/>
   <rect x="690" y="44" width="3" height="64" fill="#ff6fae"/>
   <text class="cmd" x="706" y="70" fill="#b23a6c">localize</text>
-  <text class="what" x="706" y="89">camera and pose,</text>
+  <text class="what" x="706" y="89">Camera and pose,</text>
   <text class="what" x="706" y="103">by RANSAC-DLT</text>
 
   <rect class="lane" x="260" y="160" width="595" height="190" rx="5"/>
@@ -53,17 +53,17 @@
   <rect class="card" x="485" y="176" width="145" height="64" rx="4"/>
   <rect x="485" y="176" width="3" height="64" fill="#f2a93b"/>
   <text class="cmd" x="501" y="202" fill="#96620c">verify</text>
-  <text class="what" x="501" y="221">a fundamental matrix</text>
+  <text class="what" x="501" y="221">A fundamental matrix</text>
   <text class="what" x="501" y="235">per pair, by RANSAC</text>
   <rect class="card" x="690" y="176" width="145" height="64" rx="4"/>
   <rect x="690" y="176" width="3" height="64" fill="#f2a93b"/>
   <text class="cmd" x="706" y="202" fill="#96620c">reconstruct</text>
-  <text class="what" x="706" y="221">incremental SfM &amp;</text>
+  <text class="what" x="706" y="221">Incremental SfM &amp;</text>
   <text class="what" x="706" y="235">a bundle adjustment</text>
   <rect class="card" x="690" y="260" width="145" height="64" rx="4"/>
   <rect x="690" y="260" width="3" height="64" fill="#f2a93b"/>
   <text class="cmd" x="706" y="286" fill="#96620c">calibrate</text>
-  <text class="what" x="706" y="305">the intrinsics K:</text>
+  <text class="what" x="706" y="305">The intrinsics K:</text>
   <text class="what" x="706" y="319">focal length, centre</text>
 
   <rect class="lane" x="260" y="372" width="595" height="110" rx="5"/>
@@ -79,29 +79,29 @@
   <rect x="787" y="402" width="40" height="17" rx="8.5" fill="#eaf3fc" stroke="#cadff5"/>
   <text x="807" y="414" text-anchor="middle" font-size="9.5" fill="#1a6bb5"
         font-family="'Roboto Mono', ui-monospace, monospace">GPU</text>
-  <text class="what" x="706" y="437">a dense cloud</text>
+  <text class="what" x="706" y="437">A dense cloud</text>
   <text class="what" x="706" y="451">of the scene</text>
 
   <rect class="lane" x="24" y="178" width="192" height="150" rx="5"/>
   <text class="tag" x="36" y="200">YOU PROVIDE</text>
   <rect class="card" x="36" y="214" width="168" height="44" rx="4"/>
   <rect x="36" y="214" width="3" height="44" fill="#ff6fae"/>
-  <text class="give" x="52" y="241">one undated photograph</text>
+  <text class="give" x="52" y="241">One undated photograph</text>
   <rect class="card" x="36" y="270" width="168" height="44" rx="4"/>
   <rect x="36" y="270" width="3" height="44" fill="#f2a93b"/>
-  <text class="give" x="52" y="297">modern photographs</text>
+  <text class="give" x="52" y="297">Modern photographs</text>
 
   <rect class="lane" x="895" y="250" width="170" height="196" rx="5"/>
   <text class="tag" x="907" y="272">RESULTS</text>
   <rect class="card" x="907" y="286" width="146" height="64" rx="4"/>
   <rect x="907" y="286" width="3" height="64" fill="#3b3b38"/>
   <text class="cmd" x="923" y="312" fill="#1b1b1a">evaluate</text>
-  <text class="what" x="923" y="331">how far apart</text>
+  <text class="what" x="923" y="331">How far apart</text>
   <text class="what" x="923" y="345">the two models are</text>
   <rect class="card" x="907" y="368" width="146" height="64" rx="4"/>
   <rect x="907" y="368" width="3" height="64" fill="#b9b9b3"/>
   <text class="cmd" x="923" y="394" fill="#6d6d68">figures</text>
-  <text class="what" x="923" y="413">plots drawn from</text>
+  <text class="what" x="923" y="413">Plots drawn from</text>
   <text class="what" x="923" y="427">the whole run</text>
 
   <path class="flow" d="M216,264 H238 V208 H276"/>
