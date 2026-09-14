@@ -87,6 +87,7 @@ Photographs of your own take one more command, which lays out a project of
 theirs and writes it a config:
 
 ```bash
+conda activate sfmkit                       # back to the pipeline's environment
 sfmkit new plaza --photos ~/Pictures/plaza
 sfmkit run --config projects/plaza/configs/cpu.yaml
 ```
