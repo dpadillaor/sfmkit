@@ -15,6 +15,10 @@ name: cpu                  # the run directory; defaults to the file's name
 seed: 0                    # every RANSAC and every sampler
 ```
 
+`sfmkit new` writes one of these, commented, as a starting point. A section
+left out is a stage `sfmkit run` walks past: no `localize` means no query to
+place, no `colmap` means nothing to be scored against.
+
 ## `calibrate`
 
 Where the intrinsics come from. Exactly one of the three.

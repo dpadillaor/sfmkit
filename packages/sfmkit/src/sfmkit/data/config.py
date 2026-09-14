@@ -5,8 +5,7 @@ A config lives inside the project it belongs to::
     projects/valencia/
     |-- data/        the photographs, and anything precomputed
     |-- configs/     one YAML an experiment
-    |-- reference/   a frozen run, where there is one
-    `-- runs/        what a run writes
+    `-- runs/        what a run writes, and the frozen reference-* runs
 
 so the project is the directory the config sits in and nothing names it twice.
 """

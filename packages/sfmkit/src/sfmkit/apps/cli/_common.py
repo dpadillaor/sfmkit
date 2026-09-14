@@ -30,7 +30,7 @@ def load_K(path) -> np.ndarray:
 
 
 def run_dir(cfg: Config, out: str | None) -> Path:
-    """``--out`` if given, otherwise ``runs/<dataset>/<config>``."""
+    """``--out`` if given, otherwise the project's ``runs/<config>``."""
     return Path(out) if out else default_run_dir(cfg)
 
 

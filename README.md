@@ -83,8 +83,16 @@ docker compose run --rm cli run --config projects/valencia/configs/cpu.yaml
 docker compose up -d viewer                                  # http://127.0.0.1:8000
 ```
 
-The [tutorial](https://dpadillaor.github.io/sfmkit/tutorial/) walks through it,
-and then through doing the same with photographs of your own.
+Photographs of your own take one more command, which lays out a project of
+theirs and writes it a config:
+
+```bash
+sfmkit new plaza --photos ~/Pictures/plaza
+sfmkit run --config projects/plaza/configs/cpu.yaml
+```
+
+The [tutorial](https://dpadillaor.github.io/sfmkit/tutorial/) walks through
+all of it.
 
 ## The viewer
 

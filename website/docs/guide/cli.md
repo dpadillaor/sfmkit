@@ -1,6 +1,6 @@
 # CLI reference
 
-One command, `sfmkit`, with one subcommand per stage, plus `run`. Every
+One command, `sfmkit`, with one subcommand per stage, plus `run` and `new`. Every
 stage takes the same two options, and each stage reads what the one before it
 wrote, so they can be run one at a time, re-run, or resumed.
 
@@ -18,6 +18,23 @@ it belongs to is where it is, and the photographs and the runs are its
 neighbours. The same config therefore works on the host and inside a container
 without either knowing where the other put the project. `--out` is the way to
 write a run somewhere else.
+
+## `sfmkit new`
+
+A project laid out: `data/scene/`, `configs/` and a config that parses.
+
+```bash
+sfmkit new plaza --photos ~/Pictures/plaza
+```
+
+| Option | Default | |
+|---|---|---|
+| `--photos DIR` | | photographs to copy in, and to list under `sfm.images` |
+| `--in DIR` | `projects` | where projects live |
+
+Without `--photos` the layout is written empty and the config says what to put
+where. The config it writes configures neither a query nor a COLMAP, which is
+what a first project usually has: see what `run` does with that below.
 
 ## `sfmkit run`
 
@@ -45,6 +62,12 @@ sfmkit run --config projects/valencia/configs/cpu.yaml --only changes,figures
 
 A stage that needs CUDA and cannot have it (`dense`) is refused before anything
 runs, rather than an hour in.
+
+A stage the config says nothing about is walked past, the way `dense` skips
+itself when it is off: no `localize.query` means nothing to localise or compare
+against, and no `colmap.matches` or `colmap.precomputed` means nothing to be
+scored by. Naming one in `--only` runs it anyway, so a mistyped key is reported
+by the stage rather than hidden here.
 
 ## The stages
 

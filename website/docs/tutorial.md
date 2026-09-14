@@ -94,44 +94,43 @@ SFMKIT_BROKER=redis://localhost:6379 sfmkit reconstruct --config projects/valenc
 
 ## 5. Your own photographs
 
-Say your project is called `plaza`. A project is one directory, and everything
-it owns lives inside it:
+`sfmkit new` lays the project out and copies the photographs into it:
+
+```bash
+sfmkit new plaza --photos ~/Pictures/plaza
+```
 
 ```
 projects/plaza/
-├── data/scene/     the photographs
-├── configs/        one YAML an experiment
-└── runs/           written for you
+├── data/scene/     the photographs, copied in
+├── configs/        cpu.yaml, written for you, listing them
+└── runs/           written when you run
 ```
 
-Put the photographs in `projects/plaza/data/scene/`, named however you like —
-`Img01.jpg`, `Img02.jpg`, … is what Valencia does — and write
-`projects/plaza/configs/first.yaml`. Nothing in it names the project: the file's
-own location says which one it belongs to.
+Nothing in the config names the project: the file's own location says which one
+it belongs to. Then:
+
+```bash
+sfmkit run --config projects/plaza/configs/cpu.yaml
+```
+
+A first project usually has no historical photograph to place and no COLMAP
+installed to be scored against, and the config it was given says nothing about
+either. `run` walks past a stage the config does not ask for, so what happens
+is `calibrate`, `match`, `verify`, `reconstruct` and the figures. Uncomment the
+two sections when you want the rest:
 
 ```yaml
-name: first
-seed: 0
-
-calibrate:
-  exif: true               # the focal length out of the photographs themselves
-
-sfm:
-  images: [Img01, Img02, Img03, Img04, Img05]   # without the extension
-  reference: Img01         # the camera everything is expressed against
-  exhaustive: true
-  device: auto             # cuda if there is a GPU
-
 localize:
-  query: Img_Old           # the odd photograph out; omit the section if there is none
+  query: Img_Old           # the odd photograph out, kept out of the reconstruction
 
 colmap:
   matches: colmap          # needs COLMAP installed
 ```
 
-```bash
-sfmkit run --config projects/plaza/configs/first.yaml
-```
+Without `--photos` you get the same layout empty, and the config tells you what
+to put where. Every key it leaves out is in [the configuration
+reference](guide/config.md).
 
 What matters for the photographs themselves:
 
