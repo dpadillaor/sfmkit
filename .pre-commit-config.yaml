@@ -13,8 +13,8 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-toml
-      # The first version of this project committed three notebooks totalling
-      # 114 MB of embedded output -- 93% of the repository.
+      # A megabyte is generous for source. Anything heavier is a result, and
+      # results are reproduced, not committed.
       - id: check-added-large-files
         args: [--maxkb=1024]
 
