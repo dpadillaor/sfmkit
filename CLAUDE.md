@@ -46,8 +46,11 @@ COLMAP again too, which varies a little between runs, the old photo most.
   from the package's directory; the build context of every image is the root.
 - `packages/viewer/src/sfmview/`, the web viewer, in ports and adapters; it
   reads runs through the contract in `docs/viewer.md` and never imports sfmkit.
-- `contracts/` the messages the packages exchange (`step.schema.json`, live
-  progress through Redis), with examples and the checker both test suites load.
+- `packages/contracts/` (`sfmcontracts`) the only thing the two share: the
+  messages they pass (`step.schema.json`, `asyncapi.yaml`) and the files a run
+  leaves behind (`run.schema.json`), with the checkers both suites import. It
+  imports nothing but the standard library, enforced by import-linter, so
+  being underneath both costs neither a dependency.
 - `packages/sfmkit/src/sfmkit/` in four layers, `apps → render → data → core`, enforced by
   import-linter. `core` does no I/O and imports no torch, matplotlib, yaml
   or rich.

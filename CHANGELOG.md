@@ -31,7 +31,7 @@ What it will carry:
   the dense cloud in one frame, a photograph inside its camera's frustum, and
   a run drawn **as it is being built**, with a timeline to rewind it. It never
   imports sfmkit; a test fails if its environment so much as can.
-- **The messages between them written down** — `contracts/step.schema.json`,
+- **The messages between them written down** — `sfmcontracts/step.schema.json`,
   an AsyncAPI document for the channels, OpenAPI from the viewer itself — and
   checked by both test suites.
 - **Images for both packages**, CPU and CUDA, and a compose file that runs the

@@ -98,7 +98,7 @@ how two containers talk to each other, so the network is the point, not a cost.
 Done: `packages/viewer` (`sfmview`) draws finished runs (sfmkit's model,
 COLMAP's and the dense cloud, in one frame) and follows a run live through Redis
 Streams, with a timeline to rewind it; sfmkit publishes when `SFMKIT_BROKER` is
-set; `contracts/step.schema.json` defines the messages. `docs/viewer.md` has
+set; `sfmcontracts/step.schema.json` defines the messages. `docs/viewer.md` has
 the contract, the API and the architecture.
 
 - [x] **A named volume for Redis** (`redis-data:/data`): `down` no longer takes
@@ -125,7 +125,7 @@ the contract, the API and the architecture.
   resized, fetched only when one is looked through.
 - [x] **The interfaces are written down in their own standards.** HTTP was
   already: FastAPI serves OpenAPI at `/docs` and `/redoc`. The messages now have
-  `contracts/asyncapi.yaml` (AsyncAPI 3: the stream, the heartbeat, the
+  `sfmcontracts/asyncapi.yaml` (AsyncAPI 3: the stream, the heartbeat, the
   WebSocket, who sends and who listens), pointing at `step.schema.json` rather
   than repeating it — for which the schema's branches were given names under
   `$defs`. And a Mermaid sequence diagram of sfmkit, Redis, the viewer and the
@@ -165,11 +165,35 @@ the contract, the API and the architecture.
   otherwise Python alone. The page is checked by screenshots from headless
   Chrome over the DevTools protocol (`--use-angle=swiftshader`; Chrome's own
   `--screenshot` does not wait for WebSockets).
-- [x] **`contracts/check.py` stays as it is** (2026-09-13). Eighty-two lines
-  covering the part of JSON Schema the contracts actually use, against a
-  dependency in both packages' environments -- and in both images -- for five
-  message shapes. Revisit only if `jsonschema` arrives for some other reason,
-  or if the schemas start using what it does not cover.
+- [x] **The contracts are a package now** (2026-09-14), `packages/contracts`,
+  imported as `sfmcontracts`. They were four files at the root that both test
+  suites reached by counting directories upwards and loading `check.py` through
+  `importlib.util.spec_from_file_location` -- shared Python code imported by the
+  back door, duplicated in both suites. Now `from sfmcontracts import run`. It
+  declares no dependencies and import-linter enforces it: being underneath both
+  packages costs neither of them anything. It ships, too, so `pip install
+  sfmkit` brings the schema with it.
+- [x] **The files a run leaves behind are a contract** (2026-09-14),
+  `sfmcontracts/run.schema.json`: the arrays in each `.npz` with their kinds and
+  shapes, and a JSON Schema for `evaluation.json` and the manifests. sfmkit's
+  suite checks what it writes, the viewer's checks what it reads, both against
+  the same file. Before this, renaming an array passed every test in the
+  repository -- sfmkit reads back what it wrote, the viewer fabricates its own
+  fixtures and reads a frozen run made before the change -- and the first sign
+  would have been an empty page. Finding it: the viewer's fixtures were thinner
+  than real runs (no `git_commit`, no `versions`, half an `evaluation.json`),
+  so every viewer test was written against data sfmkit never produces. They are
+  faithful now. Shapes are read out of the `.npy` headers with the standard
+  library, since the contract may not import numpy.
+- [x] **`asyncapi.yaml` is checked** (2026-09-14). It points at the schema
+  rather than repeating it, and nothing stopped it pointing at fewer kinds of
+  message than there are. A test walks its `$ref`s and asserts they cover
+  exactly the schema's branches.
+- [x] **`sfmcontracts.check` stays a validator of our own**. Eighty-two lines
+  covering the part of JSON Schema the contracts use, against a dependency in
+  both packages' environments -- and in both images -- for a handful of message
+  shapes. Revisit only if `jsonschema` arrives for some other reason, or if the
+  schemas start using what it does not cover.
 - [x] **pre-commit checks both packages' layering** (2026-09-13), through
   `tools/lint-imports`: import-linter has to import a package to follow its
   imports, and the hooks run in whichever environment the commit is made from,

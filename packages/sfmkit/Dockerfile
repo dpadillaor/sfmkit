@@ -33,6 +33,10 @@ COPY projects/valencia/data projects/valencia/data
 COPY projects/valencia/configs projects/valencia/configs
 COPY projects/valencia/runs/reference-${EXAMPLE} projects/valencia/runs/reference-${EXAMPLE}
 
+# What both packages agree on, installed first because both of them read it.
+COPY packages/contracts /tmp/contracts
+RUN pip install --no-cache-dir --no-deps /tmp/contracts && rm -rf /tmp/contracts
+
 # Copying and Installing sfmkit library
 COPY packages/sfmkit/pyproject.toml .
 COPY packages/sfmkit/src src

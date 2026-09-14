@@ -91,7 +91,7 @@ z forward. A run missing some of these shows what it has.
 
 Live steps are the other half: a Redis stream per run,
 `sfmkit:steps:<project>/<config>`, one JSON message per entry in its `data`
-field. [`contracts/step.schema.json`](../contracts/step.schema.json) defines
+field. [`sfmcontracts/step.schema.json`](../packages/contracts/src/sfmcontracts/step.schema.json) defines
 them: a `start` (the run's K, its images and the reference camera; the stream
 is emptied first), a `step`
 after each camera registered and each global refinement (the cameras and the
@@ -104,7 +104,7 @@ another run's stream. Beside it, while `reconstruct` works, sfmkit keeps
 5 s: a heartbeat. The key goes when the run ends, however it ends, and a run
 killed outright stops renewing it, so the viewer can tell a run at work from a
 stream that stopped without an `end`. Both packages test
-against the schema and its examples, with the checker in `contracts/check.py`,
+against the schema and its examples, with the checker in `sfmcontracts.check`,
 so a change on one side breaks a test on the other, not a run.
 
 ### How it goes
@@ -142,8 +142,8 @@ sequenceDiagram
     B->>V: GET .../scene (the files are complete now)
 ```
 
-The message format is `contracts/step.schema.json`; who publishes what and who
-listens is `contracts/asyncapi.yaml`, an AsyncAPI 3 document that points at
+The message format is `sfmcontracts/step.schema.json`; who publishes what and who
+listens is `sfmcontracts/asyncapi.yaml`, an AsyncAPI 3 document that points at
 that schema rather than repeating it. The HTTP side's equivalent is the
 OpenAPI FastAPI serves at `/docs`.
 

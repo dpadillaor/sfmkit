@@ -15,7 +15,7 @@ cd sfmkit
 conda create -n sfmkit python=3.11 -y
 conda activate sfmkit
 pip install --no-deps -r packages/sfmkit/requirements-cpu.txt
-pip install --no-deps -e packages/sfmkit
+pip install --no-deps -e packages/contracts -e packages/sfmkit
 ```
 
 Check it answers:
@@ -60,7 +60,7 @@ rotation error against COLMAP of around a third of a degree.
 conda create -n sfmview python=3.11 -y
 conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
-pip install --no-deps -e packages/viewer
+pip install --no-deps -e packages/contracts -e packages/viewer
 sfmview --projects projects --data data
 ```
 

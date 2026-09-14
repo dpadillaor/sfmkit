@@ -3,7 +3,7 @@
 While `reconstruct` works it publishes what it has, step by step, and the
 viewer draws it as it arrives. Neither knows the other: sfmkit writes to a
 Redis stream, the viewer reads from it, and the message format between them is
-a schema both test against — [`contracts/step.schema.json`](https://json-schema.org/).
+a schema both test against — [`sfmcontracts/step.schema.json`](https://json-schema.org/).
 A change on one side breaks a test on the other, not a run.
 
 ```bash
@@ -185,15 +185,15 @@ leaves a stream that says what happened rather than one that simply stops.
 
 ## The contract, as a file
 
-The message format is [`contracts/step.schema.json`][schema], which both test
+The message format is [`sfmcontracts/step.schema.json`][schema], which both test
 suites validate against — a change on one side breaks a test on the other. What
 JSON Schema cannot say is who publishes what, where, and who listens; that is
-[`contracts/asyncapi.yaml`][asyncapi], an AsyncAPI 3 document that names the
+[`sfmcontracts/asyncapi.yaml`][asyncapi], an AsyncAPI 3 document that names the
 two channels (the stream and the heartbeat), the WebSocket the viewer relays
 them on, and points each message at the schema rather than repeating it.
 
-  [schema]: https://github.com/dpadillaor/sfmkit/blob/main/contracts/step.schema.json
-  [asyncapi]: https://github.com/dpadillaor/sfmkit/blob/main/contracts/asyncapi.yaml
+  [schema]: https://github.com/dpadillaor/sfmkit/blob/main/packages/contracts/src/sfmcontracts/step.schema.json
+  [asyncapi]: https://github.com/dpadillaor/sfmkit/blob/main/packages/contracts/src/sfmcontracts/asyncapi.yaml
 
 It is the same idea as the OpenAPI that FastAPI serves for the HTTP side at
 [`/docs`](api.md): the interface written down in the form its tools understand,

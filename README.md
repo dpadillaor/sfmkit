@@ -59,7 +59,7 @@ No COLMAP, no GPU, about half an hour on a laptop:
 git clone https://github.com/dpadillaor/sfmkit && cd sfmkit
 conda create -n sfmkit python=3.11 -y && conda activate sfmkit
 pip install --no-deps -r packages/sfmkit/requirements-cpu.txt
-pip install --no-deps -e packages/sfmkit
+pip install --no-deps -e packages/contracts -e packages/sfmkit
 
 sfmkit run --config projects/valencia/configs/no-colmap.yaml
 ```
@@ -71,7 +71,7 @@ look at what it made:
 ```bash
 conda create -n sfmview python=3.11 -y && conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
-pip install --no-deps -e packages/viewer
+pip install --no-deps -e packages/contracts -e packages/viewer
 sfmview --projects projects        # http://127.0.0.1:8000
 ```
 

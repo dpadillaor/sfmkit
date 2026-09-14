@@ -29,7 +29,7 @@ cd sfmkit
     conda create -n sfmkit python=3.11 -y
     conda activate sfmkit
     pip install --no-deps -r packages/sfmkit/requirements-cpu.txt
-    pip install --no-deps -e packages/sfmkit
+    pip install --no-deps -e packages/contracts -e packages/sfmkit
     ```
 
 === "GPU (CUDA 12.1)"
@@ -38,7 +38,7 @@ cd sfmkit
     conda create -n sfmkit-gpu python=3.11 -y
     conda activate sfmkit-gpu
     pip install --no-deps -r packages/sfmkit/requirements-gpu.txt
-    pip install --no-deps -e packages/sfmkit
+    pip install --no-deps -e packages/contracts -e packages/sfmkit
     ```
 
 Only `match` uses the GPU, and it is about ten times faster there; everything
@@ -63,7 +63,7 @@ sfmkit's code.
 conda create -n sfmview python=3.11 -y
 conda activate sfmview
 pip install --no-deps -r packages/viewer/requirements.txt
-pip install --no-deps -e packages/viewer
+pip install --no-deps -e packages/contracts -e packages/viewer
 sfmview --projects projects                 # http://127.0.0.1:8000
 ```
 

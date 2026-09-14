@@ -1,0 +1,63 @@
+{
+  "$comment": "What a run holds, as the two sides agree on it. sfmkit writes these files and sfmview reads them, so neither may change one alone. Shapes name their dimensions: every array in a file that names the same dimension must agree on it. A file listed here may be absent -- a run stops where it stops -- but if it is there it must be this.",
+  "files": {
+    "reconstruct/reconstruction.npz": {
+      "what": "the model: the camera the run calibrated, where each photograph ended up, and the triangulated points. Points that never triangulated are kept as NaN, so `tracks` is the number of tracks, not of points you can draw.",
+      "arrays": {
+        "K": {"kind": "float", "shape": [3, 3]},
+        "image_names": {"kind": "str", "shape": ["cameras"]},
+        "rotations": {"kind": "float", "shape": ["cameras", 3, 3]},
+        "translations": {"kind": "float", "shape": ["cameras", 3]},
+        "points": {"kind": "float", "shape": ["tracks", 3]},
+        "colors": {"kind": "uint", "shape": ["tracks", 3], "required": false},
+        "track_images": {"kind": "str", "shape": ["tracks"], "required": false}
+      }
+    },
+    "localize/query_pose.npz": {
+      "what": "the old photograph's camera, and the spread of it over the seeds that were tried.",
+      "arrays": {
+        "R": {"kind": "float", "shape": [3, 3]},
+        "t": {"kind": "float", "shape": [3]},
+        "K": {"kind": "float", "shape": [3, 3]},
+        "centres": {"kind": "float", "shape": ["seeds", 3]},
+        "rmse": {"kind": "float", "shape": ["seeds"]},
+        "inliers": {"kind": "int", "shape": ["seeds"], "required": false}
+      }
+    },
+    "evaluate/evaluation.json": {
+      "what": "the comparison against COLMAP, after the two models are brought into one frame.",
+      "schema": {
+        "type": "object",
+        "required": ["n_cameras", "mean_rotation_error_deg", "max_rotation_error_deg",
+                     "scale", "reference", "cameras"],
+        "properties": {
+          "n_cameras": {"type": "number"},
+          "mean_rotation_error_deg": {"type": "number"},
+          "max_rotation_error_deg": {"type": "number"},
+          "mean_position_error": {"type": "number"},
+          "scale": {"type": "number"},
+          "scale_image": {"type": ["string", "null"]},
+          "reference": {"type": "string"},
+          "query": {"type": ["object", "null"]},
+          "intrinsics": {"type": ["object", "null"]},
+          "cameras": {"type": "array"}
+        }
+      }
+    },
+    "*/manifest.json": {
+      "what": "how a stage ran, written by every one of them: the commit, the versions, and the whole config, which is what lets a figure name the code that made it.",
+      "schema": {
+        "type": "object",
+        "required": ["stage", "timestamp", "git_commit", "config", "versions"],
+        "properties": {
+          "stage": {"type": "string"},
+          "config_path": {"type": "string"},
+          "timestamp": {"type": "string"},
+          "git_commit": {"type": ["string", "null"]},
+          "config": {"type": "object"},
+          "versions": {"type": "object"}
+        }
+      }
+    }
+  }
+}
