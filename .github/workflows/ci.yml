@@ -42,6 +42,18 @@ jobs:
           pip install --no-deps -r requirements-cpu.txt -r requirements.txt -r requirements-dev.txt
           pip install --no-deps -e .
 
+      - name: The pins must agree
+        # Everything goes in with --no-deps, so pip never checks that a pinned
+        # version suits the package that needs it. This asks it to, and turns a
+        # mismatched pin into a line naming the two, instead of an import error
+        # halfway through the tests. The one disagreement allowed is lightglue
+        # asking for opencv-python: what is installed is opencv-python-headless,
+        # the same library without the GUI, which is what a server wants.
+        run: |
+          problems=$(pip check | grep -v "requires opencv-python," || true)
+          if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
+          echo "the pins agree"
+
       - name: Lint
         run: ruff check .
 
@@ -82,6 +94,18 @@ jobs:
           pip install --no-deps -r requirements.txt -r requirements-dev.txt
           pip install --no-deps -e .
 
+      - name: The pins must agree
+        # Everything goes in with --no-deps, so pip never checks that a pinned
+        # version suits the package that needs it. This asks it to, and turns a
+        # mismatched pin into a line naming the two, instead of an import error
+        # halfway through the tests. The one disagreement allowed is lightglue
+        # asking for opencv-python: what is installed is opencv-python-headless,
+        # the same library without the GUI, which is what a server wants.
+        run: |
+          problems=$(pip check | grep -v "requires opencv-python," || true)
+          if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
+          echo "the pins agree"
+
       - name: sfmkit must not be importable here
         # The independence is the design; this is the one place it can be
         # proved rather than asserted.
@@ -118,6 +142,18 @@ jobs:
           pip install --no-deps -r packages/sfmkit/requirements-cpu.txt \
                                 -r packages/sfmkit/requirements.txt
           pip install --no-deps -e packages/sfmkit
+
+      - name: The pins must agree
+        # Everything goes in with --no-deps, so pip never checks that a pinned
+        # version suits the package that needs it. This asks it to, and turns a
+        # mismatched pin into a line naming the two, instead of an import error
+        # halfway through the tests. The one disagreement allowed is lightglue
+        # asking for opencv-python: what is installed is opencv-python-headless,
+        # the same library without the GUI, which is what a server wants.
+        run: |
+          problems=$(pip check | grep -v "requires opencv-python," || true)
+          if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
+          echo "the pins agree"
 
       # From `verify` onwards only: `match` would download the feature weights,
       # whose licence is not ours to accept on anyone's behalf. The example's

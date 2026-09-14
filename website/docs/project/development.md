@@ -83,13 +83,21 @@ reference: what moves is our code, not COLMAP's randomness.
 
 | Workflow | When | What |
 |---|---|---|
-| **Checks** (`ci.yml`) | main, pull requests | ruff, the import contracts and both test suites, with a Redis service so the broker's own tests run; then the saved example put through `verify`…`evaluate` again, and its numbers checked. A pull request's run is cancelled when it is pushed again; main's never is |
+| **Checks** (`ci.yml`) | main, pull requests | `pip check` on the installed pins, ruff, the import contracts and both test suites, with a Redis service so the broker's own tests run; then the saved example put through `verify`…`evaluate` again, and its numbers checked. A pull request's run is cancelled when it is pushed again; main's never is |
 | **Documentation** (`docs.yml`) | main, pull requests touching `website/` | builds this site with `--strict`, and publishes it to GitHub Pages from main |
 | **Docker images** (`images.yml`) | main, published releases, or by hand | builds the CPU and viewer images on every change to them; publishes them to the registry when a release is published, tagged with the version, `cpu`/`latest` and the commit. The GPU image is built where there is a GPU: `make push DEVICE=gpu` |
 | **Notify** (`notify.yml`) | any of the three finishing | posts a failure to a Discord channel, and nothing when they pass |
 
 Everything they install comes from the same pinned requirements files as the
 conda environments, so a green CI means the documented installation works.
+
+Because that installation is `--no-deps`, pip is never asked whether a pinned
+version suits the package that needs it, and a wrong pin only shows up as an
+import error in the middle of the tests. So each job runs `pip check` straight
+after installing: a disagreement is then one line naming both packages. The one
+disagreement allowed is lightglue asking for `opencv-python` where
+`opencv-python-headless` is installed, which is the same library without the
+GUI.
 
 ### Where a failure is heard
 
