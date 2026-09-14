@@ -29,49 +29,104 @@ kept out of the model; the thirteen underneath are what build it.*
 [Results](https://dpadillaor.github.io/sfmkit/project/results/) ·
 [The viewer](https://dpadillaor.github.io/sfmkit/viewer/)
 
-## The map, built
+## What is in it
+
+- **`sfmkit`, the library.** Epipolar geometry, triangulation, resection and the
+  bundle adjustment, on NumPy. Its core does no I/O and imports no torch, so the
+  geometry can be read without reading anything else.
+- **`sfmkit`, the command.** Ten stages from a folder of photographs to a model
+  scored against COLMAP, each one runnable on its own because each reads what the
+  one before it wrote. `sfmkit new` lays out a project of your own.
+- **`sfmview`, the viewer.** A run in 3D in the browser: ours and COLMAP's in the
+  same frame, the dense cloud, and the model appearing camera by camera while the
+  pipeline is still running.
+- **The Valencia project.** The photographs, two configs and a finished run, all
+  tracked, so there is something to look at before you have run anything, and
+  something for the regression check to measure against.
+
+## The pipeline
+
+Ten stages, each a command; `sfmkit run` does them in order, and walks past any
+the config does not ask for.
+
+![The sfmkit pipeline](website/docs/figures/pipeline.svg)
+
+| Stage | What it does | On Valencia |
+|---|---|---|
+| `calibrate` | The camera's focal length and image centre, without which nothing can be measured | from the photographs' EXIF |
+| `match` | Distinctive points in each photograph, paired between photographs | 92 pairs |
+| `verify` | Throws away pairings that do not fit the geometry of two views | 86 pairs kept |
+| `reconstruct` | Builds the 3D model: two photographs to start, then one at a time | 14 cameras, 2 830 points |
+| **`localize`** | **Places the old photograph in that model** | **2 px reprojection, 0.60° from COLMAP's** |
+| `colmap` | COLMAP's model of the same photographs, to be scored against | 14 cameras and the old one |
+| `dense` | Optional, needs an NVIDIA GPU: a dense cloud from COLMAP's model | 226 792 points |
+| `evaluate` | How far every camera is from COLMAP's | 0.30° mean rotation error |
+| **`changes`** | **Overlays the old photograph on a modern one and marks what differs** | **7.6% of the overlap** |
+| `figures` | The plots for a finished run | |
+
+Every stage writes a manifest with the commit, the versions and the whole config,
+so a figure can name the code that produced it.
+
+## Building the model
+
+`reconstruct` is the heart of it, and it works the way incremental SfM has worked
+since Bundler. Two photographs to start, chosen for the pair that has both enough
+surviving matches and enough angle between the cameras, because a pair that is
+easy to match is often too shallow to triangulate. Then one photograph at a time:
+each is placed against the points already in the map, brings in the points only it
+can see, and is followed by a bundle adjustment over everything registered so far.
+
+![What reconstruct does, step by step](website/docs/figures/reconstruct.svg)
+
+*The loop is drawn as a loop: the seed pair happens once, the steps beside it once
+per photograph, and the global refinement once at the end.*
+
+On Valencia, that is fourteen photographs becoming a model of the square:
 
 ![The reconstruction as it is built](website/docs/figures/growth.webp)
 
-*Fourteen photographs of the square becoming a model of it. Two cameras to start,
-then one at a time, each placed against the points already there and each
-followed by a bundle adjustment, and a global refinement over everything at the
-end. The
-table keeps the count, and the reprojection error after every step.*
+*Every frame is a real step of the run. The table keeps the count, and the
+reprojection error after every step.*
 
 The bundle adjustment is ours: Levenberg–Marquardt, an analytic Jacobian, the
 points eliminated with the Schur complement. It replaced
-`scipy.optimize.least_squares`, which on these problems never converged:
-it exhausted its evaluation budget on every bundle. Ours is **58× faster and reaches
+`scipy.optimize.least_squares`, which on these problems never converged: it
+exhausted its evaluation budget on every bundle. Ours is **58× faster and reaches
 a lower cost**, which is what turned a run from minutes into seconds and made
 searching the thresholds affordable at all.
 [The numbers](https://dpadillaor.github.io/sfmkit/project/results/#the-bundle-adjustment).
 
-## How far off it is
-
-Fourteen cameras, 2 830 points, and a **mean rotation error of 0.30°** against
-COLMAP.
-
-That number is worth quoting because of what it is measured against: COLMAP run
-from scratch on the same photographs, with its own features and its own matching.
-The two programs share the photographs and nothing else. Scored instead against a
-model that had been fed matches like ours, the same reconstruction reads 0.379°.
+What comes out is fourteen cameras, 2 830 points, and a **mean rotation error of
+0.30°** against COLMAP. That number is worth quoting because of what it is
+measured against: COLMAP run from scratch on the same photographs, with its own
+features and its own matching. The two programs share the photographs and nothing
+else. Scored instead against a model that had been fed matches like ours, the same
+reconstruction reads 0.379°.
 
 Matching runs where `sfm.device` says, and a CPU and a GPU do not find quite the
 same matches, so they do not give quite the same model: 2 850 points at 0.338° on
 a CPU, 2 830 at 0.300° on a GPU. Both configs ship with the repository.
 
-## The old photograph
+## Placing the old photograph
 
-This is the part the rest exists for. It was taken by another camera, of unknown
-focal length, perhaps cropped, a century before the others, so it cannot simply
-join the reconstruction: it is matched against one modern photograph only, kept
-out of the model so that a poorly constrained camera cannot bend it, and then
-**placed against the finished model**, solving for its whole projection matrix,
-focal length included, because assuming the phone's would put it somewhere else
-entirely. RANSAC-DLT on eleven unknowns, then refined in pixels under a Huber
-loss, which took its reprojection from 14 px to 2 and stopped it landing
-somewhere different on every seed.
+A photograph the model was never built from can still be put into it, and that is
+`localize`. It matches the photograph against one that is already registered,
+turns every surviving match into a 3D point paired with the pixel that saw it, and
+solves for the camera that projects one onto the other.
+
+![What localize does, step by step](website/docs/figures/localize.svg)
+
+*It solves for the whole projection matrix, intrinsics included, rather than
+borrowing the calibration of the photographs the model was built from.*
+
+This is the part the rest exists for. The undated print was taken by another
+camera, of unknown focal length, perhaps cropped, a century before the others, so
+it cannot simply join the reconstruction: it is matched against one modern
+photograph only, kept out of the model so that a poorly constrained camera cannot
+bend it, and only then **placed against the finished model**. Assuming the phone's
+focal length would put it somewhere else entirely. RANSAC-DLT on eleven unknowns,
+then refined in pixels under a Huber loss, which took its reprojection from 14 px
+to 2 and stopped it landing somewhere different on every seed.
 
 Once it is placed, the two views can be brought together and their tones compared:
 
@@ -94,6 +149,12 @@ argument, with the two measurements that settled it, is in
 `sfmview` draws a run in 3D: our reconstruction in amber, COLMAP's in blue, both
 in one frame so that what you see is what was scored, the old photograph among
 them, and COLMAP's dense cloud. Click a camera to look through it.
+
+![COLMAP's dense cloud of the square](website/docs/figures/dense.jpg)
+
+*The dense cloud the viewer loads behind the two sparse models: 226 792 points,
+from COLMAP's multi-view stereo, which is what `dense` is for and the one stage
+that needs a GPU.*
 
 It also draws a run **as it is being built**, and that is what the three services
 in `compose.yaml` are for: the pipeline publishes each stage, and each camera it
@@ -150,32 +211,9 @@ The [tutorial](https://dpadillaor.github.io/sfmkit/tutorial/) walks through all 
 it, and [Install](https://dpadillaor.github.io/sfmkit/install/conda/) through the
 viewer's environment and the images.
 
-## The pipeline
+## How it is built
 
-Ten stages, each a command; `sfmkit run` does them in order, and walks past any
-the config does not ask for.
-
-![The sfmkit pipeline](website/docs/figures/pipeline.svg)
-
-| Stage | What it does | On Valencia |
-|---|---|---|
-| `calibrate` | The camera's focal length and image centre, without which nothing can be measured | from the photographs' EXIF |
-| `match` | Distinctive points in each photograph, paired between photographs | 92 pairs |
-| `verify` | Throws away pairings that do not fit the geometry of two views | 86 pairs kept |
-| `reconstruct` | Builds the 3D model: two photographs to start, then one at a time | 14 cameras, 2 830 points |
-| **`localize`** | **Places the old photograph in that model** | **2 px reprojection, 0.60° from COLMAP's** |
-| `colmap` | COLMAP's model of the same photographs, to be scored against | 14 cameras and the old one |
-| `dense` | Optional, needs an NVIDIA GPU: a dense cloud from COLMAP's model | 226 792 points |
-| `evaluate` | How far every camera is from COLMAP's | 0.30° mean rotation error |
-| **`changes`** | **Overlays the old photograph on a modern one and marks what differs** | **7.6% of the overlap** |
-| `figures` | The plots for a finished run | |
-
-Every stage writes a manifest with the commit, the versions and the whole config,
-so a figure can name the code that produced it.
-
-## What is inside
-
-Besides the bundle adjustment and the estimated camera above:
+Besides the geometry itself:
 
 - **Three packages that do not know each other**: `packages/sfmkit` in four
   layers (`apps → render → data → core`), `packages/viewer` in ports and
@@ -191,8 +229,6 @@ Besides the bundle adjustment and the estimated camera above:
   pipeline on it and fails unless fourteen cameras come back within 0.02° of the
   error recorded here.
 
-![COLMAP's dense cloud of the square](website/docs/figures/dense.jpg)
-
 ## Documentation
 
 | | |
@@ -200,6 +236,7 @@ Besides the bundle adjustment and the estimated camera above:
 | [Tutorial](https://dpadillaor.github.io/sfmkit/tutorial/) | from a clone to a reconstruction in the viewer, then your own photographs |
 | [Install](https://dpadillaor.github.io/sfmkit/install/conda/) | conda, or [Docker](https://dpadillaor.github.io/sfmkit/install/docker/) |
 | [CLI reference](https://dpadillaor.github.io/sfmkit/guide/cli/) | every command, with [the configuration](https://dpadillaor.github.io/sfmkit/guide/config/) that drives it |
+| [The pipeline](https://dpadillaor.github.io/sfmkit/guide/pipeline/) | what each stage does, and how the reconstruction is built |
 | [The viewer](https://dpadillaor.github.io/sfmkit/viewer/) | using it, its [HTTP API](https://dpadillaor.github.io/sfmkit/viewer/api/) and its [live messages](https://dpadillaor.github.io/sfmkit/viewer/live/) |
 | [Results](https://dpadillaor.github.io/sfmkit/project/results/) | the numbers, and the arguments behind them |
 | [Questions](https://dpadillaor.github.io/sfmkit/faq/) | COLMAP, GPUs, the weights, and why the old photograph is handled apart |
