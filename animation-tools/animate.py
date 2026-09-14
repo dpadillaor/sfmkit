@@ -46,9 +46,9 @@ def _truetype(source: Path) -> bytes:
         return (Path(matplotlib.__file__).parent / "mpl-data/fonts/ttf" / fallback).read_bytes()
 
 
-def typeface() -> bytes:
-    """IBM Plex Sans, for the tools that letter with PIL."""
-    return _truetype(PLEX)
+def typeface(mono: bool = False) -> bytes:
+    """IBM Plex Sans, or Roboto Mono, for the tools that letter with PIL."""
+    return _truetype(MONO if mono else PLEX)
 
 
 @functools.cache

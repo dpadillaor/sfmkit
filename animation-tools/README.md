@@ -35,6 +35,7 @@ site's are relative to its own pages.
 | `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python animation-tools/changes_animation.py --layout side --format webp --width 860 --quality 38` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `growth.webp`, `growth.mp4` | The map being built, camera by camera | `python animation-tools/growth_animation.py --format webp --width 1000 --out website/docs/figures/growth` (the MP4: `--format mp4`) | README, the site |
 | `viewer.png` | The viewer on the frozen GPU run, so its counts are the ones the README quotes | `sfmview --projects projects --port 8124`, then `google-chrome --headless=new --disable-gpu --use-angle=swiftshader --window-size=1400,900 --virtual-time-budget=30000 --screenshot=viewer.png "http://localhost:8124/#valencia/reference-gpu-dense"` | README, the site |
+| `viewer_film.webp`, `viewer_film.mp4` | The viewer being used: five shots, lettered | `python animation-tools/viewer_film.py --source ~/viewer-raw.mkv --width 1400 --crf 18`, from the repo root | README (the WebP), the site (the MP4) |
 | `pipeline.svg` | The ten stages on three lanes, and what flows between them | Written by hand; see below | README, the site |
 | `containers.svg` | The three containers, the disk they share and the one port that leaves | Written by hand, the same way | README, the site |
 | `reconstruct.svg` | What `reconstruct` does, step by step | Written by hand, the same way | the site |
@@ -42,6 +43,39 @@ site's are relative to its own pages.
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
 | `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
+
+## viewer_film.webp
+
+The only figure here that is not drawn from a run. What it has to show is a
+person using the viewer, so it is cut from a screen recording, made once by
+hand: OBS on the machine whose browser is looking at `sfmview`, so the WebGL is
+drawn by a real GPU rather than by software, the whole screen at 1920x1080 and
+30 fps with the browser at `F11` so no address bar or taskbar is in shot.
+
+The recording is not in the repository and is not meant to be. What is kept is
+the cut: `SHOTS` at the top of `viewer_film.py` holds the five, each one a pair
+of seconds of that recording, a speed, and what the shot is called. Retiming the
+film is editing that table.
+
+Two rules it follows:
+
+- **Every shot names a claim the README makes.** The paragraph says both models
+  are loaded in one frame and at one scale, that a camera can be opened with its
+  photograph faded over the points, and that a GPU adds the dense cloud. There is
+  a shot for each. Change one and the other has to change.
+- **The titles are set as the diagrams are**, not as captions: a numbered
+  eyebrow in Roboto Mono, letterspaced, in the viewer's amber, over the title in
+  IBM Plex Sans, behind the same amber accent bar the cards of `pipeline.svg`
+  carry. The top of the frame is darkened by a gradient rather than by a plate,
+  so white letters survive pale stone without a rectangle announcing itself.
+
+Both files come out of one run, and the WebP is written from the same frames as
+the MP4 rather than from the MP4: a second generation of a point cloud is a
+second generation of noise. It is the WebP the README carries, because GitHub
+animates one in place and leaves a relative `.mp4` as a dead link. It is large
+for a figure, about 8 MB, and it is large for a reason: thousands of small
+high-contrast points each moving their own way is the worst case there is for
+prediction between frames.
 
 ## The typefaces
 

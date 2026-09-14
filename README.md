@@ -167,7 +167,12 @@ already in one frame and at one scale: the same similarity `evaluate` uses to
 score them, so what you are looking at is what was measured. Each sparse cloud,
 and where each program put every camera, the old photograph's camera among them.
 
-![The viewer on Valencia, with the dense cloud](website/docs/figures/viewer.png)
+![The viewer being used on the Valencia run](website/docs/figures/viewer_film.webp)
+
+*A run being looked at rather than read: our model and its cameras, COLMAP's
+dense cloud behind them, a camera opened and the photograph it took faded over
+the points, both models in one frame, and the old photograph where `localize`
+put it.*
 
 Click a camera's lines and the view goes inside it, with the photograph that
 camera took hung in front of you on an opacity slider. Fading it over the model
