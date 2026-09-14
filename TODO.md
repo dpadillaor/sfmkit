@@ -248,12 +248,13 @@ the contract, the API and the architecture.
 - [ ] Keep the site and the README in step. The rework landed, and the two
   still duplicate the install steps and the stages table; a change to one is a
   change to both until they are cut down to a single home each.
-- [ ] **The figures are kept twice**, in `docs/figures/` for the README and in
-  `website/docs/figures/` for the site, copied by hand: 9 MB of duplicates, and
-  one of the two goes stale the first time only one is updated. MkDocs will not
-  read outside its own docs directory; the ways out are a build step that
-  copies them, a symlink, or moving the figures under `website/` and pointing
-  the README at raw URLs.
+- [x] **The figures are kept once** (2026-09-14), in `website/docs/figures/`.
+  They were in two places because MkDocs only reads inside its own docs
+  directory, so thirteen files sat duplicated byte for byte -- and the first
+  hand-copy had already happened. The README reaches anywhere in the
+  repository, so it is the one that moved: its links are relative and GitHub
+  resolves them. `docs/figures.md` is the note that used to be that
+  directory's README. The tools write there too.
 - [x] **A tutorial**, the page COLMAP's site has and ours did not: one pass
   from a clone to a reconstruction in the viewer, then the same on photographs
   of your own. It is where most readers start.
@@ -328,11 +329,19 @@ the contract, the API and the architecture.
     the camera around free -- it now costs, with a test to keep it so.
     (`core/bundle*.py` zeroes those residuals too, which a gauge and many
     cameras make harmless; worth a look one day.)
-  - **Worth doing, still.** A point-to-point RMSE between two clouds
-    (`sfm.py:502`), and real-world scale from a known distance (two tower
-    points 120 m apart, `groundtruth.py:381-420`), which would put the old
-    photographer at so many metres rather than so many units. Both were judged
-    not worth it on 2026-09-12: the viewer shows the clouds agree.
+  - **A point-to-point RMSE between two clouds** (`sfm.py:502`) is still worth
+    doing one day; the viewer showing that the clouds agree is why it has
+    waited.
+  - **Real-world scale from a known distance: dropped** (2026-09-14). A single
+    known distance between two reconstructed points fixes the scale and turns
+    every unit into a metre -- the old photographer would stand so many metres
+    from the facade. The code is four lines. What sinks it is where that
+    distance comes from: a monument's published height makes the accuracy of
+    everything equal to the accuracy of a number copied off a web page, and
+    this project's character is that each figure it quotes is measured against
+    something independent. The photographs carry no GPS either, so the baseline
+    between two of them is not available. Revisit only with a distance measured
+    on the ground.
   - **Figures.** Camera axes drawn as triads (`sfm.py:457`, the viewer shows
     orientation instead), the four candidate poses of an essential matrix
     (`sfm.py:436`), before and after the bundle overlaid (`sfm.py:954`;
@@ -343,9 +352,7 @@ the contract, the API and the architecture.
     (`gtFunctions.py:90`), our F against OpenCV's (`ransac_filter.ipynb`),
     `CALIB_ZERO_TANGENT_DIST` and undistortion, which legacy never applied
     either. `legacy/repro/` is migration scaffolding, not course code.
-- [ ] **Keep the history bundle beside the repository safe.** With legacy/
-  deleted (2026-09-12, 278 MB: the course's code, the migration scaffolding and
-  old outputs) ../MGRCV-history-backup-2026-09-10.bundle is the only copy of
-  the course's code, under the tag baseline-original; worth a second copy off
-  this machine, and not to be deleted. Gone with it, in no backup: the re-run
-  of the original pipeline whose measured numbers docs/optimizations.md quotes.
+- [x] **The course's code is not at risk** (2026-09-14). The worry was that
+  `../MGRCV-history-backup-2026-09-10.bundle` had become its only copy once
+  `legacy/` was deleted. It has not: the original work is in a repository of
+  its own. The bundle stays as a convenience, not as a last copy.
