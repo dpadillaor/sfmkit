@@ -1,4 +1,4 @@
-# Tools
+# Animation tools
 
 The scripts that draw the pictures. They live outside `packages/` on purpose:
 not installed, not imported by anything, not copied into an image. Run them
@@ -31,8 +31,8 @@ site's are relative to its own pages.
 
 | File | What it shows | How it is made | Used in |
 |---|---|---|---|
-| `then_and_now.jpg` | The historical photo beside a modern one | `python tools/then_and_now.py`, from the repo root | README |
-| `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python tools/changes_animation.py --layout side --format webp --width 1000 --quality 55` (the MP4: `--format mp4 --width 1400`) | README, the site |
+| `then_and_now.jpg` | The historical photo beside a modern one | `python animation-tools/then_and_now.py`, from the repo root | README |
+| `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python animation-tools/changes_animation.py --layout side --format webp --width 1000 --quality 55` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `pipeline.svg` | The stages, grouped in three blocks | Written by hand; see below | README |
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |

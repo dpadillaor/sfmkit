@@ -23,7 +23,7 @@ repos:
       - id: import-linter
         name: layered architecture
         # Every package, each in the environment that has it; see the script.
-        entry: tools/lint-imports
+        entry: .hooks/lint-imports
         language: script
         pass_filenames: false
         types: [python]

@@ -10,7 +10,7 @@ projects/*/runs/*
 # Nothing here is installed or copied into an image.
 website/
 docs/
-tools/
+animation-tools/
 .github/
 
 **/__pycache__/

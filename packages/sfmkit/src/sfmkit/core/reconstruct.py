@@ -41,7 +41,7 @@ class ReconstructionConfig:
     seed: int = 0
     ransac_threshold: float = 4.0
     ransac_iterations: int = 1000
-    # These three were chosen by the grid search in tools/sweep.py, scored
+    # These three were chosen by a grid search over 64 combinations, scored
     # against COLMAP, not by intuition. A tighter reprojection threshold sounds
     # safer and is not: it discards points that a later bundle adjustment would
     # have pulled into line, leaving new cameras too few correspondences to
