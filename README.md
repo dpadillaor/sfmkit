@@ -34,7 +34,7 @@ kept out of the model; the thirteen underneath are what build it.*
 - **`sfmkit`, the library.** Epipolar geometry, triangulation, resection and the
   bundle adjustment, on NumPy. Its core does no I/O and imports no torch, so the
   geometry can be read without reading anything else.
-- **`sfmkit`, the command.** Ten stages from a folder of photographs to a model
+- **`sfmkit`, the CLI.** Ten stages from a folder of photographs to a model
   scored against COLMAP, each one runnable on its own because each reads what the
   one before it wrote. `sfmkit new` lays out a project of your own.
 - **`sfmview`, the viewer.** A run in 3D in the browser: ours and COLMAP's in the
@@ -54,7 +54,7 @@ the config does not ask for.
 | Stage | What it does | On Valencia |
 |---|---|---|
 | `calibrate` | The camera's focal length and image centre, without which nothing can be measured | from the photographs' EXIF |
-| `match` | Distinctive points in each photograph, paired between photographs | 92 pairs |
+| `match` | SuperPoint keypoints in each photograph, paired between photographs by LightGlue | 92 pairs |
 | `verify` | Throws away pairings that do not fit the geometry of two views | 86 pairs kept |
 | `reconstruct` | Builds the 3D model: two photographs to start, then one at a time | 14 cameras, 2 830 points |
 | **`localize`** | **Places the old photograph in that model** | **2 px reprojection, 0.60° from COLMAP's** |
@@ -88,8 +88,9 @@ On Valencia, that is fourteen photographs becoming a model of the square:
 *Every frame is a real step of the run. The table keeps the count, and the
 reprojection error after every step.*
 
-The bundle adjustment is ours: Levenberg–Marquardt, an analytic Jacobian, the
-points eliminated with the Schur complement. It replaced
+The bundle adjustment is written here rather than called out to Ceres or g2o:
+Levenberg–Marquardt, an analytic Jacobian, the points eliminated with the Schur
+complement. It replaced
 `scipy.optimize.least_squares`, which on these problems never converged: it
 exhausted its evaluation budget on every bundle. Ours is **58× faster and reaches
 a lower cost**, which is what turned a run from minutes into seconds and made
@@ -98,10 +99,13 @@ searching the thresholds affordable at all.
 
 What comes out is fourteen cameras, 2 830 points, and a **mean rotation error of
 0.30°** against COLMAP. That number is worth quoting because of what it is
-measured against: COLMAP run from scratch on the same photographs, with its own
-features and its own matching. The two programs share the photographs and nothing
-else. Scored instead against a model that had been fed matches like ours, the same
-reconstruction reads 0.379°.
+measured against. COLMAP runs from scratch on the same photographs, finds its own
+SIFT keypoints and pairs them its own way; we use SuperPoint and LightGlue, both
+learned, which put keypoints in different places and decide a match by a different
+rule. The two programs share the photographs and nothing else, so agreeing to a
+third of a degree is agreement about the square rather than about a front end they
+had in common. Scored instead against a COLMAP model that had been fed matches
+like ours, the same reconstruction reads 0.379°.
 
 Matching runs where `sfm.device` says, and a CPU and a GPU do not find quite the
 same matches, so they do not give quite the same model: 2 850 points at 0.338° on
@@ -128,7 +132,12 @@ focal length would put it somewhere else entirely. RANSAC-DLT on eleven unknowns
 then refined in pixels under a Huber loss, which took its reprojection from 14 px
 to 2 and stopped it landing somewhere different on every seed.
 
-Once it is placed, the two views can be brought together and their tones compared:
+`changes` then puts the two views on top of each other, and it is worth saying
+that it does not use the placement at all. It goes back to the verified matches
+between the two photographs and fits a homography, which is exact for a plane and
+close enough for a facade. What it compares is local structure, gradient
+orientation and contrast-normalised intensity, chosen so that a century of
+difference in exposure and tone is not reported as change.
 
 ![The old photograph landing on today's, and what changed](website/docs/figures/old_photo.webp)
 
@@ -137,9 +146,15 @@ facade lines up; what does not line up is what changed. The lamp posts have
 moved, a building beside the cathedral is gone, the arcade now opens onto a
 courtyard, and there are people in both photographs but never in the same place.*
 
-And the answer can be argued with. For a long time our placement and COLMAP's
-disagreed by 11.5°, and it turned out to be COLMAP that was wrong. The whole
-argument, with the two measurements that settled it, is in
+And the answer can be argued with. Our placement and COLMAP's disagreed by 11.5°
+for a long time, while agreeing within 0.8° on every modern camera. It was not a
+misplacement but an assumption: on a nearly flat facade, tilting a camera up and
+dropping its principal point project almost alike, and COLMAP pins the principal
+point at the centre of the image, where a cropped plate's is not. Freeing it for
+that one photograph brings the two within about a degree, and the `colmap` stage
+does that now, for a model it computes and for one handed to it, which is why the
+number in the table above reads 0.60° and not eleven. The two measurements that
+settled which way round it was are in
 [Results](https://dpadillaor.github.io/sfmkit/project/results/#the-115-argument).
 
 ## The viewer, and the three services behind it
