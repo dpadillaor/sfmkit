@@ -184,7 +184,12 @@ the contract, the API and the architecture.
   than real runs (no `git_commit`, no `versions`, half an `evaluation.json`),
   so every viewer test was written against data sfmkit never produces. They are
   faithful now. Shapes are read out of the `.npy` headers with the standard
-  library, since the contract may not import numpy.
+  library, since the contract may not import numpy. It covers what crosses
+  between the two packages and nothing else, deliberately: `match/` and
+  `verify/` are the boundary between two stages of sfmkit, which travel in the
+  same commit, and a contract between two things that always move together
+  protects from little; `colmap/*.txt` and `dense/fused.ply` are other people's
+  formats.
 - [x] **`asyncapi.yaml` is checked** (2026-09-14). It points at the schema
   rather than repeating it, and nothing stopped it pointing at fewer kinds of
   message than there are. A test walks its `$ref`s and asserts they cover
