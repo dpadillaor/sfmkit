@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 570" width="1000" height="570">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#9a9a94"/>
+    </marker>
+    <style>
+      text { font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; }
+      .card { fill: #ffffff; stroke: #dcdcd7; }
+      .step { font-size: 12.5px; fill: #1b1b1a; }
+      .code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 10px; fill: #8e8e88; }
+      .num  { font-size: 11.5px; fill: #ffffff; text-anchor: middle; }
+      .flow { fill: none; stroke: #9a9a94; stroke-width: 1.3; marker-end: url(#a); }
+      .lead { fill: none; stroke: #c9c9c3; stroke-width: 1.2; stroke-dasharray: 4 4; }
+      .hint { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 9px; fill: #8e8e88; }
+      .note { font-size: 11px; fill: #8e8e88; }
+      .io   { font-size: 11.5px; fill: #1b1b1a; }
+    </style>
+  </defs>
+  <rect x="0.5" y="0.5" width="999" height="569" rx="14" fill="#ffffff" stroke="#e7e7e3"/>
+
+  <rect x="357" y="36" width="42" height="19" rx="9.5" fill="#3b3b38"/>
+  <text x="378" y="49.5" text-anchor="middle" font-size="9.5" fill="#ffffff"
+        font-family="'Roboto Mono', ui-monospace, monospace" letter-spacing="0.8">IN</text>
+  <text class="io" x="413" y="50">The model  ·  The old photograph's matches</text>
+  <path class="flow" d="M500,64 V106"/>
+
+  <rect class="card" x="210" y="110" width="580" height="56" rx="4"/><rect x="210" y="110" width="3" height="56" fill="#ff6fae"/>
+  <circle cx="244" cy="138" r="11" fill="#3b3b38"/><text class="num" x="244" y="142">1</text>
+  <text class="step" x="266" y="134">Turn every match into a 3D point and the pixel that saw it</text>
+  <text class="code" x="266" y="152">The modern keypoint is the hinge, and only registered photographs count</text>
+
+  <path class="flow" d="M500,166 V182"/>
+  <text class="hint" x="512" y="179">six at least, to be able to solve the equations</text>
+
+  <rect class="card" x="210" y="186" width="580" height="56" rx="4"/><rect x="210" y="186" width="3" height="56" fill="#ff6fae"/>
+  <circle cx="244" cy="214" r="11" fill="#3b3b38"/><text class="num" x="244" y="218">2</text>
+  <text class="step" x="266" y="210">Eleven unknowns: <tspan font-weight="600">P</tspan> entire, focal length included</text>
+  <text class="code" x="266" y="228">Not just the focal length: the image centre too, since it may be a crop · ransac_dlt</text>
+
+  <path class="lead" d="M790,214 H836"/>
+  <text class="note" x="840" y="204">The modern cameras went</text>
+  <text class="note" x="840" y="219">the other way: PnP, six</text>
+  <text class="note" x="840" y="234">unknowns, in reconstruct</text>
+
+  <path class="flow" d="M500,242 V258"/>
+
+  <rect class="card" x="210" y="262" width="580" height="56" rx="4"/><rect x="210" y="262" width="3" height="56" fill="#ff6fae"/>
+  <circle cx="244" cy="290" r="11" fill="#3b3b38"/><text class="num" x="244" y="294">3</text>
+  <text class="step" x="266" y="286">Pull <tspan font-weight="600">K</tspan> and the pose back out of <tspan font-weight="600">P</tspan></text>
+  <text class="code" x="266" y="304">Two signs fit the algebra; only one has the scene in front</text>
+
+  <path class="flow" d="M500,318 V334"/>
+
+  <rect class="card" x="210" y="338" width="580" height="56" rx="4"/><rect x="210" y="338" width="3" height="56" fill="#ff6fae"/>
+  <circle cx="244" cy="366" r="11" fill="#3b3b38"/><text class="num" x="244" y="370">4</text>
+  <text class="step" x="266" y="362">Refine the camera and the pose, in pixels</text>
+  <text class="code" x="266" y="380">RANSAC's fit is algebraic; Huber keeps one bad match from dragging this one</text>
+
+  <path class="flow" d="M500,394 V410"/>
+
+  <rect class="card" x="210" y="414" width="580" height="56" rx="4"/><rect x="210" y="414" width="3" height="56" fill="#8c8c8c"/>
+  <circle cx="244" cy="442" r="11" fill="#3b3b38"/><text class="num" x="244" y="446">5</text>
+  <text class="step" x="266" y="438">Run it again on many seeds, and report the spread</text>
+  <text class="code" x="266" y="456">RANSAC samples at random, so one run is one opinion · --trials</text>
+
+  <path class="flow" d="M500,470 V506"/>
+
+  <rect x="332" y="510" width="42" height="19" rx="9.5" fill="#3b3b38"/>
+  <text x="353" y="523.5" text-anchor="middle" font-size="9.5" fill="#ffffff"
+        font-family="'Roboto Mono', ui-monospace, monospace" letter-spacing="0.8">OUT</text>
+  <text class="io" x="388" y="524">Its pose and camera, and the spread over every seed</text>
+</svg>

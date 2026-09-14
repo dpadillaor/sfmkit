@@ -38,6 +38,7 @@ site's are relative to its own pages.
 | `pipeline.svg` | The ten stages on three lanes, and what flows between them | Written by hand; see below | README, the site |
 | `containers.svg` | The three containers, the disk they share and the one port that leaves | Written by hand, the same way | README, the site |
 | `reconstruct.svg` | What `reconstruct` does, step by step | Written by hand, the same way | the site |
+| `localize.svg` | What `localize` does, step by step | Written by hand, the same way | the site |
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
 | `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
@@ -209,3 +210,20 @@ Two rules the text follows, and they are worth keeping:
 
 Widths, measured: a title fits about 50 characters at 12.5px, a description
 about 61 at 10px in the mono face. Past that it runs over the card.
+
+
+## `localize.svg`
+
+The same again for the other stage the pipeline diagram cannot open. Canvas
+`1000 x 570`, one column, five steps.
+
+It was drawn as a fork first, and that was wrong. `localize_image` takes a `K`
+and solves a PnP when it is given one, so the figure showed a choice; but
+`cmd_localize` never passes one, so the stage always takes the other road and
+solves the whole projection matrix. A diagram that shows a branch the program
+never takes is worse than one that shows nothing, and the label on the unused
+side made it worse still: the modern cameras are not localised here at all,
+they are registered in `reconstruct`.
+
+The contrast is worth keeping, so it survives as a grey aside beside step two,
+outside the flow on a dashed leader. It reads as an aside because it is one.

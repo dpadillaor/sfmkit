@@ -18,11 +18,11 @@ century before the rest. So:
 | `localize` | — | placed against the finished map, its K estimated with its pose |
 | `evaluate` | scored together | scored apart, against COLMAP's placement of it |
 
-`localize` estimates a whole projection matrix by RANSAC-DLT — eleven unknowns,
-because the focal length is not known either — and then refines the camera by
-minimising its reprojection error over the inliers, robustly
-(`core/localize.refine_camera`). PnP would assume the phone's calibration,
-which this photograph does not have.
+![What localize does, step by step](../figures/localize.svg)
+
+*There is no branch here: the old camera is unknown, so the whole projection
+matrix is solved every time. PnP would assume the phone's calibration, which
+this photograph does not have.*
 
 ## The 11.5° argument
 

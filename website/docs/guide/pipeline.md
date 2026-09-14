@@ -71,5 +71,6 @@ a claim like this ought to be re-runnable.
 It was taken by another camera, of unknown focal length, perhaps cropped, a
 century before the rest. So it is matched against the reference only, left out
 of the reconstruction, placed against the finished model by `localize`, and
-scored on its own. [Results](../project/results.md) has what that cost and what
-it bought.
+scored on its own. [The old photograph](../project/old-photo.md) opens `localize`
+the way this page opens `reconstruct`, and [Results](../project/results.md) has
+what that cost and what it bought.
