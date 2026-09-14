@@ -40,6 +40,20 @@ site's are relative to its own pages.
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |
 | `changes.jpg` | What differs between the old photo and a modern one | Copied from a run's `changes/` (`sfmkit changes`), resized to 1600 px | the site |
 
+## The typefaces
+
+Every figure here is lettered in the two faces the viewer is set in, IBM Plex
+Sans and Roboto Mono, kept once in `packages/viewer/src/sfmview/web/vendor/fonts`.
+They are woff2, which neither PIL nor matplotlib reads, so `animate.py`
+decompresses one through fontTools when it is asked for: `typeface()` hands the
+bytes to the tools that letter with PIL, and `use_project_fonts()` registers
+both with matplotlib for the ones that draw with it. Without fontTools
+installed, both fall back to matplotlib's DejaVu and the figure still renders.
+
+The figures `sfmkit figures` writes are not lettered this way, and cannot be:
+they are drawn inside `packages/sfmkit`, which does not get to reach into the
+viewer's files for a font.
+
 ## `pipeline.svg`
 
 A hand-written SVG rather than a mermaid block: GitHub picks mermaid's fonts,

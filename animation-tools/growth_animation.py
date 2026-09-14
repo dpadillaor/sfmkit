@@ -20,7 +20,9 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from animate import FORMATS, save  # noqa: E402
+from animate import FORMATS, save, use_project_fonts  # noqa: E402
+
+use_project_fonts()  # IBM Plex Sans and Roboto Mono, as the viewer is set
 
 from sfmkit.apps.cli._common import load_K  # noqa: E402
 from sfmkit.core.metrics import align_to_reference  # noqa: E402
