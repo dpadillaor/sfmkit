@@ -22,7 +22,7 @@ from sfmkit.data.config import load_config
 from sfmkit.data.exif import read_orientation
 from sfmkit.data.io import image_file, read_image
 
-HEIGHT, GAP, STRIP_GAP, PAD = 400, 10, 6, 22
+HEIGHT, GAP, STRIP_GAP, PAD, MARGIN = 400, 10, 6, 22, 26
 
 
 def at_height(image: np.ndarray, height: int) -> np.ndarray:
@@ -40,6 +40,17 @@ def caption(frame: np.ndarray, text: str, size: int) -> np.ndarray:
     draw.rectangle([PAD - pad, PAD - pad, PAD + box[2] + pad, PAD + box[3] + pad],
                    fill=(*GROUND[::-1], 225))
     draw.text((PAD, PAD), text, font=font, fill=(255, 255, 255, 255))
+    return np.asarray(image)[..., ::-1]
+
+
+def band(width: int, text: str, size: int) -> np.ndarray:
+    """A line of dark text on the white between the photographs and the strip."""
+    height = round(size * 2.2)
+    image = Image.new("RGB", (width, height), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(BytesIO(typeface()), size)
+    box = draw.textbbox((0, 0), text, font=font)
+    draw.text((0, (height - box[3]) / 2), text, font=font, fill=GROUND[::-1])
     return np.asarray(image)[..., ::-1]
 
 
@@ -91,7 +102,13 @@ def main() -> int:
     height = round((top.shape[1] - STRIP_GAP * (len(rest) - 1)) / sum(aspects))
     strip = row([at_height(i, height) for i in rest], STRIP_GAP, width=top.shape[1])
 
-    figure = np.vstack([top, np.full((GAP, top.shape[1], 3), 255, np.uint8), strip])
+    figure = np.vstack([
+        top,
+        band(top.shape[1], f"the other {len(others)}, which build the model", round(size * 0.8)),
+        strip,
+    ])
+    figure = cv2.copyMakeBorder(figure, MARGIN, MARGIN, MARGIN, MARGIN,
+                                cv2.BORDER_CONSTANT, value=(255, 255, 255))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(args.out), figure, [cv2.IMWRITE_JPEG_QUALITY, 88])
     print(f"{args.out}: {figure.shape[1]}x{figure.shape[0]}, "

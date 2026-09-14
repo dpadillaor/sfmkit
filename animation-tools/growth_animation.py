@@ -52,7 +52,7 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
     """
     (x0, x1), (z0, z1) = limits
     fig = plt.figure(figsize=(size[0] / dpi, size[1] / dpi), dpi=dpi, facecolor=GROUND)
-    ax = fig.add_axes([0.03, 0.05, 0.50, 0.80])
+    ax = fig.add_axes([0.03, 0.11, 0.50, 0.74])
     ax.set_anchor("C")
     ax.set_facecolor(GROUND)
 
@@ -79,9 +79,11 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
     ax.set_yticks([])
     for side in ("top", "right", "bottom", "left"):
         ax.spines[side].set_color(LINE)
-    ax.text(0.5, -0.03, "seen from above  ·  the dense line is the cathedral's facade, "
-            "each triangle a photograph", transform=ax.transAxes, fontsize=9.5, color=MUTED,
-            ha="center", va="top")
+    # In the figure's own coordinates, and left-aligned: centred under an axes
+    # this narrow it ran off the left edge, and at the foot it sat on the line
+    # below.
+    fig.text(0.03, 0.062, "seen from above  ·  the dense line is the cathedral's facade, "
+             "each triangle a photograph", fontsize=9.5, color=MUTED, va="bottom")
 
     report = shot_b.report if t > 0.5 else shot_a.report
     fig.text(0.03, 0.925, _headline(report), fontsize=16, color=TEXT, va="bottom")
