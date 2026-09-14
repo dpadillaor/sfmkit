@@ -164,6 +164,13 @@ jobs:
           if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
           echo "the pins agree"
 
+      - name: Take the inputs' fingerprint
+        # Hashed rather than read from git, because a file a stage wrote into
+        # data/ could be one .gitignore hides.
+        run: |
+          echo "INPUTS=$(find data examples -type f -exec sha256sum {} + \
+                         | sort | sha256sum | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
       # From `verify` onwards only: `match` would download the feature weights,
       # whose licence is not ours to accept on anyone's behalf. The example's
       # COLMAP model is the reference, so what moves here is our own code.
@@ -174,6 +181,21 @@ jobs:
           for stage in verify reconstruct localize evaluate; do
             SFMKIT_RUNS=/tmp/check sfmkit "$stage" --config configs/valencia/cpu.yaml
           done
+
+      - name: The inputs must be as they were
+        # A run reads its data and its frozen example and writes neither. Compose
+        # mounts them read-only, which proves it for whoever uses compose; this
+        # proves it for everyone, and would catch a stage that had learnt to
+        # write where it reads.
+        run: |
+          now=$(find data examples -type f -exec sha256sum {} + \
+                | sort | sha256sum | cut -d' ' -f1)
+          if [ "$now" != "$INPUTS" ]; then
+            echo "a stage wrote into data/ or examples/; what changed:"
+            git status --porcelain --ignored=matching data examples
+            exit 1
+          fi
+          echo "the inputs are untouched"
 
       - name: The numbers must not have moved
         run: |
