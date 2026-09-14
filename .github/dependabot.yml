@@ -37,3 +37,8 @@ updates:
       - dependency-name: triton
       - dependency-name: cuda-toolkit
       - dependency-name: nvidia-*
+      # pydantic-core is pydantic's compiled half, pinned to it to the patch:
+      # pydantic 2.13.5 requires exactly 2.46.5, and a newer core belongs to a
+      # pydantic that is not out yet. It follows pydantic, and moves when
+      # pydantic does.
+      - dependency-name: pydantic-core
