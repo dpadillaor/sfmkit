@@ -50,7 +50,10 @@ jobs:
         # asking for opencv-python: what is installed is opencv-python-headless,
         # the same library without the GUI, which is what a server wants.
         run: |
-          problems=$(pip check | grep -v "requires opencv-python," || true)
+          # pip check says "No broken requirements found." when there is
+          # nothing to say, so look for its complaints rather than for output.
+          problems=$(pip check | grep -E "has requirement|requires" \
+                              | grep -v "requires opencv-python," || true)
           if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
           echo "the pins agree"
 
@@ -102,7 +105,10 @@ jobs:
         # asking for opencv-python: what is installed is opencv-python-headless,
         # the same library without the GUI, which is what a server wants.
         run: |
-          problems=$(pip check | grep -v "requires opencv-python," || true)
+          # pip check says "No broken requirements found." when there is
+          # nothing to say, so look for its complaints rather than for output.
+          problems=$(pip check | grep -E "has requirement|requires" \
+                              | grep -v "requires opencv-python," || true)
           if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
           echo "the pins agree"
 
@@ -151,7 +157,10 @@ jobs:
         # asking for opencv-python: what is installed is opencv-python-headless,
         # the same library without the GUI, which is what a server wants.
         run: |
-          problems=$(pip check | grep -v "requires opencv-python," || true)
+          # pip check says "No broken requirements found." when there is
+          # nothing to say, so look for its complaints rather than for output.
+          problems=$(pip check | grep -E "has requirement|requires" \
+                              | grep -v "requires opencv-python," || true)
           if [ -n "$problems" ]; then echo "$problems"; exit 1; fi
           echo "the pins agree"
 
