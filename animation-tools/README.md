@@ -36,6 +36,7 @@ site's are relative to its own pages.
 | `growth.webp`, `growth.mp4` | The map being built, camera by camera | `python animation-tools/growth_animation.py --format webp --width 1000 --out website/docs/figures/growth` (the MP4: `--format mp4`) | README, the site |
 | `viewer.png` | The viewer on the frozen GPU run, so its counts are the ones the README quotes | `sfmview --projects projects --port 8124`, then `google-chrome --headless=new --disable-gpu --use-angle=swiftshader --window-size=1400,900 --virtual-time-budget=30000 --screenshot=viewer.png "http://localhost:8124/#valencia/reference-gpu-dense"` | README, the site |
 | `viewer_film.webp`, `viewer_film.mp4` | The viewer being used: five shots, lettered | `python animation-tools/viewer_film.py --source ~/viewer-raw.mkv --width 1400 --crf 18`, from the repo root | README (the WebP), the site (the MP4) |
+| `live_film.webp`, `live_film.mp4` | One run being watched while it is made: the viewer beside the console driving it | `python animation-tools/live_film.py --source ~/live-raw.mkv`, from the repo root | README (the WebP), the site (the MP4) |
 | `pipeline.svg` | The ten stages on three lanes, and what flows between them | Written by hand; see below | README, the site |
 | `containers.svg` | The three containers, the disk they share and the one port that leaves | Written by hand, the same way | README, the site |
 | `reconstruct.svg` | What `reconstruct` does, step by step | Written by hand, the same way | the site |
@@ -76,6 +77,35 @@ animates one in place and leaves a relative `.mp4` as a dead link. It is large
 for a figure, about 8 MB, and it is large for a reason: thousands of small
 high-contrast points each moving their own way is the worst case there is for
 prediction between frames.
+
+## live_film.webp
+
+The same kind of figure as `viewer_film`, and cut from its own recording: the
+viewer on the left of the screen, the terminal running the pipeline on the
+right, both captured at once, because the two agreeing is the whole claim. A
+second config exists for this, `projects/valencia/configs/live.yaml`, so that
+recording one does not overwrite a run anyone depends on.
+
+Where it differs:
+
+- **One shot, not five**, since what it shows is continuous, and at the speed it
+  happened. `reconstruct` takes nine seconds on this scene, which needs no help.
+- **The titles are timed against the recording, not against the cut**, so the
+  window can be moved without re-deriving them: the first is up while `verify`
+  counts RANSAC down the right-hand pane, the second arrives on the frame the
+  first camera appears, and it stays to the end. A figure that loops should not
+  spend half its loop unlabelled.
+- **They sit top-left, against the canvas**, not top-right where the other film
+  puts them. The right of the frame is the console, and a title over a
+  scrolling table is a title nobody reads. The corner it uses is empty for
+  exactly as long as a title is in it.
+
+Setting up the recording: `PS1` and the terminal's title both have to go, or
+the machine's name is in the figure forever. This does both for one session:
+
+```bash
+PS1='\[\e[38;2;242;169;59m\]sfmkit\[\e[0m\] $ '; printf '\033]0;sfmkit\007'; clear
+```
 
 ## The typefaces
 

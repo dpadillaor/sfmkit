@@ -53,7 +53,12 @@ With Docker: [Install with Docker](../install/docker.md#the-viewer).
   transparency under your hand.
 - **The dense cloud**, when the run has one.
 
-![A run followed live](../figures/viewer_live.png)
+<video controls muted loop playsinline width="100%" poster="../../figures/viewer_live.png">
+  <source src="../../figures/live_film.mp4" type="video/mp4">
+</video>
+
+*One run, at the speed it happened: `verify` counting RANSAC down the right-hand
+pane, then `reconstruct` putting a camera into the left-hand one at a time.*
 
 ## Live progress
 

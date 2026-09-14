@@ -178,18 +178,21 @@ Click a camera's lines and the view goes inside it, with the photograph that
 camera took hung in front of you on an opacity slider. Fading it over the model
 is the quickest check there is: either the edges of the building land on the
 points or they do not, and no number has to be believed. With an NVIDIA GPU,
-`dense` puts COLMAP's dense cloud behind the two sparse ones.
+`dense` adds the 226 792 points of COLMAP's multi-view stereo behind the two
+sparse clouds.
 
-![COLMAP's dense cloud of the square](website/docs/figures/dense.jpg)
+It also draws a model **while it is still being built**, which is the other half
+of what the viewer is for:
 
-*226 792 points from COLMAP's multi-view stereo, which is what `dense` is for and
-the one stage that needs a GPU.*
+![A run drawn while it is being made](website/docs/figures/live_film.webp)
 
-Run the project with Docker and the viewer will also draw a model **while it is
-still being built**, which is what the three services in `compose.yaml` are for:
-the pipeline publishes each stage, and each camera it registers, to a Redis
-stream; the viewer relays that to the page over a WebSocket, and a timeline
-rewinds it.
+*The left half is the viewer, the right half is the pipeline that is filling it,
+and nothing is being reloaded. Fourteen cameras arriving one at a time, in real
+time, and the count beside them agreeing with the table on the right.*
+
+That is what the three services in `compose.yaml` are for: the pipeline
+publishes each stage, and each camera it registers, to a Redis stream; the
+viewer relays that to the page over a WebSocket, and a timeline rewinds it.
 
 ![The three containers, what they share and what they publish](website/docs/figures/containers.svg)
 

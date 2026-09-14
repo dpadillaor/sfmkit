@@ -173,7 +173,10 @@ def main() -> int:
     p.add_argument("--crf", type=int, default=18)
     p.add_argument("--webp-width", type=int, default=1000)
     p.add_argument("--webp-fps", type=int, default=12)
-    p.add_argument("--quality", type=int, default=42, help="the WebP's, 0 to 100")
+    p.add_argument("--quality", type=int, default=60,
+                   help="the WebP's, 0 to 100. Below about 55 the slow fade of a "
+                        "photograph over the points smears them: the fade is the "
+                        "one thing in the film made of gradients")
     args = p.parse_args()
 
     capture = cv2.VideoCapture(str(args.source))
