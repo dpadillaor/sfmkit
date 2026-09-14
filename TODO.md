@@ -422,9 +422,20 @@ the contract, the API and the architecture.
     the camera around free -- it now costs, with a test to keep it so.
     (`core/bundle*.py` zeroes those residuals too, which a gauge and many
     cameras make harmless; worth a look one day.)
-  - **A point-to-point RMSE between two clouds** (`sfm.py:502`) is still worth
-    doing one day; the viewer showing that the clouds agree is why it has
-    waited.
+  - **A point-to-point RMSE between two clouds: dropped** (2026-09-14). The
+    idea was to align our model onto COLMAP's and report, for each of our
+    points, the distance to the nearest of theirs. It does not mean anything
+    here. The two clouds have no correspondence -- ours comes from SuperPoint
+    and LightGlue, theirs from SIFT, so our point 300 is not their point 300
+    and need not exist in their model at all. Such a measure can only say
+    whether one cloud lies on the surfaces of the other, and for that both have
+    to describe surfaces: 2850 points over a whole square describe a handful of
+    distinctive corners instead. The number would move with how many points per
+    square metre COLMAP happened to find, not with whether our geometry is
+    right. Against the 225k-point dense cloud it would have been a fair
+    question -- do our points sit on the surfaces COLMAP reconstructed? -- but
+    that is a different claim from the one this item promised, and `evaluate`
+    already answers the one that matters with the cameras.
   - **Real-world scale from a known distance: dropped** (2026-09-14). A single
     known distance between two reconstructed points fixes the scale and turns
     every unit into a metre -- the old photographer would stand so many metres
