@@ -179,7 +179,7 @@ def _dlt(points_3d: np.ndarray, points_2d: np.ndarray) -> np.ndarray:
     A[1::2, 4:8] = Xh
     A[1::2, 8:12] = -xn[:, 1:2] * Xh
 
-    _, _, Vt = np.linalg.svd(A)
+    _, _, Vt = np.linalg.svd(A, full_matrices=False)
     P = Vt[-1].reshape(3, 4)
     P = np.linalg.inv(T) @ P @ U
     return P / (np.linalg.norm(P) or 1.0)

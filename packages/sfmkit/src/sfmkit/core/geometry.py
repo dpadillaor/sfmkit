@@ -86,7 +86,11 @@ def eight_point(x0: np.ndarray, x1: np.ndarray) -> np.ndarray:
     u1, v1 = n1[:, 0], n1[:, 1]
     A = np.column_stack([u1 * u0, u1 * v0, u1, v1 * u0, v1 * v0, v1, u0, v0, np.ones(len(u0))])
 
-    _, _, Vt = np.linalg.svd(A)
+    # Only Vt's last row is wanted, so the full U is work thrown away, and some
+    # BLAS builds take a hundred times longer over it. Eight correspondences are
+    # the exception: with fewer rows than columns the null vector is not in the
+    # economy Vt at all.
+    _, _, Vt = np.linalg.svd(A, full_matrices=len(A) < 9)
     F = Vt[-1].reshape(3, 3)
 
     # A fundamental matrix is rank 2; the linear solution generally is not.
@@ -172,7 +176,7 @@ def triangulate_multi_view(
     for xy, P in observations:
         rows.append(xy[0] * P[2] - P[0])
         rows.append(xy[1] * P[2] - P[1])
-    _, _, Vt = np.linalg.svd(np.asarray(rows, dtype=float))
+    _, _, Vt = np.linalg.svd(np.asarray(rows, dtype=float), full_matrices=False)
     X = Vt[-1]
     if abs(X[3]) < 1e-12:
         return np.full(3, np.nan)
