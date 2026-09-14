@@ -4,7 +4,7 @@ Where an undated photograph of the Plaza de la Virgen was taken from, and why
 the answer took some arguing. It is the deliverable of the project and the one
 image the pipeline treats differently at every stage.
 
-![The old photo set into a modern one](figures/then_and_now.jpg)
+![The old photo set into a modern one](../figures/then_and_now.jpg)
 
 ## Why it is handled apart
 

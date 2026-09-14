@@ -104,6 +104,58 @@ stopped short — and so were the thresholds that had been tuned against it.
 scipy's solver is still there, as `sfm.bundle_solver: scipy`, because a claim
 like that ought to be re-runnable.
 
+## The thresholds were searched, not guessed
+
+Three numbers decide how much the reconstruction admits: `pnp_threshold`, how
+far a projection may fall from its keypoint and still count when a camera is
+registered; `min_triangulation_angle_deg`, how much parallax a pair of rays
+needs before their intersection is trusted; and `max_reprojection_error`, how
+far a point may sit from where it projects before it is thrown away.
+
+They were chosen by running the reconstruction over a grid of combinations and
+scoring each against COLMAP, because the first search
+returned two results that no amount of local reasoning would have produced.
+
+**A tighter reprojection threshold is worse, not safer.** Discarding a point
+because it does not yet fit also discards the correspondence a later bundle
+adjustment would have used to pull it into line, and the next camera is left
+with less to register against. Averaged across the grid, 3.0 px registered six
+cameras; 12.0 px registered 7.7.
+
+**The triangulation angle is not monotonic.** Raising it from 0.5° to 2.0°
+*increased* the cameras registered, from 6.0 to 7.9: points triangulated from
+near-parallel rays have badly conditioned depth, and admitting them corrupts
+the pose of every camera that later leans on them. Raising it further to 4.0°
+dropped back to 7.1 — now genuinely useful points were being refused. There is
+an optimum, and it is at neither end.
+
+Both are the same lesson. In an incremental pipeline the cost of a decision is
+paid downstream of where it is made, which is what puts these thresholds out of
+reach of argument and makes an hour of compute the cheaper answer.
+
+**Searched again when everything around them had changed** (2026-09-12): the
+EXIF K, the Schur solver, five more photographs, fourteen cameras instead of
+nine. Sixty-four combinations this time, since a reconstruction now takes
+seconds. The chosen values came out as good as anything on the grid.
+
+| `pnp` | angle | reproj | cameras | points | mean rotation |
+|---|---|---|---|---|---|
+| 6.0 | 4.0 | 12.0 | 14 | 2668 | **0.326°** |
+| 9.0 | 4.0 | 12.0 | 14 | 2668 | 0.327° |
+| **6.0** | **2.0** | **12.0** | 14 | **2849** | 0.341° |
+
+The one combination that beats the current settings does so by 0.015° and 181
+fewer points. At that distance the ranking is noise and the points are worth
+keeping, so nothing changed.
+
+What the second search added: above 6.0 the PnP threshold stops mattering —
+6.0, 9.0 and 12.0 all register every camera and score within 0.002° of each
+other, while 3.0 never manages more than thirteen. And the triangulation angle
+no longer decides anything, because with fourteen photographs every value from
+0.5° to 4.0° registers them all. The optimum the first search found was a
+feature of a nine-camera graph, where a single badly conditioned point could
+still poison a pose.
+
 ## What changed in the square
 
 The old photograph warped onto today's, and the difference in tone once the two

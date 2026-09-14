@@ -2,7 +2,7 @@
 
 ``reconstruct/reconstruction.npz`` holds K, the poses and the points;
 ``localize/query_pose.npz`` the old photo's pose, and its K when the run
-recorded it. The keys are part of the contract in ``docs/viewer.md``.
+recorded it. The keys are part of the contract in ``sfmcontracts/run.schema.json``.
 """
 
 from __future__ import annotations

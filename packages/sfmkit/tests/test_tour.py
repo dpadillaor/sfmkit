@@ -1,4 +1,4 @@
-"""Execute every Python block in docs/tour.md.
+"""Execute every Python block in website/docs/tour.md.
 
 A tour whose code does not run is worse than no tour. This extracts the blocks
 in order and runs them in one shared namespace, exactly as a reader pasting
@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-TOUR = Path(__file__).resolve().parents[3] / "docs" / "tour.md"
+TOUR = Path(__file__).resolve().parents[3] / "website" / "docs" / "tour.md"
 
 
 def _python_blocks(text: str) -> list[str]:
@@ -35,4 +35,5 @@ def test_every_block_in_the_tour_runs():
         try:
             exec(compile(block, f"<tour block {i}>", "exec"), namespace)
         except Exception as e:  # noqa: BLE001 - the point is to report which block
-            pytest.fail(f"block {i} of docs/tour.md failed: {type(e).__name__}: {e}\n\n{block}")
+            pytest.fail(f"block {i} of the tour failed: "
+                        f"{type(e).__name__}: {e}\n\n{block}")

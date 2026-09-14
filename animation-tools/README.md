@@ -1,14 +1,38 @@
-# Figures
+# Animation tools
+
+The scripts that draw the pictures. They live outside `packages/` on purpose:
+not installed, not imported by anything, not copied into an image. Run them
+from the repository root, in the `sfmkit` environment.
+
+They need a finished run to draw from — `projects/valencia/runs/gpu-dense` for
+the ones that want a dense cloud — so they are not something a stranger can
+execute on a fresh clone. They are here so that a figure is never a picture
+nobody knows how to remake.
+
+| Script | What it does |
+|---|---|
+| `changes_animation.py` | The old photograph landing on today's and what changed: `website/docs/figures/old_photo.{webp,mp4}` |
+| `then_and_now.py` | The pair side by side, `website/docs/figures/then_and_now.jpg` |
+| `growth_animation.py` | Two films from one run: the model growing camera by camera (`--view map`), and the comparison against COLMAP built up step by step (`--view colmap`) |
+| `animate.py` | Not run on its own: writing a list of frames out as WebP, GIF or MP4, shared by the two above |
+
+`changes_animation.py` sets its text in the viewer's own IBM Plex Sans, which
+it reads from `packages/viewer/.../vendor/fonts` as woff2; that needs `brotli`
+alongside the fontTools matplotlib already brings. Without it the text falls
+back to DejaVu Sans and everything else is the same.
+
+
+## The figures themselves
 
 They live in `website/docs/figures/`, one copy, because MkDocs only reads
-inside its own documentation directory and the README can reach anywhere in
+inside its own documentation directory while the README can reach anywhere in
 the repository. The README's links are relative and GitHub resolves them; the
 site's are relative to its own pages.
 
 | File | What it shows | How it is made | Used in |
 |---|---|---|---|
-| `then_and_now.jpg` | The historical photo beside a modern one | `python tools/then_and_now.py`, from the repo root | README |
-| `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python tools/changes_animation.py --layout side --format webp --width 1000 --quality 55` (the MP4: `--format mp4 --width 1400`) | README, the site |
+| `then_and_now.jpg` | The historical photo beside a modern one | `python animation-tools/then_and_now.py`, from the repo root | README |
+| `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python animation-tools/changes_animation.py --layout side --format webp --width 1000 --quality 55` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `pipeline.svg` | The stages, grouped in three blocks | Written by hand; see below | README |
 | `cameras.png`, `comparison.png`, `tracks.png` | A finished run's two models, and its tracks | Copied from a run's `figures/` (`sfmkit figures`) | the site |
 | `matches.jpg`, `epipolar.jpg`, `residuals.jpg` | Diagnostics of the stages that got there | The same, resized to 1400 px wide (the PNGs were 1-2 MB each) | the site |

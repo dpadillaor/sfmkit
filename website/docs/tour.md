@@ -40,7 +40,7 @@ compute by hand each time.
 p.compose(p.inverse()).t    # array([0., 0., 0.])
 ```
 
-Read: [`core/types.py`](../packages/sfmkit/src/sfmkit/core/types.py) — 165 lines, four
+Read: `sfmkit.core.types` — 165 lines, four
 dataclasses. `Matches`, `Track` and `Reconstruction` will make sense as you meet
 them below.
 
@@ -62,7 +62,7 @@ know the right answer for everything**, which is what makes the rest of this
 tour checkable rather than merely runnable — and it is why the test suite needs
 no data.
 
-Read: [`core/synthetic.py`](../packages/sfmkit/src/sfmkit/core/synthetic.py) — 117 lines.
+Read: `sfmkit.core.synthetic` — 117 lines.
 
 ---
 
@@ -90,7 +90,7 @@ The Sampson distance is ~1e-13, i.e. exact to floating point. That is the check
 you want on a fundamental matrix: every correspondence lies on the epipolar
 line its partner induces. On real data it will be a pixel or two.
 
-Read: [`core/geometry.py`](../packages/sfmkit/src/sfmkit/core/geometry.py) — 237 lines.
+Read: `sfmkit.core.geometry` — 237 lines.
 
 ---
 
@@ -160,7 +160,7 @@ that matter. A 2-view track gives 4 equations for 3 unknowns and is barely
 determined; a 5-view track gives 10 for 3, is robust, and **rigidly couples all
 five cameras**. Track length is what makes a reconstruction stiff.
 
-Read: [`core/tracks.py`](../packages/sfmkit/src/sfmkit/core/tracks.py) — 124 lines, the
+Read: `sfmkit.core.tracks` — 124 lines, the
 shortest and most conceptually important module in the package.
 
 ---
@@ -194,7 +194,7 @@ A result is a function of its inputs alone. Without that, running the same
 pipeline twice gives two different answers and neither can be compared to
 anything.
 
-Read: [`core/robust.py`](../packages/sfmkit/src/sfmkit/core/robust.py) — 244 lines, three
+Read: `sfmkit.core.robust` — 244 lines, three
 estimators with the same shape.
 
 ---
@@ -237,7 +237,7 @@ does) and it degrades gracefully rather than falling over.
 existed, RMSE before and after each bundle adjustment. It is the same table the
 CLI prints.
 
-Read: [`core/reconstruct.py`](../packages/sfmkit/src/sfmkit/core/reconstruct.py) — 378 lines,
+Read: `sfmkit.core.reconstruct` — 378 lines,
 mostly orchestration rather than new mathematics.
 
 ---
@@ -264,7 +264,7 @@ def test_rotation_is_valid(rng):
 ```
 
 **For the layout and the rules it enforces**, see
-[architecture.md](architecture.md). The old photograph, the one the pipeline
+[architecture.md](project/architecture.md). The old photograph, the one the pipeline
 treats apart at every stage, has its own account in
-[old-photo.md](old-photo.md). **For the case study and the measurements
-behind the design decisions**, see [optimizations.md](optimizations.md).
+[old-photo.md](project/old-photo.md). **For the case study and the measurements
+behind the design decisions**, see [optimizations.md](project/results.md).

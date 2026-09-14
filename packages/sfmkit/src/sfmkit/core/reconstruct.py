@@ -23,7 +23,7 @@ __all__ = ["BUNDLE_SOLVERS", "ReconstructionConfig", "StageReport", "reconstruct
 
 # The same bundle adjustment, two solvers: our Levenberg-Marquardt with an
 # analytic Jacobian and the Schur complement, or scipy's generic least squares,
-# 58x slower on Valencia and stopped short of the minimum (docs/optimizations.md).
+# 58x slower on Valencia and stopped short of the minimum: see the site's Results.
 BUNDLE_SOLVERS = {"scipy": solve_bundle, "schur": solve_bundle_schur}
 
 
@@ -41,7 +41,7 @@ class ReconstructionConfig:
     seed: int = 0
     ransac_threshold: float = 4.0
     ransac_iterations: int = 1000
-    # These three were chosen by the grid search in tools/sweep.py, scored
+    # These three were chosen by a grid search over 64 combinations, scored
     # against COLMAP, not by intuition. A tighter reprojection threshold sounds
     # safer and is not: it discards points that a later bundle adjustment would
     # have pulled into line, leaving new cameras too few correspondences to

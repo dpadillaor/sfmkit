@@ -5,9 +5,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from sfmcontracts import STEP_EXAMPLES
 from starlette.websockets import WebSocketDisconnect
 
+from sfmcontracts import STEP_EXAMPLES
 from sfmview.adapters.memory_steps import MemoryStepSource
 from sfmview.adapters.runs_fs import FsRunStore
 from sfmview.api import create_app

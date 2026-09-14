@@ -13,8 +13,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 import yaml
-from sfmcontracts import HERE, check, run
 
+from sfmcontracts import HERE, check, run
 from sfmkit.core.types import Pose, Reconstruction, Track
 from sfmkit.data.io import save_reconstruction
 

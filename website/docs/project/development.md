@@ -13,7 +13,7 @@ projects/<name>/      one project and all it owns
   runs/reference-*/     one frozen run of each kind, tracked and copied into the images
 docs/                 the long-form notes: the old photograph, optimisations, the viewer
 website/              this site
-tools/                our own scripts: figures, films, experiments. Not installed
+animation-tools/      the scripts that draw the figures and the films. Not installed
 ```
 
 Each package is installable on its own, with its own `pyproject.toml`,
@@ -78,7 +78,7 @@ none of them can be overwritten by an ordinary run.
 - **A result records its commit.** Every stage writes a manifest with the
   commit, the versions and the whole config, so a figure can be traced to the
   code that made it.
-- **Figures and films are code.** `tools/` draws every one of them from a run,
+- **Figures and films are code.** `animation-tools/` draws every one of them from a run,
   so none of them can drift from the results they illustrate.
 
 ## Continuous integration
