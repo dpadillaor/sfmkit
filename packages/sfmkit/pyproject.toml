@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "sfmkit"
 version = "0.1.0"
 description = "A small, tested Structure-from-Motion library: two-view geometry, feature tracks, incremental reconstruction and bundle adjustment."
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 # No dependencies here on purpose: the environment is pinned in the requirements
 # files and installed with --no-deps, in Docker and in conda alike. One list.
 
