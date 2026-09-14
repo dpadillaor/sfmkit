@@ -1,5 +1,10 @@
 # Figures
 
+They live in `website/docs/figures/`, one copy, because MkDocs only reads
+inside its own documentation directory and the README can reach anywhere in
+the repository. The README's links are relative and GitHub resolves them; the
+site's are relative to its own pages.
+
 | File | What it shows | How it is made | Used in |
 |---|---|---|---|
 | `then_and_now.jpg` | The historical photo beside a modern one | `python tools/then_and_now.py`, from the repo root | README |

@@ -325,7 +325,8 @@ def main() -> int:
     print(f"{len(shots)} steps")
 
     moving = max(2, round(args.move * args.fps))
-    out = args.out or Path("docs/figures") / ("growth" if args.view == "map" else "against_colmap")
+    name = "growth" if args.view == "map" else "against_colmap"
+    out = args.out or Path("website/docs/figures") / name
 
     if args.view == "map":
         limits = bounds(shots)
