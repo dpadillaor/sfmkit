@@ -10,8 +10,8 @@ import uuid
 
 import anyio
 import pytest
-from sfmcontracts import STEP_EXAMPLES, step_errors
 
+from sfmcontracts import STEP_EXAMPLES, step_errors
 from sfmview.adapters.memory_steps import MemoryStepSource
 from sfmview.domain import RunId
 

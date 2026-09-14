@@ -1,6 +1,7 @@
 # One style for every package; `ruff check .` from the root lints them all.
 line-length = 100
 src = [
+    "packages/contracts/src",
     "packages/sfmkit/src", "packages/sfmkit/tests",
     "packages/viewer/src", "packages/viewer/tests",
 ]

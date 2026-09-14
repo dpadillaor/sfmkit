@@ -12,8 +12,8 @@ suite would go on passing while the viewer stopped working.
 from pathlib import Path
 
 import pytest
-from sfmcontracts import run
 
+from sfmcontracts import run
 from synthetic import make_run
 
 PROJECTS = Path(__file__).resolve().parents[3] / "projects"

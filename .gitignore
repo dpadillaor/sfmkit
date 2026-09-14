@@ -11,6 +11,13 @@ htmlcov/
 # Per-machine settings read by docker compose, such as UID and GID.
 .env
 
+# Notes that stay on the machine they are written on: the working rules and the
+# backlog. They are kept, not deleted -- they are simply not part of what is
+# published.
+CLAUDE.md
+TODO.md
+.claude/
+
 # Run outputs are reproducible artefacts, not source -- except the frozen runs
 # the checks measure against, which are named so that no config can write over
 # one: a config is `cpu.yaml`, the run it writes is `cpu`, and the reference

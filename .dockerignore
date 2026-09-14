@@ -1,9 +1,20 @@
+# What never needs to reach the build. The context is the repository root, so
+# without this every build ships .git and whatever a run last wrote.
 .git
-runs/
-legacy/
-docs/figures/
+.claude/
+
+# A project's own runs -- but not the frozen ones, which the images carry.
+projects/*/runs/*
+!projects/*/runs/reference-*
+
+# Nothing here is installed or copied into an image.
+website/
+docs/
+tools/
+.github/
+
 **/__pycache__/
 *.egg-info/
+*.pptx
 .pytest_cache/
 .ruff_cache/
-*.pptx
