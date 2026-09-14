@@ -35,10 +35,12 @@ that model, and checks itself against <a href="https://colmap.github.io/">COLMAP
 </dl>
 </section>
 
-![The same square, a century apart](figures/then_and_now.jpg)
+![The photographs the pipeline is given](figures/then_and_now.jpg)
 
-*Plaza de la Virgen, Valencia. Left: an undated historical photograph. Right: the
-same square today, from a phone.*
+*What it is given: fourteen photographs of the Plaza de la Virgen taken one
+December morning, and one undated print of the same square. The old one is
+matched against `Img01` alone and kept out of the model; the thirteen underneath
+are what build it.*
 
 **Where was the old photograph taken from, and what has changed since?**
 

@@ -31,7 +31,7 @@ site's are relative to its own pages.
 
 | File | What it shows | How it is made | Used in |
 |---|---|---|---|
-| `then_and_now.jpg` | The historical photo beside a modern one | `python animation-tools/then_and_now.py`, from the repo root | README |
+| `then_and_now.jpg` | The whole input: the undated photograph, the one it is matched against, and the rest of the set underneath | `python animation-tools/then_and_now.py`, from the repo root. Reads the images out of the config, and turns them as their EXIF says | README, the site |
 | `old_photo.webp`, `old_photo.mp4` | The old photograph landing on today's, what changed, and what changed where | `python animation-tools/changes_animation.py --layout side --format webp --width 860 --quality 38` (the MP4: `--format mp4 --width 1400`) | README, the site |
 | `growth.webp`, `growth.mp4` | The map being built, camera by camera | `python animation-tools/growth_animation.py --format webp --width 1000 --out website/docs/figures/growth` (the MP4: `--format mp4`) | README, the site |
 | `viewer.png` | The viewer on the frozen GPU run, so its counts are the ones the README quotes | `sfmview --projects projects --port 8124`, then `google-chrome --headless=new --disable-gpu --use-angle=swiftshader --window-size=1400,900 --virtual-time-budget=30000 --screenshot=viewer.png "http://localhost:8124/#valencia/reference-gpu-dense"` | README, the site |

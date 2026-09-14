@@ -18,24 +18,18 @@ all three.
 """
 
 import argparse
-import functools
 from io import BytesIO
 from pathlib import Path
 
 import cv2
-import matplotlib
 import numpy as np
-from animate import FORMATS, save
+from animate import FORMATS, GROUND, save, typeface
 from PIL import Image, ImageDraw, ImageFont
 
 from sfmkit.core.changes import detect_changes
 from sfmkit.data import io
 from sfmkit.data.config import default_run_dir, load_config
 
-ROOT = Path(__file__).resolve().parents[1]
-PLEX = ROOT / "packages/viewer/src/sfmview/web/vendor/fonts/ibmplexsans-latin.woff2"
-FALLBACK = Path(matplotlib.__file__).parent / "mpl-data/fonts/ttf/DejaVuSans.ttf"
-GROUND = (16, 16, 16)  # the viewer's, so the figures of this project match
 SIGNAL = (0, 79, 255)  # the viewer's orange, in BGR
 
 # What to point at once the change map is up: the boxes of one remark, in
@@ -51,25 +45,6 @@ PLACES = [
       (0.455, 0.778, 0.616, 0.995), (0.653, 0.781, 0.827, 0.945)],
      "People in both, never in the same place"),
 ]
-
-
-@functools.cache
-def typeface() -> bytes:
-    """The viewer's own IBM Plex Sans, as something PIL can open.
-
-    The viewer keeps it as woff2, which PIL cannot read; fontTools decompresses
-    it (through brotli) and writes it back out as TrueType, so the figures and
-    the viewer are set in one typeface kept in one place.
-    """
-    try:
-        from fontTools.ttLib import TTFont
-        out = BytesIO()
-        font = TTFont(PLEX)
-        font.flavor = None
-        font.save(out)
-        return out.getvalue()
-    except Exception:  # noqa: BLE001 - any of fontTools, brotli or the file
-        return FALLBACK.read_bytes()
 
 
 def ease(t: float) -> float:

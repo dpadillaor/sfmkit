@@ -2,16 +2,45 @@
 
 Frames are BGR arrays, as OpenCV makes them, with a duration each in
 milliseconds; a held frame costs a video almost nothing and a WebP one entry.
+The typeface every figure is lettered in lives here too, for the same reason.
 """
 
+import functools
 import shutil
 import subprocess
+from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
 FORMATS = ("gif", "webp", "mp4", "all")
+
+ROOT = Path(__file__).resolve().parents[1]
+PLEX = ROOT / "packages/viewer/src/sfmview/web/vendor/fonts/ibmplexsans-latin.woff2"
+GROUND = (16, 16, 16)  # the viewer's ground, so the figures of this project match
+
+
+@functools.cache
+def typeface() -> bytes:
+    """The viewer's own IBM Plex Sans, as something PIL can open.
+
+    The viewer keeps it as woff2, which PIL cannot read; fontTools decompresses
+    it (through brotli) and writes it back out as TrueType, so the figures and
+    the viewer are set in one typeface kept in one place. Without fontTools,
+    matplotlib's DejaVu Sans.
+    """
+    try:
+        from fontTools.ttLib import TTFont
+        out = BytesIO()
+        font = TTFont(PLEX)
+        font.flavor = None
+        font.save(out)
+        return out.getvalue()
+    except Exception:  # noqa: BLE001 - any of fontTools, brotli or the file
+        import matplotlib
+        return (Path(matplotlib.__file__).parent
+                / "mpl-data/fonts/ttf/DejaVuSans.ttf").read_bytes()
 
 
 def write_video(frames, times, out: Path, fps: int, crf: int = 23) -> Path:

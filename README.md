@@ -13,10 +13,16 @@ It was built to answer one question. Give it a handful of photographs of a place
 and one undated photograph of the same place, and it works out where the old one
 was taken from — then shows you, on today's photograph, what is no longer there.
 
-![The same square, a century apart](website/docs/figures/then_and_now.jpg)
+The library is open source and takes any set of photographs — `sfmkit new` lays a
+project of your own out beside this one. The set that ships with it was
+photographed for it: fourteen frames of the Plaza de la Virgen in Valencia, one
+phone, fourteen minutes of one December morning, and one undated print of the
+same square whose photographer and camera are unknown.
 
-*Plaza de la Virgen, Valencia. Where was the one on the left taken from, and what
-has changed since?*
+![The photographs the pipeline is given](website/docs/figures/then_and_now.jpg)
+
+*What it is given. The undated photograph is matched against `Img01` alone and
+kept out of the model; the thirteen underneath are what build it.*
 
 **[Documentation](https://dpadillaor.github.io/sfmkit/)** ·
 [Tutorial](https://dpadillaor.github.io/sfmkit/tutorial/) ·
