@@ -8,8 +8,8 @@ anything, and not copied into the image. Run them from the repo root, in the
 
 | Script | What it does |
 |---|---|
-| `changes_animation.py` | The old photograph landing on today's and what changed: `docs/figures/old_photo.{webp,mp4}` |
-| `then_and_now.py` | The pair side by side, `docs/figures/then_and_now.jpg` |
+| `changes_animation.py` | The old photograph landing on today's and what changed: `website/docs/figures/old_photo.{webp,mp4}` |
+| `then_and_now.py` | The pair side by side, `website/docs/figures/then_and_now.jpg` |
 | `sweep.py` | The grid search over the reconstruction's thresholds, scored against COLMAP |
 | `report.py` | A run's numbers gathered into one table |
 | `experiment_topology.py` | How the matching graph changes with the pairs kept |

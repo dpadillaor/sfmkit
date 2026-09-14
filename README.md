@@ -6,7 +6,7 @@
 
 **Where was this photograph taken from, and what has changed since?**
 
-![The same square, a century apart](docs/figures/then_and_now.jpg)
+![The same square, a century apart](website/docs/figures/then_and_now.jpg)
 
 *Plaza de la Virgen, Valencia. Left: an undated photograph, camera unknown.
 Right: the same square today, from a phone.*
@@ -37,7 +37,7 @@ would put it somewhere else entirely.
 
 Once it is placed, the two views can be brought together:
 
-![The old photograph set into today's](docs/figures/overlay.jpg)
+![The old photograph set into today's](website/docs/figures/overlay.jpg)
 
 *The old photograph warped onto today's through the homography between them.
 The facade lines up; what does not line up is what changed.*
@@ -88,7 +88,7 @@ and then through doing the same with photographs of your own.
 
 ## The viewer
 
-![The viewer on Valencia, with the dense cloud](docs/figures/viewer.png)
+![The viewer on Valencia, with the dense cloud](website/docs/figures/viewer.png)
 
 `sfmview` draws a run in 3D: our reconstruction in amber, COLMAP's in blue,
 both in one frame so that what you see is what was scored, the old photograph
@@ -105,7 +105,7 @@ environment can so much as import sfmkit.
 
 Ten stages, each a command; `sfmkit run` does them in order.
 
-![The sfmkit pipeline](docs/figures/pipeline.svg)
+![The sfmkit pipeline](website/docs/figures/pipeline.svg)
 
 | Stage | What it does | On Valencia |
 |---|---|---|
@@ -154,7 +154,7 @@ The parts worth a look, and why they are there:
   the same in conda and in Docker, so what CI proves is what the instructions
   give you.
 
-![COLMAP's dense cloud of the square](docs/figures/dense.jpg)
+![COLMAP's dense cloud of the square](website/docs/figures/dense.jpg)
 
 ## Documentation
 

@@ -215,7 +215,7 @@ def label(frame, text: str, at=None, alpha: float = 1.0) -> np.ndarray:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--config", default="configs/valencia/gpu-dense.yaml")
-    p.add_argument("--out", type=Path, default=Path("docs/figures/old_photo"))
+    p.add_argument("--out", type=Path, default=Path("website/docs/figures/old_photo"))
     p.add_argument("--layout", choices=("side", "stack"), default="side")
     p.add_argument("--format", choices=FORMATS, default="webp")
     p.add_argument("--width", type=int, default=1200)
