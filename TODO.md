@@ -220,6 +220,14 @@ the contract, the API and the architecture.
   a fork is not failed by a secret it cannot have. Still to do by hand, and
   only the account's owner can: turn the email off at
   <https://github.com/settings/notifications>, Actions -> Email.
+- [ ] **Transitive pins keep being offered on their own.** Three so far, all
+  the same shape: a package that is really another package's half, pinned to
+  it by an exact or capped requirement. `pydantic-core` follows pydantic, the
+  nvidia wheels and `triton` follow torch, `mpmath` follows sympy which follows
+  torch. Each is in dependabot's ignore list as it turns up, and `pip check`
+  in CI is what finds the next one -- it has caught two in a day. A rule rather
+  than a list would be better, but dependabot has no way to say "only if its
+  parent allows it".
 - [ ] **numpy 2 and OpenCV 5, one at a time.** Dependabot's first sweep offered
   both inside a list of nineteen, with a CUDA that did not match the pinned
   torch; the config now keeps majors out of the group so each arrives on its

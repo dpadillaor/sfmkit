@@ -42,3 +42,7 @@ updates:
       # pydantic that is not out yet. It follows pydantic, and moves when
       # pydantic does.
       - dependency-name: pydantic-core
+      # mpmath is sympy's, and sympy is torch's. sympy 1.14.0 requires
+      # mpmath<1.4; offered 1.4.1 on its own it fails `pip check`, which is how
+      # this was found. It moves when sympy lets it.
+      - dependency-name: mpmath
