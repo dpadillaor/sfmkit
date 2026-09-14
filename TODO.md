@@ -346,6 +346,14 @@ the contract, the API and the architecture.
     1.6 s on Valencia either way).
 ## Housekeeping
 
+- [x] **The frozen example is guarded two ways** (2026-09-14). It is only a
+  reference while it was made by the config it names and while nothing writes
+  into it. `tests/test_saved_example.py` compares the config each stage records
+  in its manifest against the YAML on disk, and names the section that moved;
+  CI fingerprints `data/` and `examples/` around the regression run and fails if
+  a byte changed. The second one holds however the directories are mounted,
+  which compose's `:ro` does not.
+
 - [ ] **What is left of `legacy/`, checked piece by piece (2026-09-12).** Every
   algorithm is rewritten; what has no equivalent is mostly figures:
   - **Done: the old photo's camera is refined after RANSAC**
