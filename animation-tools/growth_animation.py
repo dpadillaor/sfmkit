@@ -87,8 +87,6 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
     fig.text(0.03, 0.925, _headline(report), fontsize=16, color=TEXT, va="bottom")
     fig.text(0.03, 0.885, _readout(report), fontsize=10.5, color=MUTED, va="bottom")
 
-    # The log as it is written: a row per step done, the last one lit. What
-    # comes next is not shown because the reconstruction has not chosen it yet.
     now = at if t <= 0.5 else at + 1
     top, step = 0.800, 0.052
     fig.text(0.58, top + 0.038, "step      image     cams     points   err_px",
@@ -223,8 +221,6 @@ def frame_colmap(state_a, state_b, t: float, limits, gt_centres, order, headline
         for side in ("bottom", "left"):
             ax.spines[side].set_color(LINE)
 
-    # The same gaps as bars, in the order the cameras were registered, so a bar
-    # shortening is bundle adjustment pulling that camera into place.
     ax = axes[2]
     ax.set_facecolor(GROUND)
     span = max(np.linalg.norm(c) for c in gt_centres.values()) or 1.0
@@ -259,8 +255,6 @@ def frame_colmap(state_a, state_b, t: float, limits, gt_centres, order, headline
         plt.Line2D([], [], ls="", marker="o", mfc="none", mec=THEIRS, label="not registered yet"),
         plt.Line2D([], [], color=ERROR, label="position error"),
     ]
-    # Under the two planes it belongs to, not across a figure whose right third
-    # is a bar chart that none of these marks appear in.
     middle = left + (room - gap) / 2 + gap / 2
     legend = fig.legend(handles=handles, loc="center", bbox_to_anchor=(middle, 0.085),
                         ncol=4, frameon=False, fontsize=9)

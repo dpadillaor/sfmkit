@@ -244,7 +244,6 @@ def main() -> int:
     landed = np.float32(cv2.perspectiveTransform(
         corners(*old.shape[1::-1])[None], change.homography)[0] * scale)
     modern_slot, old_slot = slots(args.layout, (size[1], size[0]), old.shape, modern.shape)
-    # Each is drawn at most as wide as the frame, or as its landed quadrilateral.
     modern = to_draw(modern, size[0])
     old = to_draw(old, max(np.ptp(landed[:, 0]), np.ptp(old_slot[:, 0])))
 
