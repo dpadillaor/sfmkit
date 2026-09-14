@@ -4,6 +4,7 @@ import contextlib
 import json
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -210,3 +211,15 @@ def test_a_real_broker_keeps_the_messages_in_order(snapshot):
     # The end set the clock: kept for a week, not for ever.
     assert 0 < publisher.client.ttl(live.stream_key(run)) <= live.FINISHED_TTL
     publisher.client.delete(live.stream_key(run))
+
+
+def test_name_of_is_the_project_and_the_config():
+    """The project is two levels above the run, not one.
+
+    Published under the wrong name, a run writes every file correctly and shows
+    nothing to anyone watching it, which is why this is worth a test of its own.
+    """
+    assert live.name_of(Path("projects/valencia/runs/live")) == "valencia/live"
+    assert live.name_of(Path("/a/b/projects/plaza/runs/cpu")) == "plaza/cpu"
+    assert live.stream_key(live.name_of(Path("projects/valencia/runs/cpu"))) == \
+        "sfmkit:steps:valencia/cpu"

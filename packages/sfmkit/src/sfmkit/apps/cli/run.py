@@ -81,7 +81,7 @@ def cmd_run(args) -> int:
     # something to draw: `match` alone is minutes of silence, and a page with
     # nothing on it looks like a run that died. The heartbeat covers the whole
     # run for the same reason.
-    run_name = f"{out.parent.name}/{out.name}"
+    run_name = live.name_of(out)
     broker = live.publisher(run_name)
 
     skipped = []
