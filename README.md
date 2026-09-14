@@ -113,10 +113,11 @@ a CPU, 2 830 at 0.300° on a GPU. Both configs ship with the repository.
 
 ## Placing the old photograph
 
-A photograph the model was never built from can still be put into it, and that is
-`localize`. It matches the photograph against one that is already registered,
-turns every surviving match into a 3D point paired with the pixel that saw it, and
-solves for the camera that projects one onto the other.
+`localize` puts a photograph into a model that was built without it. The hinge is
+the modern photograph in between: the old one matches its keypoints, and those
+keypoints already have 3D points behind them in the map, so every match that
+survives hands over a point in space and the pixel of the old photograph that saw
+it. Six of those are enough to solve for the camera that took it.
 
 ![What localize does, step by step](website/docs/figures/localize.svg)
 
@@ -125,12 +126,13 @@ borrowing the calibration of the photographs the model was built from.*
 
 This is the part the rest exists for. The undated print was taken by another
 camera, of unknown focal length, perhaps cropped, a century before the others, so
-it cannot simply join the reconstruction: it is matched against one modern
-photograph only, kept out of the model so that a poorly constrained camera cannot
-bend it, and only then **placed against the finished model**. Assuming the phone's
-focal length would put it somewhere else entirely. RANSAC-DLT on eleven unknowns,
-then refined in pixels under a Huber loss, which took its reprojection from 14 px
-to 2 and stopped it landing somewhere different on every seed.
+it cannot simply join the reconstruction: it is matched against **one modern
+photograph only, taken from roughly where it was taken from**, kept out of the
+model so that a poorly constrained camera cannot bend it, and only then placed
+against the finished model. Assuming the phone's focal length would put it
+somewhere else entirely. RANSAC-DLT on eleven unknowns, then refined in pixels
+under a Huber loss, which took its reprojection from 14 px to 2 and stopped it
+landing somewhere different on every seed.
 
 `changes` then puts the two views on top of each other, and it is worth saying
 that it does not use the placement at all. It goes back to the verified matches
