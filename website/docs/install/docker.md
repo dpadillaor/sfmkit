@@ -76,6 +76,15 @@ Each image ships the frozen run it can reproduce: `sfmkit:cpu` carries
 `projects/valencia/runs/reference-gpu-dense` with its
 dense cloud. You can open the viewer on them before running anything yourself.
 
+To re-run one rather than look at it, copy it to the name its config writes —
+`cpu.yaml` writes `cpu`, and the frozen one is called `reference-cpu` precisely
+so that a run cannot land on top of it:
+
+```bash
+cp -r projects/valencia/runs/reference-cpu projects/valencia/runs/cpu
+docker compose run --rm cli verify --config projects/valencia/configs/cpu.yaml
+```
+
 ## A shell inside
 
 ```bash
