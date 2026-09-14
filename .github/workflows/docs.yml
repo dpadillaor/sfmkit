@@ -11,10 +11,10 @@ on:
     paths:
       - "website/**"
       - ".github/workflows/docs.yml"
+  # Every pull request, not only those that touch the site: `main` requires
+  # this check before a merge, and a check that does not run is a check that is
+  # waited for for ever. It costs twenty seconds.
   pull_request:
-    paths:
-      - "website/**"
-      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 concurrency:
