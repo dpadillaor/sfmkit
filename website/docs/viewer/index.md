@@ -9,7 +9,14 @@ It is its own package, with its own dependencies and its own image, and it does
 not import sfmkit. The two share a set of files and a message format, and
 nothing else.
 
-![The viewer on Valencia, with the dense cloud](../figures/viewer.png)
+<video controls muted loop playsinline width="100%" poster="../../figures/viewer.png">
+  <source src="../../figures/viewer_film.mp4" type="video/mp4">
+</video>
+
+*The five things the viewer is for, in order: the model and its cameras,
+COLMAP's dense cloud, a camera opened with its photograph faded over the points,
+both models in one frame and at one scale, and the old photograph placed against
+the finished model.*
 
 Its look is a dense tool panel in the manner of Blender and Rerun: neutral
 greys, square corners, hairlines, figures in monospace. One signal colour,
@@ -46,7 +53,12 @@ With Docker: [Install with Docker](../install/docker.md#the-viewer).
   transparency under your hand.
 - **The dense cloud**, when the run has one.
 
-![A run followed live](../figures/viewer_live.png)
+<video controls muted loop playsinline width="100%" poster="../../figures/viewer_live.png">
+  <source src="../../figures/live_film.mp4" type="video/mp4">
+</video>
+
+*One run, at the speed it happened: `verify` counting RANSAC down the right-hand
+pane, then `reconstruct` putting a camera into the left-hand one at a time.*
 
 ## Live progress
 

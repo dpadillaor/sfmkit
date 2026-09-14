@@ -23,7 +23,7 @@ old photograph is scored apart, because it is placed by a different stage.
 | The old photograph | 1.32° | 0.60° |
 
 The two differ because matching on a GPU and on a CPU does not give quite the
-same matches, and because COLMAP — which is the thing being measured against —
+same matches, and because COLMAP, which is the thing being measured against,
 reconstructs from scratch each time with its own randomness.
 
 <video controls muted loop playsinline width="100%">
@@ -42,7 +42,7 @@ nine unknowns and its own randomness: the same configuration has scored it
 within 0.03°.
 
 A difference of a degree on the old photograph is therefore inside the noise of
-what it is measured against. A difference of ten degrees was not — and there
+what it is measured against. A difference of ten degrees was not, and there
 was one.
 
 ## The 11.5° argument
@@ -56,10 +56,13 @@ of the image and had to tilt the camera up instead.
 
 Two measurements settled which was right:
 
-- **The phones were held level.** Taking the vertical as the direction
-  orthogonal to the fourteen phones' x axes, they look up 10 to 14°, as anyone
-  photographing a facade does. Ours puts the old camera level; COLMAP had it
-  looking up 11.2°, and the 11.5° between them was almost all pitch.
+- **The phones were all pointed slightly up.** The fourteen camera centres are
+  coplanar to within 0.7% of their own spread, which is what a flat square
+  photographed from shoulder height looks like, so the normal of that plane is
+  the vertical. Against it every phone looks up between 11 and 19°, as anyone
+  photographing a facade does. Ours puts the old camera level; COLMAP, with the
+  principal point pinned, had it looking up 11.2°, and the 11.5° between them
+  was almost all pitch.
 - **A level camera with a low principal point is how architecture was
   photographed.** A view camera's rising front shifts the lens up to take in a
   tall facade while keeping the verticals parallel, and a cropped print does
@@ -68,6 +71,14 @@ Two measurements settled which was right:
 Freeing COLMAP's principal point for that one photograph brings the
 disagreement down to about a degree. The error was in the reference, not in the
 answer.
+
+Which is why the `colmap` stage frees it, and why no number on this page is
+scored against a pinned one. A model COLMAP computes here is placed with
+`ba_refine_principal_point` on and every other frame held fixed; a model handed
+to us with the query already pinned, as the course's was, has that one camera
+refined before anything is measured, its pose and its intrinsics moving while
+every other camera, every other pose and every point stay put. The stage prints
+where the principal point went.
 
 ## Refining the camera after RANSAC
 
@@ -85,9 +96,9 @@ correspondences used to land somewhere slightly different on every seed.
 ## The bundle adjustment
 
 The original solver was `scipy.optimize.least_squares`. Writing one for this
-problem — Levenberg–Marquardt, an analytic Jacobian checked against central
+problem (Levenberg–Marquardt, an analytic Jacobian checked against central
 differences to 1e-8, the points eliminated with the Schur complement, the
-6N−7 camera system solved directly, stopping at Ceres's function tolerance:
+6N−7 camera system solved directly, stopping at Ceres's function tolerance):
 
 | | scipy | ours |
 |---|---|---|
@@ -99,7 +110,7 @@ And the reason the accuracy moved as well as the speed: **scipy's solve never
 converged.** On every bundle it used up its evaluation budget and stopped; ours
 converges in 27 to 55 Jacobians, and reaches a lower robust cost (67 983
 against 72 097 on the final bundle). The published 0.981° had been a bundle
-stopped short — and so were the thresholds that had been tuned against it.
+stopped short, and so were the thresholds that had been tuned against it.
 
 scipy's solver is still there, as `sfm.bundle_solver: scipy`, because a claim
 like that ought to be re-runnable.
@@ -126,7 +137,7 @@ cameras; 12.0 px registered 7.7.
 *increased* the cameras registered, from 6.0 to 7.9: points triangulated from
 near-parallel rays have badly conditioned depth, and admitting them corrupts
 the pose of every camera that later leans on them. Raising it further to 4.0°
-dropped back to 7.1 — now genuinely useful points were being refused. There is
+dropped back to 7.1: now genuinely useful points were being refused. There is
 an optimum, and it is at neither end.
 
 Both are the same lesson. In an incremental pipeline the cost of a decision is
@@ -148,7 +159,7 @@ The one combination that beats the current settings does so by 0.015° and 181
 fewer points. At that distance the ranking is noise and the points are worth
 keeping, so nothing changed.
 
-What the second search added: above 6.0 the PnP threshold stops mattering —
+What the second search added: above 6.0 the PnP threshold stops mattering:
 6.0, 9.0 and 12.0 all register every camera and score within 0.002° of each
 other, while 3.0 never manages more than thirteen. And the triangulation angle
 no longer decides anything, because with fourteen photographs every value from
@@ -175,5 +186,5 @@ different depths and register poorly, so much of what is marked there is
 misalignment instead. That is the method, not a fault in it, and the honest
 reading of the picture is that the facade is comparable and the flanks are
 not. Comparing them properly would mean warping through the model rather than
-through a plane — every pixel of the old photograph carried onto today's by
+through a plane, every pixel of the old photograph carried onto today's by
 the depth the reconstruction gives it.

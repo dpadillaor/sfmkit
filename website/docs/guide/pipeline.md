@@ -37,7 +37,13 @@ YAML that drives them, in [Configuration](config.md).
 ## How the reconstruction is built
 
 `reconstruct` is the heart of it, and it works the way incremental SfM has
-worked since Bundler:
+worked since Bundler.
+
+![What reconstruct does, step by step](../figures/reconstruct.svg)
+
+*The loop is drawn as a loop: the seed pair happens once, the five steps beside
+it once per photograph. Every step names the idea it rests on rather than the
+function that carries it.*
 
 1. **An initial pair**, chosen for the pair that has both enough inliers and a
    wide enough angle between the two cameras — a pair that is easy to match is
@@ -65,5 +71,6 @@ a claim like this ought to be re-runnable.
 It was taken by another camera, of unknown focal length, perhaps cropped, a
 century before the rest. So it is matched against the reference only, left out
 of the reconstruction, placed against the finished model by `localize`, and
-scored on its own. [Results](../project/results.md) has what that cost and what
-it bought.
+scored on its own. [The old photograph](../project/old-photo.md) opens `localize`
+the way this page opens `reconstruct`, and [Results](../project/results.md) has
+what that cost and what it bought.

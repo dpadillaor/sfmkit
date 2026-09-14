@@ -1,97 +1,129 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 426" width="920" height="426" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1090 512" width="1090" height="512">
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#9a9a94"/>
+    </marker>
+    <marker id="p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#e8629b"/>
+    </marker>
+    <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#d9911f"/>
+    </marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#3f92e0"/>
     </marker>
     <style>
-      .panel { fill: #f8fafc; stroke: #e2e8f0; }
-      .card { fill: #ffffff; stroke-width: 1.2; }
-      .name { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 14px; font-weight: 600; }
-      .desc { font-size: 12px; fill: #475569; }
-      .title { font-size: 14px; font-weight: 600; fill: #0f172a; }
-      .badge { font-size: 12px; font-weight: 700; fill: #ffffff; text-anchor: middle; }
-      .flow { fill: none; stroke: #64748b; stroke-width: 1.6; marker-end: url(#arrow); }
-      .b1 { stroke: #93c5fd; } .n1 { fill: #1d4ed8; }
-      .b2 { stroke: #f2c46d; } .n2 { fill: #92400e; }
-      .b3 { stroke: #6ee7b7; } .n3 { fill: #047857; }
+      text { font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; }
+      .lane { fill: #f7f7f5; stroke: #e7e7e3; }
+      .card { fill: #ffffff; stroke: #dcdcd7; }
+      .cmd  { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 14.5px; }
+      .what { font-size: 11.5px; fill: #6d6d68; }
+      .tag  { font-size: 10px; fill: #9a9a94; letter-spacing: 1.4px; }
+      .flow { fill: none; stroke: #9a9a94; stroke-width: 1.4; marker-end: url(#a); }
+      .old  { fill: none; stroke: #e8629b; stroke-width: 1.4; marker-end: url(#p); }
+      .mod  { fill: none; stroke: #d9911f; stroke-width: 1.4; marker-end: url(#m); }
+      .col  { fill: none; stroke: #3f92e0; stroke-width: 1.4; marker-end: url(#c); }
+      .hint { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 9px; fill: #8e8e88; }
+      .give { font-size: 12px; fill: #1b1b1a; }
     </style>
   </defs>
 
-  <rect x="0.5" y="0.5" width="919" height="425" rx="16" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="0.5" y="0.5" width="1089" height="511" rx="14" fill="#ffffff" stroke="#e7e7e3"/>
 
-  <!-- Inputs -->
-  <text x="20" y="112" font-size="10.5" letter-spacing="1" fill="#64748b" font-weight="600">YOU PROVIDE</text>
-  <rect x="20" y="122" width="146" height="40" rx="20" fill="#eef2f7" stroke="#94a3b8"/>
-  <text x="93" y="147" font-size="13" fill="#0f172a" text-anchor="middle">Modern photos</text>
-  <rect x="20" y="172" width="146" height="40" rx="20" fill="#f3ead8" stroke="#b08d57"/>
-  <text x="93" y="197" font-size="13" fill="#3b2f1e" text-anchor="middle">Old photo</text>
+  <rect class="lane" x="260" y="24" width="595" height="110" rx="5"/>
+  <text class="tag" x="280" y="124">THE OLD PHOTOGRAPH</text>
+  <rect class="card" x="485" y="44" width="145" height="64" rx="4"/>
+  <rect x="485" y="44" width="3" height="64" fill="#ff6fae"/>
+  <text class="cmd" x="501" y="70" fill="#b23a6c">changes</text>
+  <text class="what" x="501" y="89">A homography, then</text>
+  <text class="what" x="501" y="103">their tones compared</text>
+  <rect class="card" x="690" y="44" width="145" height="64" rx="4"/>
+  <rect x="690" y="44" width="3" height="64" fill="#ff6fae"/>
+  <text class="cmd" x="706" y="70" fill="#b23a6c">localize</text>
+  <text class="what" x="706" y="89">Camera and pose,</text>
+  <text class="what" x="706" y="103">by RANSAC-DLT</text>
 
-  <!-- 1 · Build the 3D model -->
-  <rect class="panel" x="190" y="24" width="710" height="220" rx="12"/>
-  <circle cx="216" cy="222" r="11" fill="#2563eb"/>
-  <text class="badge" x="216" y="226">1</text>
-  <text class="title" x="234" y="227">Build the 3D model</text>
+  <rect class="lane" x="260" y="160" width="595" height="190" rx="5"/>
+  <text class="tag" x="280" y="340">BUILD THE MODEL</text>
+  <rect class="card" x="280" y="176" width="145" height="64" rx="4"/>
+  <rect x="280" y="176" width="3" height="64" fill="#f2a93b"/>
+  <text class="cmd" x="296" y="202" fill="#96620c">match</text>
+  <text class="what" x="296" y="221">SuperPoint points,</text>
+  <text class="what" x="296" y="235">LightGlue matches</text>
+  <rect class="card" x="485" y="176" width="145" height="64" rx="4"/>
+  <rect x="485" y="176" width="3" height="64" fill="#f2a93b"/>
+  <text class="cmd" x="501" y="202" fill="#96620c">verify</text>
+  <text class="what" x="501" y="221">A fundamental matrix</text>
+  <text class="what" x="501" y="235">per pair, by RANSAC</text>
+  <rect class="card" x="690" y="176" width="145" height="64" rx="4"/>
+  <rect x="690" y="176" width="3" height="64" fill="#f2a93b"/>
+  <text class="cmd" x="706" y="202" fill="#96620c">reconstruct</text>
+  <text class="what" x="706" y="221">Incremental SfM &amp;</text>
+  <text class="what" x="706" y="235">a bundle adjustment</text>
+  <rect class="card" x="690" y="260" width="145" height="64" rx="4"/>
+  <rect x="690" y="260" width="3" height="64" fill="#f2a93b"/>
+  <text class="cmd" x="706" y="286" fill="#96620c">calibrate</text>
+  <text class="what" x="706" y="305">The intrinsics K:</text>
+  <text class="what" x="706" y="319">focal length, centre</text>
 
-  <rect class="card b1" x="566" y="42" width="150" height="62" rx="8"/>
-  <text class="name n1" x="580" y="66">calibrate</text>
-  <text class="desc" x="580" y="84">focal length and</text>
-  <text class="desc" x="580" y="98">image centre</text>
+  <rect class="lane" x="260" y="372" width="595" height="110" rx="5"/>
+  <text class="tag" x="280" y="472">COLMAP, ON ITS OWN</text>
+  <rect class="card" x="485" y="392" width="145" height="64" rx="4"/>
+  <rect x="485" y="392" width="3" height="64" fill="#56a8f5"/>
+  <text class="cmd" x="501" y="418" fill="#1a6bb5">colmap</text>
+  <text class="what" x="501" y="437">SIFT points,</text>
+  <text class="what" x="501" y="451">its own matching</text>
+  <rect class="card" x="690" y="392" width="145" height="64" rx="4"/>
+  <rect x="690" y="392" width="3" height="64" fill="#56a8f5"/>
+  <text class="cmd" x="706" y="418" fill="#1a6bb5">dense</text>
+  <rect x="787" y="402" width="40" height="17" rx="8.5" fill="#eaf3fc" stroke="#cadff5"/>
+  <text x="807" y="414" text-anchor="middle" font-size="9.5" fill="#1a6bb5"
+        font-family="'Roboto Mono', ui-monospace, monospace">GPU</text>
+  <text class="what" x="706" y="437">A dense cloud</text>
+  <text class="what" x="706" y="451">of the scene</text>
 
-  <rect class="card b1" x="214" y="126" width="150" height="62" rx="8"/>
-  <text class="name n1" x="228" y="150">match</text>
-  <text class="desc" x="228" y="168">pair up points</text>
-  <text class="desc" x="228" y="182">between photos</text>
+  <rect class="lane" x="24" y="178" width="192" height="150" rx="5"/>
+  <text class="tag" x="36" y="200">YOU PROVIDE</text>
+  <rect class="card" x="36" y="214" width="168" height="44" rx="4"/>
+  <rect x="36" y="214" width="3" height="44" fill="#ff6fae"/>
+  <text class="give" x="52" y="241">One undated photograph</text>
+  <rect class="card" x="36" y="270" width="168" height="44" rx="4"/>
+  <rect x="36" y="270" width="3" height="44" fill="#f2a93b"/>
+  <text class="give" x="52" y="297">Modern photographs</text>
 
-  <rect class="card b1" x="390" y="126" width="150" height="62" rx="8"/>
-  <text class="name n1" x="404" y="150">verify</text>
-  <text class="desc" x="404" y="168">drop the pairs</text>
-  <text class="desc" x="404" y="182">that don't fit</text>
+  <rect class="lane" x="895" y="250" width="170" height="196" rx="5"/>
+  <text class="tag" x="907" y="272">RESULTS</text>
+  <rect class="card" x="907" y="286" width="146" height="64" rx="4"/>
+  <rect x="907" y="286" width="3" height="64" fill="#3b3b38"/>
+  <text class="cmd" x="923" y="312" fill="#1b1b1a">evaluate</text>
+  <text class="what" x="923" y="331">How far apart</text>
+  <text class="what" x="923" y="345">the two models are</text>
+  <rect class="card" x="907" y="368" width="146" height="64" rx="4"/>
+  <rect x="907" y="368" width="3" height="64" fill="#b9b9b3"/>
+  <text class="cmd" x="923" y="394" fill="#6d6d68">figures</text>
+  <text class="what" x="923" y="413">Plots drawn from</text>
+  <text class="what" x="923" y="427">the whole run</text>
 
-  <rect class="card b1" x="566" y="126" width="150" height="62" rx="8"/>
-  <text class="name n1" x="580" y="150">reconstruct</text>
-  <text class="desc" x="580" y="168">3D points and</text>
-  <text class="desc" x="580" y="182">camera positions</text>
+  <path class="flow" d="M216,264 H238 V208 H276"/>
+  <path class="mod" d="M204,292 H686"/>
+  <path class="flow" d="M120,328 V424 H481"/>
 
-  <!-- 2 · Use the old photo -->
-  <rect class="panel" x="190" y="276" width="345" height="128" rx="12"/>
-  <circle cx="216" cy="382" r="11" fill="#b45309"/>
-  <text class="badge" x="216" y="386">2</text>
-  <text class="title" x="234" y="387">Use the old photo</text>
+  <path class="flow" d="M425,208 H481"/>
+  <text class="hint" x="453" y="198" text-anchor="middle">pairs</text>
+  <path class="flow" d="M630,208 H686"/>
+  <text class="hint" x="658" y="198" text-anchor="middle">inliers</text>
+  <path class="flow" d="M762,260 V244"/>
+  <text class="hint" x="770" y="258">K</text>
 
-  <rect class="card b2" x="214" y="296" width="140" height="62" rx="8"/>
-  <text class="name n2" x="228" y="320">changes</text>
-  <text class="desc" x="228" y="338">overlay it on</text>
-  <text class="desc" x="228" y="352">a modern photo</text>
+  <path class="old" d="M557,176 V112"/>
+  <text class="hint" x="547" y="150" text-anchor="end">its verified pair</text>
+  <path class="old" d="M762,176 V112"/>
+  <text class="hint" x="752" y="150" text-anchor="end">points and poses</text>
 
-  <rect class="card b2" x="380" y="296" width="140" height="62" rx="8"/>
-  <text class="name n2" x="394" y="320">localize</text>
-  <text class="desc" x="394" y="338">where it was</text>
-  <text class="desc" x="394" y="352">taken from</text>
+  <path class="col" d="M630,424 H686"/>
+  <text class="hint" x="658" y="414" text-anchor="middle">model</text>
 
-  <!-- 3 · Check the result -->
-  <rect class="panel" x="555" y="276" width="345" height="128" rx="12"/>
-  <circle cx="581" cy="382" r="11" fill="#047857"/>
-  <text class="badge" x="581" y="386">3</text>
-  <text class="title" x="599" y="387">Check the result</text>
-
-  <rect class="card b3" x="579" y="296" width="140" height="62" rx="8"/>
-  <text class="name n3" x="593" y="320">colmap</text>
-  <text class="desc" x="593" y="338">reference model</text>
-  <text class="desc" x="593" y="352">to compare with</text>
-
-  <rect class="card b3" x="745" y="296" width="140" height="62" rx="8"/>
-  <text class="name n3" x="759" y="320">evaluate</text>
-  <text class="desc" x="759" y="338">our cameras</text>
-  <text class="desc" x="759" y="352">vs COLMAP's</text>
-
-  <!-- Flow -->
-  <path class="flow" d="M166,142 L211,150"/>
-  <path class="flow" d="M166,192 L211,166"/>
-  <path class="flow" d="M364,157 H387"/>
-  <path class="flow" d="M540,157 H563"/>
-  <path class="flow" d="M641,104 V123"/>
-  <path class="flow" d="M465,188 V256 H284 V293"/>
-  <path class="flow" d="M641,188 V264 H450 V293"/>
-  <path class="flow" d="M690,188 V256 H815 V293"/>
-  <path class="flow" d="M719,327 H742"/>
+  <path class="old" d="M835,76 H879 V302 H903"/>
+  <path class="mod" d="M835,208 H865 V318 H903"/>
+  <path class="col" d="M557,456 V472 H865 V334 H903"/>
 </svg>

@@ -18,6 +18,7 @@ import math
 import os
 import threading
 from collections.abc import Callable
+from pathlib import Path
 from typing import Protocol
 
 import numpy as np
@@ -35,6 +36,18 @@ MAX_STEP_POINTS = 20_000  # points a step carries; beyond that it carries a samp
 FINISHED_TTL = 7 * 24 * 60 * 60
 ALIVE_SECONDS = 15  # how long the alive key outlives its last renewal
 RENEW_SECONDS = 5
+
+
+def name_of(run_dir) -> str:
+    """How the viewer names this run: ``<project>/<config>``.
+
+    A run lives at ``<projects>/<project>/runs/<config>/``, so the project is
+    two levels up and not one. Getting it wrong publishes to a key nobody is
+    listening on, and a run watched live shows nothing at all while writing its
+    files perfectly, which is the hardest kind of wrong to notice.
+    """
+    run_dir = Path(run_dir)
+    return f"{run_dir.parents[1].name}/{run_dir.name}"
 
 
 def stream_key(run: str) -> str:

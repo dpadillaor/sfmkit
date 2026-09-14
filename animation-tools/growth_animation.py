@@ -20,7 +20,9 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from animate import FORMATS, save  # noqa: E402
+from animate import FORMATS, save, use_project_fonts  # noqa: E402
+
+use_project_fonts()  # IBM Plex Sans and Roboto Mono, as the viewer is set
 
 from sfmkit.apps.cli._common import load_K  # noqa: E402
 from sfmkit.core.metrics import align_to_reference  # noqa: E402
@@ -52,7 +54,7 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
     """
     (x0, x1), (z0, z1) = limits
     fig = plt.figure(figsize=(size[0] / dpi, size[1] / dpi), dpi=dpi, facecolor=GROUND)
-    ax = fig.add_axes([0.03, 0.05, 0.50, 0.80])
+    ax = fig.add_axes([0.03, 0.095, 0.50, 0.73])
     ax.set_anchor("C")
     ax.set_facecolor(GROUND)
 
@@ -79,21 +81,21 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
     ax.set_yticks([])
     for side in ("top", "right", "bottom", "left"):
         ax.spines[side].set_color(LINE)
-    ax.text(0.5, -0.03, "seen from above  ·  the dense line is the cathedral's facade, "
-            "each triangle a photograph", transform=ax.transAxes, fontsize=9.5, color=MUTED,
-            ha="center", va="top")
+    # In the figure's own coordinates and left-aligned: centred under an axes
+    # this narrow, it ran off the left edge.
+    fig.text(0.03, 0.045, "seen from above  ·  the dense line is the cathedral's facade, "
+             "each triangle a photograph", fontsize=9.5, color=MUTED, va="bottom")
 
     report = shot_b.report if t > 0.5 else shot_a.report
-    fig.text(0.03, 0.925, _headline(report), fontsize=16, color=TEXT, va="bottom")
-    fig.text(0.03, 0.885, _readout(report), fontsize=10.5, color=MUTED, va="bottom")
+    fig.text(0.03, 0.952, "sfmkit · incremental reconstruction of the Plaza de la Virgen",
+             fontsize=9, color=FAINT, va="bottom")
+    fig.text(0.03, 0.900, _headline(report), fontsize=16, color=TEXT, va="bottom")
+    fig.text(0.03, 0.862, _readout(report), fontsize=10.5, color=MUTED, va="bottom")
 
     now = at if t <= 0.5 else at + 1
     top, step = 0.800, 0.052
     fig.text(0.58, top + 0.038, "step      image     cams     points   err_px",
              fontsize=9.5, color=FAINT, family="monospace")
-    fig.text(0.58, 0.075, "err_px: the reprojection error, how far a reconstructed\n"
-             "point lands from the spot the photograph saw it",
-             fontsize=9, color=FAINT, va="bottom")
     for i, shot in enumerate(shots[:now + 1]):
         r = shot.report
         name = "refine" if r.image == "global refinement" else r.image
@@ -104,9 +106,6 @@ def frame(shot_a, shot_b, t: float, limits, shots, at: int, size, dpi=100) -> np
         colour = SIGNAL if i == now else MUTED
         fig.text(0.58, top - i * step, row, fontsize=10.5, color=colour, family="monospace",
                  va="top")
-
-    fig.text(0.03, 0.022, "sfmkit · incremental reconstruction of the Plaza de la Virgen",
-             fontsize=9, color=FAINT)
 
     fig.canvas.draw()
     image = np.asarray(fig.canvas.buffer_rgba())[..., :3][..., ::-1].copy()

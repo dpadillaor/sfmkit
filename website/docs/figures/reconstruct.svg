@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 700" width="1020" height="700">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1.5 L9,5 L0,8.5 z" fill="#9a9a94"/>
+    </marker>
+    <style>
+      text { font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; }
+      .lane { fill: #f7f7f5; stroke: #e7e7e3; }
+      .card { fill: #ffffff; stroke: #dcdcd7; }
+      .step { font-size: 12.5px; fill: #1b1b1a; }
+      .code { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 10px; fill: #8e8e88; }
+      .tag  { font-size: 10px; fill: #6d6d68; letter-spacing: 1.4px; }
+      .num  { font-size: 11.5px; fill: #ffffff; text-anchor: middle; }
+      .flow { fill: none; stroke: #9a9a94; stroke-width: 1.3; marker-end: url(#a); }
+      .hint { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 9px; fill: #8e8e88; }
+      .io   { font-size: 11.5px; fill: #1b1b1a; }
+      .path { font-family: "Roboto Mono", ui-monospace, monospace; font-size: 11px; fill: #1b1b1a; }
+      .gloss{ font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; fill: #8e8e88; }
+    </style>
+  </defs>
+  <rect x="0.5" y="0.5" width="1019" height="699" rx="14" fill="#ffffff" stroke="#e7e7e3"/>
+
+  <rect x="87" y="36" width="42" height="19" rx="9.5" fill="#3b3b38"/>
+  <text x="108" y="49.5" text-anchor="middle" font-size="9.5" fill="#ffffff"
+        font-family="'Roboto Mono', ui-monospace, monospace" letter-spacing="0.8">IN</text>
+  <text class="io" x="143" y="50">Matches that survived verification  ·  The intrinsics K</text>
+  <path class="flow" d="M260,64 V152"/>
+
+  <rect class="lane" x="40" y="110" width="440" height="400" rx="5"/>
+  <circle cx="76" cy="132" r="11" fill="#3b3b38"/><text class="num" x="76" y="136">1</text>
+  <text class="tag" x="96" y="136">THE SEED PAIR</text>
+
+  <rect class="card" x="60" y="156" width="400" height="52" rx="4"/><rect x="60" y="156" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="76" y="178">Score every pair, take the best</text>
+  <text class="code" x="76" y="196">Inliers and parallax, together</text>
+
+  <rect class="card" x="60" y="222" width="400" height="52" rx="4"/><rect x="60" y="222" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="76" y="244"><tspan font-weight="600">F</tspan> from the matches, then <tspan font-weight="600">E</tspan> once K is known</text>
+  <text class="code" x="76" y="262">RANSAC, eight points at a time, keeping the best agreement</text>
+
+  <rect class="card" x="60" y="288" width="400" height="52" rx="4"/><rect x="60" y="288" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="76" y="310">Recover the pose: four candidates, one possible</text>
+  <text class="code" x="76" y="328">Cheirality: the other three put the scene behind a camera</text>
+
+  <rect class="card" x="60" y="354" width="400" height="52" rx="4"/><rect x="60" y="354" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="76" y="376">Triangulate what both see, and fix the gauge</text>
+  <text class="code" x="76" y="394">Place, turn and size are free, so the first camera is fixed</text>
+
+  <rect class="card" x="60" y="420" width="400" height="52" rx="4"/><rect x="60" y="420" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="76" y="442">Bundle adjustment</text>
+  <text class="code" x="76" y="460">Both cameras and every point, until reprojection settles</text>
+
+  <path class="flow" d="M260,208 V218"/>
+  <path class="flow" d="M260,274 V284"/>
+  <path class="flow" d="M260,340 V350"/>
+  <path class="flow" d="M260,406 V416"/>
+
+  <rect class="lane" x="520" y="110" width="440" height="400" rx="5"/>
+  <circle cx="556" cy="132" r="11" fill="#3b3b38"/><text class="num" x="556" y="136">2</text>
+  <text class="tag" x="576" y="136">EACH REMAINING PHOTOGRAPH</text>
+
+  <rect class="card" x="540" y="156" width="400" height="52" rx="4"/><rect x="540" y="156" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="556" y="178">Next: whichever already sees the most points</text>
+  <text class="code" x="556" y="196">The more of the map it sees, the better its pose is pinned</text>
+
+  <rect class="card" x="540" y="222" width="400" height="52" rx="4"/><rect x="540" y="222" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="556" y="244">Resection by PnP, inside RANSAC</text>
+  <text class="code" x="556" y="262">The pose that reprojects map points onto its own keypoints</text>
+
+  <rect class="card" x="540" y="288" width="400" height="52" rx="4"/><rect x="540" y="288" width="3" height="52" fill="#d94f3d"/>
+  <text class="step" x="556" y="310">Too few inliers? leave the photograph out</text>
+  <text class="code" x="556" y="328">Every camera registered after it would inherit the error</text>
+
+  <rect class="card" x="540" y="354" width="400" height="52" rx="4"/><rect x="540" y="354" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="556" y="376">Triangulate the points it brings that were not there</text>
+  <text class="code" x="556" y="394">Rays too near parallel give a depth nothing can trust</text>
+
+  <rect class="card" x="540" y="420" width="400" height="52" rx="4"/><rect x="540" y="420" width="3" height="52" fill="#f2a93b"/>
+  <text class="step" x="556" y="442">Bundle adjustment again, then cut what still misses</text>
+  <text class="code" x="556" y="460">Every camera so far moves; what still reprojects far is cut</text>
+
+  <path class="flow" d="M740,208 V218"/>
+  <path class="flow" d="M740,274 V284"/>
+  <path class="flow" d="M740,340 V350"/>
+  <path class="flow" d="M740,406 V416"/>
+
+  <path class="flow" d="M460,446 H500 V96 H900 V152"/>
+  <path class="flow" d="M940,446 H984 V182 H944"/>
+  <text class="hint" x="1000" y="300" text-anchor="middle" transform="rotate(-90 1000 300)">until no more can be registered</text>
+
+  <path class="flow" d="M900,472 V520 H500 V546"/>
+
+  <rect class="card" x="40" y="550" width="920" height="56" rx="4"/><rect x="40" y="550" width="3" height="56" fill="#8c8c8c"/>
+  <circle cx="74" cy="578" r="11" fill="#3b3b38"/><text class="num" x="74" y="582">3</text>
+  <text class="step" x="96" y="572">Refine every camera and every point at once, one last time</text>
+  <text class="code" x="96" y="590">Every one of them was optimised against a map that has grown since</text>
+
+  <path class="flow" d="M500,606 V644"/>
+
+  <rect x="343" y="648" width="42" height="19" rx="9.5" fill="#3b3b38"/>
+  <text x="364" y="661.5" text-anchor="middle" font-size="9.5" fill="#ffffff"
+        font-family="'Roboto Mono', ui-monospace, monospace" letter-spacing="0.8">OUT</text>
+  <text class="io" x="399" y="662">The model: every pose, every point, every track</text>
+</svg>

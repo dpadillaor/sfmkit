@@ -8,6 +8,13 @@ Nothing is installed on the host beyond Docker itself — no conda, no COLMAP, n
 CUDA toolkit (the GPU image still needs the host's NVIDIA driver and the
 container toolkit).
 
+![The three containers, what they share and what they publish](../figures/containers.svg)
+
+*What each service is, what crosses the boundary and what does not. `./projects`
+is one directory on your disk mounted into two containers, writable for the
+pipeline and read-only for the viewer; the named volumes belong to Docker. Only
+the viewer publishes a port, and only on the loopback address.*
+
 !!! info "Published images"
     Nothing is published yet: the images go out when a release is published,
     and there has been no release. They will land in two registries at once —

@@ -11,7 +11,7 @@ hide:
 <h1 class="sfm-wordmark">sfmkit</h1>
 <p class="sfm-tagline">structure from motion · tested library · live 3d viewer</p>
 
-<p class="sfm-lead">A small, tested Structure-from-Motion library — two-view
+<p class="sfm-lead">A small, tested Structure-from-Motion library: two-view
 geometry, feature tracks, incremental reconstruction and bundle adjustment. It
 rebuilds a place in 3D from modern photographs, places an old photograph in
 that model, and checks itself against <a href="https://colmap.github.io/">COLMAP</a>.</p>
@@ -35,10 +35,12 @@ that model, and checks itself against <a href="https://colmap.github.io/">COLMAP
 </dl>
 </section>
 
-![The same square, a century apart](figures/then_and_now.jpg)
+![The photographs the pipeline is given](figures/then_and_now.jpg)
 
-*Plaza de la Virgen, Valencia. Left: an undated historical photograph. Right: the
-same square today, from a phone.*
+*What it is given: fourteen photographs of the Plaza de la Virgen taken one
+December morning, and one undated print of the same square. The old one is
+matched against `Img01` alone and kept out of the model; the thirteen underneath
+are what build it.*
 
 **Where was the old photograph taken from, and what has changed since?**
 
@@ -61,21 +63,21 @@ sfmkit answers that from a handful of modern photographs of the same place:
 
 <div class="grid cards" markdown>
 
-- **[Tutorial](tutorial.md)** — from a clone to a reconstruction you can turn
+- **[Tutorial](tutorial.md)**: from a clone to a reconstruction you can turn
   around, then the same on photographs of your own.
-- **[Install](install/conda.md)** — three conda environments, or
+- **[Install](install/conda.md)**: three conda environments, or
   [Docker](install/docker.md) and nothing on the host.
-- **[The pipeline](guide/pipeline.md)** — the ten stages, and how the
+- **[The pipeline](guide/pipeline.md)**: the ten stages, and how the
   reconstruction is actually built.
-- **[CLI reference](guide/cli.md)** — every command and every option, with
+- **[CLI reference](guide/cli.md)**: every command and every option, with
   [the configuration](guide/config.md) that drives them.
-- **[The viewer](viewer/index.md)** — both models in 3D, live while a run is
+- **[The viewer](viewer/index.md)**: both models in 3D, live while a run is
   built, with its [HTTP API](viewer/api.md) and
   [message format](viewer/live.md).
-- **[Results](project/results.md)** — the numbers, the 11.5° argument, and what
+- **[Results](project/results.md)**: the numbers, the 11.5° argument, and what
   a bundle adjustment of our own bought.
-- **[Development](project/development.md)** — the layering, the checks, and CI.
-- **[Questions](faq.md)** — COLMAP, GPUs, the weights, and why the old
+- **[Development](project/development.md)**: the layering, the checks, and CI.
+- **[Questions](faq.md)**: COLMAP, GPUs, the weights, and why the old
   photograph is handled apart.
 
 </div>
@@ -87,7 +89,7 @@ sfmkit run --config projects/valencia/configs/cpu.yaml   # every stage, in order
 sfmview --projects projects                             # look at what it made
 ```
 
-The viewer shows a run's two models side by side, each in its own colour —
+The viewer shows a run's two models side by side, each in its own colour,
 <span class="sfm-dot amber"></span>sfmkit in amber,
-<span class="sfm-dot blue"></span>COLMAP in blue — and the old photograph
+<span class="sfm-dot blue"></span>COLMAP in blue, and the old photograph
 located against them.

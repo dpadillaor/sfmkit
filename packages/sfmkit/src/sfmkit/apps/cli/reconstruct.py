@@ -50,8 +50,7 @@ def cmd_reconstruct(args) -> int:
 
     # Each step can take tens of seconds, so it is shown as soon as it is done,
     # here and, when a broker is configured, to whoever watches the run.
-    # Named as the viewer names runs: the run directory's parent and its own name.
-    run_name = f"{run.parent.name}/{run.name}"
+    run_name = live.name_of(run)
     # Kept alive until the run ends, however it ends: a watcher tells a run at
     # work from one that died without a word.
     with live.heartbeat(run_name):

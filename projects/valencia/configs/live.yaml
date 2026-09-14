@@ -1,0 +1,35 @@
+# The same run as cpu.yaml, under another name, so it can be watched being made.
+# A config writes to runs/<its own stem>, so this one leaves runs/live/ and the
+# frozen references and the saved cpu run are untouched. Everything below is
+# cpu.yaml word for word: what is being demonstrated is the watching, not a
+# different experiment. Paths are relative to the project's data/.
+seed: 0
+
+calibrate:
+  exif: true                # 26 mm equivalent on a 4:3 sensor: f = 3029 px
+  sensor_aspect: [4, 3]     # the phone's whole sensor; the photos are a 16:9 cut
+
+sfm:
+  images: [Img01, Img02, Img03, Img04, Img05, Img06, Img07, Img08, Img09, Img10, Img11,
+           Img12, Img13, Img14]
+  reference: Img01
+  exhaustive: true          # every pair, not just those touching the reference
+  max_keypoints: 2048
+  device: cpu               # auto | cpu | cuda: CPU and GPU give slightly different matches
+  ransac_threshold: 4.0
+  ransac_iterations: 1000
+  min_inliers: 20
+  min_track_length: 2
+  min_triangulation_angle_deg: 2.0
+  max_reprojection_error: 12.0
+  pnp_threshold: 6.0
+
+localize:
+  query: Img_Old
+
+colmap:
+  matches: colmap   # colmap: COLMAP's own features | sfmkit: this run's verify/
+  camera: self      # self: COLMAP calibrates the phone | fixed: calibrate's K
+
+dense:
+  enabled: false    # COLMAP's dense point cloud of the scene; needs CUDA
