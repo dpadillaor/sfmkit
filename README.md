@@ -159,24 +159,32 @@ number in the table above reads 0.60° and not eleven. The two measurements that
 settled which way round it was are in
 [Results](https://dpadillaor.github.io/sfmkit/project/results/#the-115-argument).
 
-## The viewer, and the three services behind it
+## `sfmview`, a 3D viewer for comparing the two models
+
+The library ships a viewer of its own, so a run can be looked at instead of read
+out of a JSON file. It loads both reconstructions at once, ours and COLMAP's,
+already in one frame and at one scale: the same similarity `evaluate` uses to
+score them, so what you are looking at is what was measured. Each sparse cloud,
+and where each program put every camera, the old photograph's camera among them.
 
 ![The viewer on Valencia, with the dense cloud](website/docs/figures/viewer.png)
 
-`sfmview` draws a run in 3D: our reconstruction in amber, COLMAP's in blue, both
-in one frame so that what you see is what was scored, the old photograph among
-them, and COLMAP's dense cloud. Click a camera to look through it.
+Click a camera's lines and the view goes inside it, with the photograph that
+camera took hung in front of you on an opacity slider. Fading it over the model
+is the quickest check there is: either the edges of the building land on the
+points or they do not, and no number has to be believed. With an NVIDIA GPU,
+`dense` puts COLMAP's dense cloud behind the two sparse ones.
 
 ![COLMAP's dense cloud of the square](website/docs/figures/dense.jpg)
 
-*The dense cloud the viewer loads behind the two sparse models: 226 792 points,
-from COLMAP's multi-view stereo, which is what `dense` is for and the one stage
-that needs a GPU.*
+*226 792 points from COLMAP's multi-view stereo, which is what `dense` is for and
+the one stage that needs a GPU.*
 
-It also draws a run **as it is being built**, and that is what the three services
-in `compose.yaml` are for: the pipeline publishes each stage, and each camera it
-registers, to a Redis stream; the viewer relays that to the page over a
-WebSocket, and a timeline rewinds it.
+Run the project with Docker and the viewer will also draw a model **while it is
+still being built**, which is what the three services in `compose.yaml` are for:
+the pipeline publishes each stage, and each camera it registers, to a Redis
+stream; the viewer relays that to the page over a WebSocket, and a timeline
+rewinds it.
 
 ![The three containers, what they share and what they publish](website/docs/figures/containers.svg)
 
