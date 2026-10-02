@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 import {
-  cameraCentre, frustumDepth, frustumSegments, imageCorners, referenceFrame, robustSphere,
+  cameraCentre, framing, frustumDepth, frustumSegments, imageCorners, referenceFrame, robustSphere,
   segmentDistance, viewDepth,
 } from './geometry.js';
 import { colours, PALETTE, SIGNAL } from './palette.js';
@@ -32,6 +32,10 @@ const GROUPS = ['sfmkit', 'COLMAP'];
 
 const matrix4 = (rows) => new THREE.Matrix4().set(...rows.flat());
 
+// The overview: how far above the ground it looks down, and the room it leaves
+// clear at the view's edges, in pixels, for the overlays drawn over it.
+const OVERVIEW = { elevation: 20, margin: { left: 24, right: 24, bottom: 96, top: 48 } };
+
 export class SceneView {
   #renderer;
   #scene = new THREE.Scene();
@@ -56,10 +60,15 @@ export class SceneView {
   #dense = { url: null, geometry: null };
   #bounds = { centre: new THREE.Vector3(), radius: 1 };
   #onLeave;
+  #drawing = false;
+
+  #overview;
 
   // ``onLeave()`` is called when the user moves the view away from a camera.
-  constructor(canvas, { onLeave = () => {} } = {}) {
+  // ``overview``, fit() frames the whole scene rather than the reference's view.
+  constructor(canvas, { onLeave = () => {}, overview = false } = {}) {
     this.#onLeave = onLeave;
+    this.#overview = overview;
     this.#renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.#renderer.setPixelRatio(window.devicePixelRatio);
     this.#scene.background = new THREE.Color('#161616');
@@ -78,10 +87,25 @@ export class SceneView {
 
     new ResizeObserver(() => this.#resize()).observe(canvas.parentElement);
     this.#resize();
-    this.#renderer.setAnimationLoop(() => {
+    // The first touch of the view ends a turn the page started on its own.
+    this.#controls.addEventListener('start', () => { this.#controls.autoRotate = false; });
+    this.draw(true);
+  }
+
+  // Draw every frame, or stop: a page nobody can see should not spend a GPU.
+  draw(on) {
+    if (on === this.#drawing) return;
+    this.#drawing = on;
+    this.#renderer.setAnimationLoop(on ? () => {
       if (!this.#photos.active) this.#controls.update();
       this.#renderer.render(this.#scene, this.#camera);
-    });
+    } : null);
+  }
+
+  // Turn slowly about the scene until the view is touched.
+  turn(on) {
+    this.#controls.autoRotate = on;
+    this.#controls.autoRotateSpeed = 0.5; // a revolution every two minutes
   }
 
   // Every camera that can be looked through: { key, name, source, query }.
@@ -272,9 +296,11 @@ export class SceneView {
     this.#updateReach();
   }
 
-  // Frame the bulk of the points, from behind the reference camera if known.
+  // Frame the bulk of the points, from behind the reference camera if known;
+  // or, given ``overview``, the whole scene.
   fit() {
-    this.#fit(this.#reference);
+    if (this.#overview) this.#fitAll();
+    else this.#fit(this.#reference);
   }
 
   // Load and draw the dense cloud; resolves to its point count, or null if
@@ -396,18 +422,7 @@ export class SceneView {
   // Look at the bulk of the sparse points from just behind the reference
   // camera, which sits at the origin of the shared frame: the view the photo had.
   #fit(reference) {
-    this.#world.updateMatrixWorld(true);
-    const flat = [];
-    const v = new THREE.Vector3();
-    for (const { object } of this.#layers.values()) {
-      if (!(object instanceof THREE.Points)) continue;
-      const p = object.geometry.getAttribute('position');
-      for (let i = 0; i < p.count; i += 1) {
-        v.fromBufferAttribute(p, i).applyMatrix4(object.matrixWorld);
-        flat.push(v.x, v.y, v.z);
-      }
-    }
-    const { centre, radius } = robustSphere(flat);
+    const { centre, radius } = robustSphere(this.#sparse());
     const target = new THREE.Vector3(...centre);
     this.#bounds = { centre: target.clone(), radius };
     const eye = reference ? new THREE.Vector3(0, 0, 0)
@@ -419,6 +434,63 @@ export class SceneView {
     this.#camera.updateProjectionMatrix();
     this.#controls.target.copy(target);
     this.#controls.update();
+  }
+
+  // The whole scene at once, every camera and the bulk of the points, from the
+  // side the photos were taken from and a little above: a first look at it.
+  #fitAll() {
+    const flat = this.#sparse();
+    const { centre, radius } = robustSphere(flat);
+    const c = new THREE.Vector3(...centre);
+    const v = new THREE.Vector3();
+    const bulk = [];
+    for (let i = 0; i < flat.length; i += 3) {
+      v.fromArray(flat, i);
+      if (v.distanceTo(c) <= 1.5 * radius) bulk.push(v.x, v.y, v.z);
+    }
+    const cameras = [];
+    const towards = new THREE.Vector3();
+    for (const shot of this.#shots.values()) {
+      v.fromArray(cameraCentre(shot.camera)).applyMatrix4(shot.frame.matrixWorld);
+      cameras.push(v.x, v.y, v.z);
+      towards.add(v.clone().sub(c));
+    }
+    towards.y = 0;
+    if (towards.lengthSq() === 0) towards.set(0, 0, 1);
+    const tilt = THREE.MathUtils.degToRad(OVERVIEW.elevation);
+    const back = towards.normalize().multiplyScalar(Math.cos(tilt)).setY(Math.sin(tilt));
+
+    const { clientWidth: w, clientHeight: h } = this.#renderer.domElement;
+    const m = OVERVIEW.margin;
+    const inset = [2 * m.left / w, 2 * m.right / w, 2 * m.bottom / h, 2 * m.top / h]
+      .map((x) => Math.min(x, 0.4)); // a small view keeps most of itself
+    const tanV = Math.tan(THREE.MathUtils.degToRad(this.#camera.fov / 2));
+    const { target, eye } = framing([...bulk, ...cameras], back.toArray(), [0, 1, 0], tanV,
+      this.#camera.aspect, inset);
+    this.#bounds = { centre: new THREE.Vector3(...target), radius };
+    this.#camera.position.set(...eye);
+    this.#camera.up.set(0, 1, 0);
+    this.#camera.near = radius / 1000;
+    this.#camera.far = radius * 100;
+    this.#camera.updateProjectionMatrix();
+    this.#controls.target.set(...target);
+    this.#controls.update();
+  }
+
+  // The sparse points drawn, flat, in the world's frame.
+  #sparse() {
+    this.#world.updateMatrixWorld(true);
+    const flat = [];
+    const v = new THREE.Vector3();
+    for (const { object } of this.#layers.values()) {
+      if (!(object instanceof THREE.Points)) continue;
+      const p = object.geometry.getAttribute('position');
+      for (let i = 0; i < p.count; i += 1) {
+        v.fromBufferAttribute(p, i).applyMatrix4(object.matrixWorld);
+        flat.push(v.x, v.y, v.z);
+      }
+    }
+    return flat;
   }
 
   #resize() {

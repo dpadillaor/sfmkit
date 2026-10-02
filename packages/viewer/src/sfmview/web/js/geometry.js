@@ -165,3 +165,53 @@ export function robustSphere(flat) {
   d.sort((a, b) => a - b);
   return { centre, radius: d[Math.floor(0.8 * (n - 1))] || 1 };
 }
+
+// Where to stand to see every one of some points, flat, looking along
+// -``back`` with ``up`` up: the nearest such distance, and the point to look
+// at. Any frame will do, as long as all three are in it. ``tanV`` is the tangent
+// of half the vertical field of view; ``inset`` keeps a margin clear inside the
+// view, [left, right, bottom, top], as fractions of its half-width and height.
+export function framing(flat, back, up, tanV, aspect, inset = [0, 0, 0, 0]) {
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]];
+  const unit = (a) => a.map((x) => x / (Math.hypot(...a) || 1));
+  const forward = unit(back.map((x) => -x));
+  const right = unit(cross(forward, up));
+  const top = cross(right, forward);
+  const n = flat.length / 3;
+  const p = (k) => [flat[3 * k], flat[3 * k + 1], flat[3 * k + 2]];
+  const xs = Array.from({ length: n }, (_, k) => dot(p(k), right));
+  const ys = Array.from({ length: n }, (_, k) => dot(p(k), top));
+  const zs = Array.from({ length: n }, (_, k) => dot(p(k), forward));
+  const depth = median(zs);
+  // From ``d`` away, the range of centres that keeps every point in view along
+  // one axis, or null if none does.
+  const centres = (d, along, tan, lo, hi) => {
+    let [least, most] = [-Infinity, Infinity];
+    for (let k = 0; k < n; k += 1) {
+      const ahead = (d + zs[k] - depth) * tan;
+      if (ahead <= 0) return null;
+      least = Math.max(least, along[k] - hi * ahead);
+      most = Math.min(most, along[k] - lo * ahead);
+    }
+    return least <= most ? (least + most) / 2 : null;
+  };
+  const tanH = tanV * aspect;
+  const fits = (d) => {
+    const x = centres(d, xs, tanH, -1 + inset[0], 1 - inset[1]);
+    const y = x === null ? null : centres(d, ys, tanV, -1 + inset[2], 1 - inset[3]);
+    return y === null ? null : [x, y];
+  };
+  let far = 1;
+  for (let i = 0; i < 60 && !fits(far); i += 1) far *= 2;
+  let near = 0;
+  for (let i = 0; i < 40; i += 1) {
+    const mid = (near + far) / 2;
+    if (fits(mid)) far = mid;
+    else near = mid;
+  }
+  const [x, y] = fits(far) ?? [0, 0];
+  const target = [0, 1, 2].map((i) => x * right[i] + y * top[i] + depth * forward[i]);
+  return { target, distance: far, eye: target.map((t, i) => t - far * forward[i]) };
+}

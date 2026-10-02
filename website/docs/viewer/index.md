@@ -23,6 +23,10 @@ greys, square corners, hairlines, figures in monospace. One signal colour,
 international orange, marks what is selected, current or live; the data keep
 their own — amber for sfmkit, blue for COLMAP.
 
+**[Try it in the browser](https://dpadillaor.github.io/sfmkit/demo/)**: the
+Valencia run as the viewer shows it, both models, the dense cloud, the photos to
+look through and the timeline to rewind, with nothing to install.
+
 ## Running it
 
 ```bash
@@ -38,6 +42,36 @@ sfmview --projects projects --data data      # http://127.0.0.1:8000
 | `--broker` | — | Redis URL for live progress | `SFMVIEW_BROKER` |
 
 With Docker: [Install with Docker](../install/docker.md#the-viewer).
+
+## A static copy
+
+The demo above is the same page with no server behind it. `sfmview-export`
+saves what the API would answer for some runs as files beside the page, and the
+page reads those instead: the run list, each scene, the dense cloud, the
+photographs (smaller, and with nothing of their EXIF kept but the orientation)
+and the steps of a run as its live stream sent them, so the timeline still
+rewinds.
+
+```bash
+python animation-tools/record_steps.py --config projects/valencia/configs/gpu-dense.yaml \
+    --run projects/valencia/runs/reference-gpu-dense     # sfmkit's environment
+sfmview-export --projects projects --out site/demo \
+    --run valencia/reference-gpu-dense --steps website/demo/steps
+```
+
+Every path in it is relative, so it can be served from any folder of any static
+host, and it asks nothing of any other: three.js and the fonts are in the page,
+and there are no cookies and no analytics. The documentation's workflow builds
+it from the frozen runs into `demo/` on every deploy. Add `?embed=1` to drop the
+page's own header inside an iframe; the panel folds away, and starts folded in a
+narrow frame, or as `?panel=0` and `?panel=1` say. A copy opens on the whole
+scene and turns slowly until it is touched, unless the system asks for reduced
+motion, and it stops drawing while it cannot be seen.
+
+```html
+<iframe src="https://dpadillaor.github.io/sfmkit/demo/?embed=1"
+        width="100%" height="560" style="border:0" allowfullscreen></iframe>
+```
 
 ## What it shows
 

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>sfmview</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="vendor/fonts/fonts.css">
   <link rel="stylesheet" href="style.css">
   <!-- three.js and the fonts are kept in vendor/, so the page needs no network. -->
@@ -13,6 +14,18 @@
         "three": "./vendor/three/three.module.min.js",
         "three/addons/": "./vendor/three/addons/"
       }
+    }
+  </script>
+  <script>
+    // Before the first paint: ?embed=1 drops the page's own header, for an
+    // iframe, and the panel starts folded away in a narrow window, or as
+    // ?panel=0 or ?panel=1 says.
+    {
+      const root = document.documentElement;
+      const asked = new URLSearchParams(location.search);
+      if (asked.get('embed') === '1') root.classList.add('embed');
+      const panel = asked.get('panel');
+      if (panel === '0' || (panel !== '1' && innerWidth < 720)) root.classList.add('folded');
     }
   </script>
 </head>
@@ -41,6 +54,8 @@
   </aside>
   <main id="stage">
     <canvas id="view"></canvas>
+    <button id="panel-toggle" type="button" class="key panel-toggle"
+      title="show or hide the panel" aria-controls="sidebar">panel</button>
     <div id="hover-label" class="hover-label" hidden></div>
     <div id="photo-bar" class="overlay photo-bar" hidden>
       <div class="line">

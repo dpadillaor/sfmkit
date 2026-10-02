@@ -2,14 +2,16 @@
 // and its live progress, if the server has a broker, into the timeline.
 // The URL's hash names the run (#valencia/cpu), so a view can be linked.
 
-import { getScene, health, listRuns, liveUrl } from './api.js';
-import { LiveFeed, writtenAt } from './live.js';
+import { getScene, health, isStatic, listRuns, liveUrl, photoUrl } from './api.js';
+import { LiveFeed, RecordedFeed, writtenAt } from './live.js';
 import { colours } from './palette.js';
 import { SceneView } from './scene.js';
 import * as ui from './ui.js';
 
 const canvas = document.getElementById('view');
-const view = new SceneView(canvas, { onLeave: () => showPhotoBar() });
+// A static copy is shown to people meeting the scene for the first time: it
+// opens on all of it, not on the reference camera's view.
+const view = new SceneView(canvas, { onLeave: () => showPhotoBar(), overview: isStatic });
 let runs = [];
 let liveOn = false;
 
@@ -56,7 +58,8 @@ function open(id) {
 // after the run was opened.
 function startFeed(token) {
   session.feed?.stop();
-  session.feed = new LiveFeed(liveUrl(session.id), (event) => onLive(token, event),
+  const Feed = isStatic ? RecordedFeed : LiveFeed;
+  session.feed = new Feed(liveUrl(session.id), (event) => onLive(token, event),
     (now) => { if (token === session.token) session.connectedAt = now; }).start();
 }
 
@@ -187,7 +190,7 @@ async function lookThrough(key) {
   if (!shot) return;
   const token = session.token;
   const base = session.scene?.images;
-  const loaded = view.lookThrough(key, base && `${base}/${encodeURIComponent(shot.name)}`);
+  const loaded = view.lookThrough(key, base && photoUrl(base, shot.name));
   showCameras();
   showPhotoBar();
   if (!(await loaded)) say(token, `No photo of ${shot.name} to show`);
@@ -298,7 +301,8 @@ function initial() {
 
 async function start() {
   window.addEventListener('hashchange', () => open(decodeURIComponent(location.hash.slice(1))));
-  setInterval(refresh, 5000); // new runs, and new results, without a reload
+  // New runs, and new results, without a reload; a static copy has none to find.
+  if (!isStatic) setInterval(refresh, 5000);
   try {
     [runs, { live: liveOn }] = await Promise.all([listRuns(), health()]);
   } catch (error) {
@@ -312,6 +316,27 @@ async function start() {
   ui.renderRuns(runs, (id) => { location.hash = id; });
   go(initial());
 }
+
+// Draw only while the view can be seen: not in a hidden tab, nor in an iframe
+// scrolled out of its page.
+let onScreen = true;
+const drawIfSeen = () => view.draw(onScreen && !document.hidden);
+document.addEventListener('visibilitychange', drawIfSeen);
+new IntersectionObserver(([entry]) => {
+  onScreen = entry.isIntersecting;
+  drawIfSeen();
+}).observe(canvas);
+
+// A static copy is a demo: it turns slowly until touched, unless the system
+// asks for less motion.
+const still = matchMedia('(prefers-reduced-motion: reduce)');
+view.turn(isStatic && !still.matches);
+still.addEventListener('change', () => { if (still.matches) view.turn(false); });
+
+// The panel folds away, and starts folded where there is no room for it.
+document.getElementById('panel-toggle').addEventListener('click', () => {
+  document.documentElement.classList.toggle('folded');
+});
 
 // Open a run through the hash, so the address names it.
 function go(id) {

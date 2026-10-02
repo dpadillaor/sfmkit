@@ -28,9 +28,15 @@ html, body { margin: 0; height: 100%; background: var(--ground); }
 
 body {
   display: grid;
-  grid-template-columns: 288px 1fr;
-  grid-template-rows: 100vh;
+  grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
 }
+/* the panel folded away: the view takes the page */
+.folded body { grid-template-columns: 0 minmax(0, 1fr); }
+.folded #sidebar { visibility: hidden; }
+/* in an iframe the page's own header goes; the frame around it is the host's */
+.embed .brand { display: none; }
 
 ul, dl { list-style: none; margin: 0; padding: 0; }
 button { font: inherit; color: inherit; }
@@ -186,6 +192,9 @@ input[type="checkbox"]:checked::before { content: ""; width: 6px; height: 6px; b
 }
 .cameras .keys button.on { background: var(--c); border-color: var(--c); color: var(--ground); }
 
+.panel-toggle { position: absolute; top: 12px; right: 12px; z-index: 2; }
+.folded .panel-toggle { color: var(--muted); }
+
 .info {
   display: grid;
   grid-template-columns: 96px 1fr;
@@ -198,7 +207,7 @@ input[type="checkbox"]:checked::before { content: ""; width: 6px; height: 6px; b
 
 /* ---- the viewport ---------------------------------------------------- */
 
-#stage { position: relative; min-width: 0; overflow: hidden; }
+#stage { grid-column: 2; position: relative; min-width: 0; overflow: hidden; }
 /* The canvas fills the stage without sizing it, or its own size would feed back. */
 #view { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 
@@ -312,3 +321,24 @@ input[type="range"]::-moz-range-thumb { width: 8px; height: 14px; background: va
 .status.error { color: var(--warn); }
 .hints { margin-left: auto; white-space: nowrap; }
 .hints kbd { margin: 0 3px 0 8px; padding: 0 5px; border-bottom-width: 1px; font-size: 10.5px; color: var(--muted); }
+
+/* ---- narrow: a phone, or a small iframe ------------------------------- */
+
+@media (max-width: 719px) {
+  /* the panel opens over the view, rather than squeezing it */
+  body { grid-template-columns: 0 minmax(0, 1fr); }
+  #sidebar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 3;
+    width: min(288px, 82vw);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+  }
+  .hints, .step-label { display: none; }
+  .photo-bar { right: 64px; }
+  .photo-bar .line { flex-wrap: wrap; gap: 6px 12px; }
+  input[type="range"] { width: 80px; }
+  .timeline { bottom: 32px; gap: 8px; }
+  .steps { gap: 2px; }
+  .steps button { width: 14px; height: 16px; }
+}
