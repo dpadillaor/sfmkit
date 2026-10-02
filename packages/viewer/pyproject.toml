@@ -13,6 +13,7 @@ requires-python = ">=3.11"
 [project.scripts]
 sfmview = "sfmview.main:main"
 sfmview-health = "sfmview.main:health"
+sfmview-export = "sfmview.export:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -43,7 +44,7 @@ include_external_packages = true
 name = "Ports and adapters"
 type = "layers"
 layers = [
-    "sfmview.main",
+    "sfmview.main | sfmview.export",
     "sfmview.api | sfmview.adapters",
     "sfmview.ports",
     "sfmview.domain",

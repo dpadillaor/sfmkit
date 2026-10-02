@@ -181,6 +181,9 @@ points or they do not, and no number has to be believed. With an NVIDIA GPU,
 `dense` adds the 226 792 points of COLMAP's multi-view stereo behind the two
 sparse clouds.
 
+[Try it in the browser](https://dpadillaor.github.io/sfmkit/demo/): the same
+run, as a static page with nothing to install.
+
 It also draws a model **while it is still being built**, which is the other half
 of what the viewer is for:
 

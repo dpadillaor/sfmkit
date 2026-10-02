@@ -14,6 +14,7 @@ nobody knows how to remake.
 | `changes_animation.py` | The old photograph landing on today's and what changed: `website/docs/figures/old_photo.{webp,mp4}` |
 | `then_and_now.py` | The pair side by side, `website/docs/figures/then_and_now.jpg` |
 | `growth_animation.py` | Two films from one run: the model growing camera by camera (`--view map`), and the comparison against COLMAP built up step by step (`--view colmap`) |
+| `record_steps.py` | Not a figure: a finished run's live stream, the messages `reconstruct` publishes, written to `website/demo/steps/<project>/<config>.json` for the viewer's static demo to replay |
 | `animate.py` | Not run on its own: writing a list of frames out as WebP, GIF or MP4, shared by the two above |
 
 `changes_animation.py` sets its text in the viewer's own IBM Plex Sans, which
