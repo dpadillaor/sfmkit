@@ -12,7 +12,8 @@ from sfmkit.core.types import Pose
 __all__ = [
     "rodrigues", "log_rotation", "skew",
     "normalize_points", "eight_point", "fundamental_to_essential",
-    "essential_to_poses", "recover_pose", "triangulate_two_view",
+    "essential_to_poses", "in_front_of_both", "recover_pose", "epipoles",
+    "triangulate_two_view",
     "triangulate_multi_view", "project", "reprojection_errors",
     "sampson_distance", "symmetric_epipolar_distance", "decompose_projection",
 ]
@@ -124,13 +125,26 @@ def essential_to_poses(E: np.ndarray) -> list[Pose]:
     return [Pose(R1, t), Pose(R1, -t), Pose(R2, t), Pose(R2, -t)]
 
 
-def _cheirality_count(pose: Pose, K: np.ndarray, x0: np.ndarray, x1: np.ndarray) -> int:
-    """How many correspondences triangulate in front of both cameras."""
+def in_front_of_both(
+    pose: Pose, K: np.ndarray, x0: np.ndarray, x1: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """Triangulate a candidate pose, and say which points it puts in front.
+
+    The cheirality test, with its working kept: three of an essential matrix's
+    four decompositions put most of the scene behind a camera, and which points
+    those are is the whole of the argument for discarding them.
+    """
     X = triangulate_two_view(x0, x1, K, Pose.identity(), K, pose)
     ok = np.isfinite(X).all(axis=1)
     if not ok.any():
-        return 0
-    return int((ok & (X[:, 2] > 0) & (pose.transform(np.nan_to_num(X))[:, 2] > 0)).sum())
+        return X, ok
+    ahead = ok & (X[:, 2] > 0) & (pose.transform(np.nan_to_num(X))[:, 2] > 0)
+    return X, ahead
+
+
+def _cheirality_count(pose: Pose, K: np.ndarray, x0: np.ndarray, x1: np.ndarray) -> int:
+    """How many correspondences triangulate in front of both cameras."""
+    return int(in_front_of_both(pose, K, x0, x1)[1].sum())
 
 
 def recover_pose(E: np.ndarray, K: np.ndarray, x0: np.ndarray, x1: np.ndarray) -> Pose:
@@ -138,6 +152,21 @@ def recover_pose(E: np.ndarray, K: np.ndarray, x0: np.ndarray, x1: np.ndarray) -
     cands = essential_to_poses(E)
     counts = [_cheirality_count(p, K, x0, x1) for p in cands]
     return cands[int(np.argmax(counts))]
+
+
+def epipoles(F: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Where each camera falls in the other's image, in homogeneous coordinates.
+
+    The epipole of image 0 is the null space of ``F``, that of image 1 the null
+    space of ``F.T``; both exist because ``F`` is singular by construction. A
+    third coordinate near zero puts one at infinity, which is what two cameras
+    whose optical axes are nearly parallel give.
+    """
+    F = np.asarray(F, dtype=float)
+    _, _, Vt = np.linalg.svd(F)
+    e0 = Vt[-1]
+    _, _, Vt = np.linalg.svd(F.T)
+    return e0, Vt[-1]
 
 
 def triangulate_two_view(

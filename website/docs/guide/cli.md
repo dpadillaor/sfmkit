@@ -154,8 +154,9 @@ overlay, the difference and the change mask into `changes/`.
 ### `figures`
 
 The plots for a finished run: the two reconstructions side by side, the camera
-positions against COLMAP's, matches, epipolar lines, residuals, track lengths,
-and the dense cloud when there is one. Writes `figures/`.
+positions against COLMAP's, matches, epipolar lines and their epipole, the four
+poses the seed pair's essential matrix decomposes into, residuals, track
+lengths, and the dense cloud when there is one. Writes `figures/`.
 
 ## Exit codes and errors
 

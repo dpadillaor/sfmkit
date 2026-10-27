@@ -78,7 +78,23 @@ rather than of a matcher failing.*
 ![Epipolar lines](../figures/epipolar.jpg)
 
 *The epipolar geometry the verified pairs imply: a point in one photograph and
-the line it must lie on in the other.*
+the line it must lie on in the other. The lines meet at the epipole, marked
+`e`: where the line joining the two camera centres pierces the image. In
+`Img14` that is literally where `Img01` stood, a few steps in front of it; in
+`Img01` it is the same line going the other way, since `Img14` is behind it.
+The marker is drawn only when the epipole lands inside the photograph — two
+cameras pointed the same way put it far outside, or at infinity, and there is
+no pixel to mark.*
+
+![The four poses an essential matrix decomposes into](../figures/pose_candidates.png)
+
+*A decision the pipeline makes in one line and leaves no trace of. An essential
+matrix decomposes into four poses, and three of them are not near misses: seen
+from above, each puts every one of the 624 correspondences behind a camera,
+where no photograph could have held it. Reversing the sign of `t` leaves the
+two rays meeting at the cameras themselves, which is why the top pair collapses
+to a smear on the baseline. The fourth keeps all 624 in front, and is the one
+`recover_pose` counts its way to.*
 
 ![Reprojection residuals](../figures/residuals.jpg)
 

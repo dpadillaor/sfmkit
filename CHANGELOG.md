@@ -18,6 +18,11 @@ What it will carry:
   `dense`, `evaluate`, `changes`, `figures`. A stage the config says nothing
   about is walked past, so a project with no historical photograph and no
   COLMAP runs what it has.
+- **Two figures that carry an argument the code makes silently**: the four
+  poses an essential matrix decomposes into, seen from above with every point
+  each one sends behind a camera in red, so the cheirality count that
+  `recover_pose` does in a line can be looked at; and the epipole marked on the
+  epipolar figure, when it lands inside the photograph.
 - **`sfmkit new`**, a project laid out for you — `data/scene/`, `configs/` and
   a config that parses — with `--photos` to copy a directory of photographs in
   and list them. The layout a config is found by is written by the code that

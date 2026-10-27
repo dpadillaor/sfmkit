@@ -7,16 +7,23 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.patheffects as pe  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-from sfmkit.core.geometry import rodrigues  # noqa: E402
+from sfmkit.core.geometry import (  # noqa: E402
+    epipoles,
+    essential_to_poses,
+    in_front_of_both,
+    rodrigues,
+)
 from sfmkit.core.metrics import align_to_reference, scale_between  # noqa: E402
 from sfmkit.core.types import Matches, Pose, Reconstruction  # noqa: E402
 
 __all__ = [
     "plot_comparison", "plot_camera_layout", "plot_track_lengths",
-    "plot_matches", "plot_epipolar", "plot_residuals", "plot_dense", "render_points", "orbit",
+    "plot_matches", "plot_epipolar", "plot_pose_candidates", "plot_residuals",
+    "plot_dense", "render_points", "orbit",
 ]
 
 # The viewer's own colours (web/js/palette.js), so a figure and the viewer
@@ -250,11 +257,37 @@ def plot_matches(image0, image1, matches, out_path, max_lines: int = 400):
     return out_path
 
 
+def _mark_epipoles(F, ax0, ax1, image0, image1):
+    """Draw each epipole on the image it belongs to, when it lands in frame.
+
+    The epipole of a pair of nearly parallel cameras sits far outside the
+    photograph, or at infinity, and a marker for it would either distort the
+    axes or be silently missing; the title says so instead.
+    """
+    for ax, e, image in ((ax0, epipoles(F)[0], image0), (ax1, epipoles(F)[1], image1)):
+        h, w = image.shape[:2]
+        if abs(e[2]) < 1e-12:
+            yield ax, ", epipole at infinity"
+            continue
+        x, y = e[0] / e[2], e[1] / e[2]
+        if not (0 <= x < w and 0 <= y < h):
+            yield ax, f", epipole outside the frame at ({x:.0f}, {y:.0f})"
+            continue
+        for colour, width in (("white", 4.5), (EDGE, 1.8)):  # a halo, so it reads on any photograph
+            ax.plot(x, y, "o", mfc="none", mec=colour, ms=15, mew=width, zorder=6)
+            ax.plot(x, y, "+", color=colour, ms=15, mew=width, zorder=6)
+        ax.annotate("e", (x, y), xytext=(11, 7), textcoords="offset points", fontsize=12,
+                    color="white", fontweight="bold", zorder=7,
+                    path_effects=[pe.withStroke(linewidth=3, foreground=EDGE)])
+        yield ax, ", epipole marked"
+
+
 def plot_epipolar(image0, image1, F, points, out_path, n: int = 8, seed: int = 0):
     """Points in one image and the epipolar lines they induce in the other.
 
     The visual check on a fundamental matrix: every correspondence must lie on
-    its line. Lines converging on a common point locate the epipole.
+    its line. The lines converge on the epipole, which is where the other
+    camera itself falls in the frame; it is marked when it lands inside one.
     """
     rng = np.random.default_rng(seed)
     idx = rng.choice(len(points), min(n, len(points)), replace=False)
@@ -273,8 +306,9 @@ def plot_epipolar(image0, image1, F, points, out_path, n: int = 8, seed: int = 0
             ax1.plot(xs, -(a * xs + cc) / b, "-", color=c, lw=1.2)
         elif abs(a) > 1e-9:
             ax1.axvline(-cc / a, color=c, lw=1.2)
+    titles = dict(_mark_epipoles(F, ax0, ax1, image0, image1))
     for ax, t in ((ax0, "points"), (ax1, "their epipolar lines")):
-        ax.set_title(t, fontsize=11)
+        ax.set_title(f"{t}{titles.get(ax, '')}", fontsize=11)
         ax.set_xlim(0, ax.images[0].get_array().shape[1])
         ax.set_ylim(ax.images[0].get_array().shape[0], 0)
         ax.set_xticks([])
@@ -283,6 +317,96 @@ def plot_epipolar(image0, image1, F, points, out_path, n: int = 8, seed: int = 0
     fig.tight_layout()
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=110)
+    plt.close(fig)
+    return out_path
+
+
+def _camera_in_plane(ax, pose: Pose, colour: str, label: str, reach: float) -> None:
+    """A camera seen from above: its centre, and the cone it sees along."""
+    cx, cz = pose.center[0], pose.center[2]
+    forward = pose.R.T @ np.array([0.0, 0.0, 1.0])
+    fx, fz = forward[0], forward[2]
+    side = np.array([-fz, fx])
+    for sign in (1, -1):
+        tip = np.array([cx, cz]) + reach * (np.array([fx, fz]) + 0.36 * sign * side)
+        ax.plot([cx, tip[0]], [cz, tip[1]], "-", color=colour, lw=1.6, alpha=0.9)
+    ax.scatter(cx, cz, s=95, marker="o", color=colour, edgecolors=EDGE, linewidths=0.9, zorder=5)
+    ax.annotate(label, (cx, cz), xytext=(7, 6), textcoords="offset points",
+                fontsize=9, color=EDGE, fontweight="bold")
+
+
+def plot_pose_candidates(E, K, x0, x1, out_path, *, names=("C0", "C1")):
+    """The four poses an essential matrix decomposes into, and why three are wrong.
+
+    ``recover_pose`` picks one of them in a line, by counting the points each
+    puts in front of both cameras. That count is the whole argument, and it
+    leaves no trace in the reconstruction that follows; here the three rejected
+    poses are drawn beside the one taken, with every point each of them sends
+    behind a camera in red.
+
+    Seen from above, since cheirality is the sign of a depth: a camera is a
+    cone opening the way it looks, and a point on the wrong side of one is a
+    point no photograph could have held. The baseline is one unit in every
+    candidate -- ``t`` comes out of the SVD normalised -- so the four panels
+    share a scale.
+    """
+    labels = [r"$R_1,\ +t$", r"$R_1,\ -t$", r"$R_2,\ +t$", r"$R_2,\ -t$"]
+    candidates = essential_to_poses(E)
+    drawn = [in_front_of_both(pose, K, x0, x1) for pose in candidates]
+    counts = [int(ahead.sum()) for _, ahead in drawn]
+    chosen = int(np.argmax(counts))
+
+    # The box the accepted scene asks for, which every panel then keeps: the
+    # rejected ones are worth seeing at the size of the answer, not their own.
+    good = drawn[chosen][0][drawn[chosen][1]]
+    extent = np.percentile(np.abs(good[:, [0, 2]]), 96) if len(good) else 1.0
+    half = 1.5 * max(extent, 1.0)
+    centre = np.median(good[:, [0, 2]], axis=0) / 2 if len(good) else np.zeros(2)
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 11), layout="constrained")
+    for ax, pose, (X, ahead), label, n in zip(
+        axes.ravel(), candidates, drawn, labels, counts, strict=True
+    ):
+        xz = X[:, [0, 2]]
+        near = np.isfinite(xz).all(axis=1) & (np.abs(xz - centre).max(axis=1) < half)
+        ax.scatter(*xz[near & ahead].T, s=5, c=OURS, alpha=0.85, lw=0,
+                   label=f"in front of both ({n})")
+        if (~ahead).any():
+            ax.scatter(*xz[near & ~ahead].T, s=6, c=ERROR, alpha=0.85, lw=0,
+                       label=f"behind a camera ({len(x0) - n})")
+        _camera_in_plane(ax, Pose.identity(), EDGE, names[0], 0.5 * half)
+        _camera_in_plane(ax, pose, THEIRS, names[1], 0.5 * half)
+        ax.set_xlim(centre[0] - half, centre[0] + half)
+        ax.set_ylim(centre[1] - half, centre[1] + half)
+        ax.set_aspect("equal")
+        ax.set_xlabel("X", fontsize=9)
+        ax.set_ylabel("Z, the direction C0 looks in", fontsize=9)
+        ax.grid(alpha=0.18, lw=0.7)
+        ax.set_axisbelow(True)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        taken = ax is axes.ravel()[chosen]
+        ax.set_title(f"{label}   —   {n} of {len(x0)} in front"
+                     f"{', chosen' if taken else ''}",
+                     fontsize=11.5, color=EDGE if taken else "#90a4ae",
+                     fontweight="bold" if taken else "normal")
+        ax.legend(loc="lower right", fontsize=8, framealpha=0.9)
+
+    # The header is written into the margin the layout engine is told to leave,
+    # rather than over the first panel.
+    fig.get_layout_engine().set(rect=(0, 0, 1, 0.87))
+    fig.suptitle("The four decompositions of one essential matrix", fontsize=13.5,
+                 x=0.008, y=0.985, ha="left", va="top")
+    fig.text(0.008, 0.945,
+             "Seen from above: the same two cameras and the same correspondences, triangulated\n"
+             "under each pose. Three send the scene behind a camera, which no photograph could\n"
+             f"have held; the fourth keeps {counts[chosen]} of {len(x0)} points in front of both, "
+             "and is the one taken.\nReversing the sign of t leaves the rays meeting at the "
+             "cameras themselves, so the cloud collapses\nonto them. One unit is the baseline "
+             "between the two.",
+             fontsize=9.5, color="#546e7a", va="top")
+    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=140, bbox_inches="tight")
     plt.close(fig)
     return out_path
 

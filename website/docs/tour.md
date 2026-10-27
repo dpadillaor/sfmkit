@@ -112,7 +112,8 @@ rotation_error_deg(rel.R, truth.R)       # 0.0000 degrees
 `F` knows nothing about the camera; `E` adds the calibration, and from `E` the
 relative pose follows. Almost: `E` decomposes into **four** candidate poses, of
 which only one puts the points in front of both cameras. `recover_pose` tries
-all four and counts.
+all four and counts; `sfmkit figures` draws
+[what it threw away](guide/runs.md#the-figures).
 
 ```python
 X = triangulate_two_view(x0, x1, scene.K, scene.poses["cam00"],
