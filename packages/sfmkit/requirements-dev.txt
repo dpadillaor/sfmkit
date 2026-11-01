@@ -1,11 +1,11 @@
 # Tests, lint and import contracts, for development and CI, on top of the
 # environment in requirements.txt. Install with --no-deps as well.
 click==8.5.0
-coverage==7.16.0
-grimp==3.17
+coverage==7.17.0
+grimp==3.18
 import-linter==2.15
-iniconfig==2.3.0
-pluggy==1.6.0
+iniconfig==2.3.1
+pluggy==1.7.0
 pytest-cov==7.1.0
-pytest==9.1.1
-ruff==0.16.7
+pytest==9.2.0
+ruff==0.17.3
